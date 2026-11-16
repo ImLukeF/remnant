@@ -6,6 +6,21 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_selection_rejects_a_model_that_never_recognizes_one_stage(self):
+        from improve_model import choose_candidate, metrics
+        from features import STAGES
+        rows = [{"stage": stage, "subject": "validation"} for stage in STAGES for _ in range(25)]
+        collapsed = metrics(rows, [[0, 1, 0, 0]] * len(rows))
+        weak = [[1 if k == (STAGES.index(row["stage"]) if i % 25 == 0 else (STAGES.index(row["stage"]) + 1) % 4) else 0
+                 for k in range(4)] for i, row in enumerate(rows)]
+        complete = metrics(rows, weak)
+        self.assertGreater(collapsed["macroF1"], complete["macroF1"])
+        candidates = [{"id": i, "fitsNativeImporter": True, "validation": score}
+                      for i, score in enumerate((collapsed, complete))]
+        self.assertEqual(choose_candidate(candidates, "macroF1")["id"], 1)
+        with self.assertRaises(ValueError):
+            choose_candidate(candidates[:1], "macroF1")
+
     def test_final_tree_refit_uses_the_frozen_round_count(self):
         try:
             import xgboost

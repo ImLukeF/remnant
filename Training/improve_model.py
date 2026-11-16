@@ -112,6 +112,15 @@ def parameters_digest(model):
     return hashlib.sha256(json.dumps(fields, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
+def choose_candidate(candidates, primary):
+    eligible = [entry for entry in candidates if entry["fitsNativeImporter"]
+                and all(recall > 0 for recall in entry["validation"]["recallPerClass"])]
+    if not eligible:
+        raise ValueError("No importable candidate recognizes every stage on validation; no final test may be read.")
+    return max(eligible, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"],
+                                           entry["validation"]["recallPerClass"][1], -entry["id"]))
+
+
 def run(args):
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -148,6 +157,7 @@ def run(args):
               "developmentEpochsSHA256": combined.hexdigest(), "developmentExtractorSHA256": previous["extractorSHA256"],
               "featureProfile": args.profile, "previouslyObservedSubjects": observed, "excludedForNoUsableAudio": excluded,
               "refitOnAllDevelopment": args.refit_development,
+              "selectionEligibility": "Fits native import budget and has positive validation recall for every stage.",
               "selectionMetric": primary + "; balanced accuracy and light recall break ties", "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()}
     atomic_json(root / "protocol.json", config)
     candidates = []
@@ -174,10 +184,7 @@ def run(args):
             atomic_json(root / "candidates.json", candidates)
             print(json.dumps({"event": "candidate", "id": entry["id"], "history": history, "kind": kind,
                               "balancedAccuracy": score["balancedAccuracy"], "lightRecall": score["recallPerClass"][1]}), flush=True)
-    eligible = [entry for entry in candidates if entry["fitsNativeImporter"]]
-    if not eligible:
-        raise ValueError("No selected candidate fits the native model import budget.")
-    winner = max(eligible, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
+    winner = choose_candidate(candidates, primary)
     chosen = json.loads((root / f"candidate-{winner['id']}.json").read_text())
     refit = None
     if args.refit_development:

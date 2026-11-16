@@ -106,7 +106,7 @@ against this test set; use a separate validation cohort for model selection.
 `Training/run_spectral_corpus.py` re-extracts the same verified development recordings with the
 spectral profile. `Training/improve_model.py --profile spectral` compares current-epoch and
 five-minute causal context with regularized linear and boosted-tree candidates. It selects on
-validation macro F1, subject to the native import size limit; balanced accuracy and light-sleep
+validation macro F1, subject to the native import size limit and positive validation recall for every stage; balanced accuracy and light-sleep
 recall break ties. During selection, normalization and fitting use only training participants.
 Tree early stopping uses validation only. The optional `--refit-development` flag then retrains the
 selected settings on all development people, using the selected fixed tree-round count and no

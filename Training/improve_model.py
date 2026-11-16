@@ -141,6 +141,7 @@ def run(args):
               "validationSubjects": sorted(s for s, role in roles.items() if role != "train"),
               "finalTestNotRead": True, "seed": 7, "histories": [1, 10], "linearPenalties": [0.01, 0.1],
               "treeDepths": [2, 4], "treeBalancePowers": [0.5, 1.0], "treeMaxRounds": 300,
+              "maximumPayloadBytes": 512000, "evaluationMetadataReserveBytes": 4096,
               "developmentEpochsSHA256": combined.hexdigest(), "developmentExtractorSHA256": previous["extractorSHA256"],
               "featureProfile": args.profile, "previouslyObservedSubjects": observed, "excludedForNoUsableAudio": excluded,
               "selectionMetric": primary + "; balanced accuracy and light recall break ties", "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()}
@@ -160,13 +161,19 @@ def run(args):
             if args.profile == "spectral":
                 model["featureProfile"] = "spectral-v4"
             score = metrics(validation, [predict(model, row["modelFeatures"]) for row in validation])
-            entry = {"id": len(candidates), "history": history, "kind": kind, "settings": settings, "fit": detail, "validation": score}
+            payload_bytes = len((json.dumps(model, indent=2, allow_nan=False) + "\n").encode())
+            entry = {"id": len(candidates), "history": history, "kind": kind, "settings": settings, "fit": detail, "validation": score,
+                     "payloadBytes": payload_bytes,
+                     "fitsNativeImporter": payload_bytes <= config["maximumPayloadBytes"] - config["evaluationMetadataReserveBytes"]}
             atomic_json(root / f"candidate-{entry['id']}.json", model)
             candidates.append(entry)
             atomic_json(root / "candidates.json", candidates)
             print(json.dumps({"event": "candidate", "id": entry["id"], "history": history, "kind": kind,
                               "balancedAccuracy": score["balancedAccuracy"], "lightRecall": score["recallPerClass"][1]}), flush=True)
-    winner = max(candidates, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
+    eligible = [entry for entry in candidates if entry["fitsNativeImporter"]]
+    if not eligible:
+        raise ValueError("No selected candidate fits the native model import budget.")
+    winner = max(eligible, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
     chosen = json.loads((root / f"candidate-{winner['id']}.json").read_text())
     atomic_json(root / "selected-model.json", chosen)
     atomic_json(root / "selection.json", {**winner, "parametersSHA256": parameters_digest(chosen), "finalTestRead": False,

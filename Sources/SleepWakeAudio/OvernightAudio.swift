@@ -16,28 +16,51 @@ public final class OvernightAudio {
     private var observer: (any NSObjectProtocol)?
     private var routeObserver: (any NSObjectProtocol)?
     private var continuation: AsyncStream<Event>.Continuation?
+    private var starting = false
+    private var generation = UUID()
+    private var previousInput: AVAudioSessionPortDescription?
 
     public init() {}
 
     public func start(canStart: () -> Bool = { true }) async throws -> AsyncStream<Event> {
-        guard engine == nil else { throw Failure.alreadyRunning }
+        guard engine == nil, !starting else { throw Failure.alreadyRunning }
+        starting = true
+        let attempt = UUID()
+        generation = attempt
+        defer { starting = false }
         guard await AVAudioApplication.requestRecordPermission() else { throw Failure.permissionDenied }
+        try Task.checkCancellation()
+        guard generation == attempt else { throw CancellationError() }
         guard canStart() else { throw Failure.microphoneInUse }
         let session = AVAudioSession.sharedInstance()
+        previousInput = session.preferredInput
         // Preserve physical breathing sounds; speech enhancement/voice processing would alter the signal.
-        try session.setCategory(.playAndRecord, mode: .measurement, options: [.mixWithOthers, .defaultToSpeaker])
-        try session.setPreferredInput(session.availableInputs?.first { $0.portType == .builtInMic })
-        try session.setActive(true)
+        do {
+            try session.setCategory(.playAndRecord, mode: .measurement, options: [.mixWithOthers, .defaultToSpeaker])
+            try session.setPreferredInput(session.availableInputs?.first { $0.portType == .builtInMic })
+            try session.setActive(true)
+        } catch {
+            try? session.setPreferredInput(previousInput)
+            previousInput = nil
+            throw error
+        }
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate >= 8_000, format.sampleRate == format.sampleRate.rounded(),
-              format.channelCount > 0 else {
+        guard (8_000...192_000).contains(format.sampleRate), format.sampleRate == format.sampleRate.rounded(),
+              format.channelCount > 0, format.commonFormat == .pcmFormatFloat32, !format.isInterleaved else {
+            try? session.setPreferredInput(previousInput)
             try? session.setActive(false, options: .notifyOthersOnDeactivation)
             throw Failure.invalidInput
         }
         let (stream, continuation) = AsyncStream<Event>.makeStream(bufferingPolicy: .bufferingNewest(4))
         self.continuation = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.generation == attempt else { return }
+                self.stop()
+            }
+        }
         let processor = try Processor(sampleRate: Int(format.sampleRate), continuation: continuation)
         input.installTap(onBus: 0, bufferSize: 4_096, format: format) { buffer, time in
             processor.process(buffer, time: time)
@@ -48,6 +71,7 @@ public final class OvernightAudio {
             input.removeTap(onBus: 0)
             continuation.finish()
             self.continuation = nil
+            try? session.setPreferredInput(previousInput)
             try? session.setActive(false, options: .notifyOthersOnDeactivation)
             throw error
         }
@@ -62,6 +86,7 @@ public final class OvernightAudio {
     }
 
     public func stop(deactivateSession: Bool = true) {
+        generation = UUID()
         guard let engine else { return }
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
@@ -73,6 +98,8 @@ public final class OvernightAudio {
         continuation?.yield(.stopped)
         continuation?.finish()
         continuation = nil
+        try? AVAudioSession.sharedInstance().setPreferredInput(previousInput)
+        previousInput = nil
         if deactivateSession {
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }

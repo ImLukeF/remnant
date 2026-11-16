@@ -280,6 +280,9 @@ def run(args):
     with combined.open("w") as output:
         for item in plan:
             output.write((features_dir / (Path(item["path"]).stem + ".jsonl")).read_text())
+    if args.extract_only:
+        print(json.dumps({"event": "extracted_only", "blocks": len(plan), "fittingPerformed": False}), flush=True)
+        return
     rows = load_rows(combined)
     model, report = fit(rows, args.steps)
     model.update(modelID=args.model_id, dataSource=f"PSG-Audio V3; CC BY 4.0; DOI 10.11922/sciencedb.00345; mirror {REVISION}")
@@ -311,6 +314,7 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=40)
     parser.add_argument("--model-id", default="psg-audio-baseline-v1")
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--extract-only", action="store_true", help="Prepare observations without fitting or scoring a model.")
     parser.add_argument("--supplement", action="append", default=[], help="Explicit EDF block for annotation coverage, from an already selected night.")
     parser.add_argument("--supplement-reason", default="")
     arguments = parser.parse_args()

@@ -1,0 +1,79 @@
+{
+  "status": "experimental",
+  "confusionMatrix": [
+    [
+      32,
+      11,
+      5,
+      40
+    ],
+    [
+      209,
+      117,
+      339,
+      486
+    ],
+    [
+      77,
+      9,
+      122,
+      85
+    ],
+    [
+      6,
+      17,
+      30,
+      60
+    ]
+  ],
+  "classOrder": [
+    "awake",
+    "light",
+    "deep",
+    "rem"
+  ],
+  "recallPerClass": [
+    0.36363636363636365,
+    0.10165073848827107,
+    0.41638225255972694,
+    0.5309734513274337
+  ],
+  "trainingEpochs": 3073,
+  "testEpochs": 1645,
+  "trainingSubjects": 14,
+  "testSubjects": 6,
+  "usesFutureAudio": false,
+  "approvedForAlarmTiming": false,
+  "dataset": {
+    "source": "https://www.scidb.cn/en/detail?dataSetId=778740145531650048",
+    "name": "PSG-Audio",
+    "version": "3.0.0",
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "metadataSHA256": "7c11760f35216d5043d6ed72247cf72b45bc154704d715abd9c65a1717f62c59"
+  },
+  "mirrorRevision": "cb22565b02c6161be30d791ad72847ec8bd0de5a",
+  "downloadedBytes": 28052880984,
+  "extractorSHA256": "a43b575b25149fba3424f4fd32c2e3128c91beeb8cead73e00b022165c51e306",
+  "trainingSteps": 40,
+  "modelID": "psg-audio-baseline-v1",
+  "coverageSupplements": [
+    "APNEA_EDF/00001438-100507/00001438-100507[005].edf",
+    "APNEA_EDF/00001611-100507/00001611-100507[007].edf"
+  ],
+  "supplementReason": "Initial temporal test sample had no REM. Added the REM-containing blocks from both affected held-out participants using annotations before any fitting or prediction; fixed model and split unchanged.",
+  "sourceSha": "d9d01c38ebcab9ee5a5fe752457d1a000340117a",
+  "stageCounts": {
+    "train": {
+      "light": 2598,
+      "awake": 176,
+      "deep": 161,
+      "rem": 138
+    },
+    "test": {
+      "light": 1151,
+      "awake": 88,
+      "deep": 293,
+      "rem": 113
+    }
+  }
+}

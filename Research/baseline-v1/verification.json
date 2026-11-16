@@ -1,0 +1,38 @@
+{
+  "sourceSha": "d9d01c38ebcab9ee5a5fe752457d1a000340117a",
+  "balancedAccuracy": 0.3531607015029488,
+  "ordinaryAccuracy": 0.2012158054711246,
+  "nativeExportCheck": {
+    "heldOutEpochs": 20,
+    "maximumProbabilityDifference": 1.6653345369377348e-16,
+    "tolerance": 1e-09,
+    "passed": true
+  },
+  "reportConsistencyCheck": true,
+  "approvedForAlarmTiming": false,
+  "observedEnvironment": {
+    "python": "3.12.3",
+    "numpy": "2.5.5",
+    "pyedflib": "0.1.42"
+  },
+  "subjectsPerStage": {
+    "train": {
+      "awake": 12,
+      "light": 14,
+      "deep": 5,
+      "rem": 7
+    },
+    "test": {
+      "awake": 6,
+      "light": 6,
+      "deep": 4,
+      "rem": 2
+    }
+  },
+  "artifactsSHA256": {
+    "model.json": "bc20fa82ec7f086794300e0d72e77cde4be355a2df1ddeeca43b26db6014ae00",
+    "evaluation.json": "9336eed1b12f132aae7ef79b43cf1562382bc452bd367bf48f2fc926a6a89666",
+    "download-plan.json": "5a3d6e4d480610c9b81a54804d4a675cd0d88cd5528c7e0d41a4002e2d0d0102",
+    "initial-download-plan.json": "50f5d2ac91d1a90ca54ecc6e86dac484a7650295dd029e060386c848c44c5cd7"
+  }
+}

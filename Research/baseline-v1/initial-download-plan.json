@@ -1,0 +1,376 @@
+{
+  "repository": "Samuelsantos777/psg-audio-v3-unofficial-mirror",
+  "revision": "cb22565b02c6161be30d791ad72847ec8bd0de5a",
+  "subjectsRequested": 20,
+  "blocksPerSubject": 2,
+  "extractorSHA256": "a43b575b25149fba3424f4fd32c2e3128c91beeb8cead73e00b022165c51e306",
+  "licenceEvidence": {
+    "source": "https://www.scidb.cn/en/detail?dataSetId=778740145531650048",
+    "name": "PSG-Audio",
+    "version": "3.0.0",
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "metadataSHA256": "7c11760f35216d5043d6ed72247cf72b45bc154704d715abd9c65a1717f62c59"
+  },
+  "files": [
+    {
+      "subject": "00001095",
+      "recording": "00001095-100507",
+      "rml": "APNEA_RML/00001095-100507.rml",
+      "rmlGitOID": "1f7ac624bd00694e0240aaa7ca993f590e196548",
+      "path": "APNEA_EDF/00001095-100507/00001095-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "4415a868f1f605c39bd173ea654c5b557830487528684b170ea5607939b8686b"
+    },
+    {
+      "subject": "00001095",
+      "recording": "00001095-100507",
+      "rml": "APNEA_RML/00001095-100507.rml",
+      "rmlGitOID": "1f7ac624bd00694e0240aaa7ca993f590e196548",
+      "path": "APNEA_EDF/00001095-100507/00001095-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "5846b6996f88a0bc9a047ec2cd2ac9d956820c905444ef31bb8592f5889a7d9d"
+    },
+    {
+      "subject": "00001436",
+      "recording": "00001436-100507",
+      "rml": "APNEA_RML/00001436-100507.rml",
+      "rmlGitOID": "18e351475dd089d654f04fdb1cc28b12134e71ac",
+      "path": "APNEA_EDF/00001436-100507/00001436-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "340fbb44fbc43f7eeadcdd3dc476d156b54dcea63814ad02aa30fa5f9ae8c260"
+    },
+    {
+      "subject": "00001436",
+      "recording": "00001436-100507",
+      "rml": "APNEA_RML/00001436-100507.rml",
+      "rmlGitOID": "18e351475dd089d654f04fdb1cc28b12134e71ac",
+      "path": "APNEA_EDF/00001436-100507/00001436-100507[005].edf",
+      "bytes": 710738976,
+      "sha256": "55498d85e472e8a5e9e3edae40de08786d232fc2fef01578e23f4f09be76fa9a"
+    },
+    {
+      "subject": "00001270",
+      "recording": "00001270-100507",
+      "rml": "APNEA_RML/00001270-100507.rml",
+      "rmlGitOID": "591b366986dcad7555b7835a4c5d958085f080ef",
+      "path": "APNEA_EDF/00001270-100507/00001270-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "cb9904338c70983411ebd3c07dfbbf84ce4c9d38d9987ce4dc605a89dd098ecf"
+    },
+    {
+      "subject": "00001270",
+      "recording": "00001270-100507",
+      "rml": "APNEA_RML/00001270-100507.rml",
+      "rmlGitOID": "591b366986dcad7555b7835a4c5d958085f080ef",
+      "path": "APNEA_EDF/00001270-100507/00001270-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "6d6c64f20b9e3e69c72f48fa61c72d949dc60ce80e4b0dfcb5ad3f5b3cfe3694"
+    },
+    {
+      "subject": "00001628",
+      "recording": "00001628-100507",
+      "rml": "APNEA_RML/00001628-100507.rml",
+      "rmlGitOID": "035374cb3367392e0e6bbb8f0d929c6e7a5eb722",
+      "path": "APNEA_EDF/00001628-100507/00001628-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "fc28b49ddc94be7f94abe4ccca36ff0e6567e9d0159eda3ba8ca98985c0cf188"
+    },
+    {
+      "subject": "00001628",
+      "recording": "00001628-100507",
+      "rml": "APNEA_RML/00001628-100507.rml",
+      "rmlGitOID": "035374cb3367392e0e6bbb8f0d929c6e7a5eb722",
+      "path": "APNEA_EDF/00001628-100507/00001628-100507[006].edf",
+      "bytes": 710738976,
+      "sha256": "0dcc31e0420ac898d25446b4854b9580c69442e71ae45dc50b4b7f6630879df7"
+    },
+    {
+      "subject": "00001380",
+      "recording": "00001380-100507",
+      "rml": "APNEA_RML/00001380-100507.rml",
+      "rmlGitOID": "c1f13329aad917d8a1fca9d2c969757520f2c4c6",
+      "path": "APNEA_EDF/00001380-100507/00001380-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "3a796277574cc8c2f8162cc431218cf7e6944a5add2438dddd1f94db2712c00a"
+    },
+    {
+      "subject": "00001380",
+      "recording": "00001380-100507",
+      "rml": "APNEA_RML/00001380-100507.rml",
+      "rmlGitOID": "c1f13329aad917d8a1fca9d2c969757520f2c4c6",
+      "path": "APNEA_EDF/00001380-100507/00001380-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "14f2940d4f227519387eb748f2ae01c458c4926b1cf763000a7d002f6f80a888"
+    },
+    {
+      "subject": "00001071",
+      "recording": "00001071-100507",
+      "rml": "APNEA_RML/00001071-100507.rml",
+      "rmlGitOID": "e9f4c6542c15ecfb846d714e13dc69aaa3ff8d0a",
+      "path": "APNEA_EDF/00001071-100507/00001071-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "fa44cbc9730186a62efe383b01e0c99c78148143fd3752eee03d32677b294c4e"
+    },
+    {
+      "subject": "00001071",
+      "recording": "00001071-100507",
+      "rml": "APNEA_RML/00001071-100507.rml",
+      "rmlGitOID": "e9f4c6542c15ecfb846d714e13dc69aaa3ff8d0a",
+      "path": "APNEA_EDF/00001071-100507/00001071-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "840736219ef2277d81f95d5b0578e9d3cfade543331871f6a8c58301cfff16a2"
+    },
+    {
+      "subject": "00001486",
+      "recording": "00001486-100507",
+      "rml": "APNEA_RML/00001486-100507.rml",
+      "rmlGitOID": "a6c1236d8abcdd05f7f213bbf9b0f899f4ce0bb9",
+      "path": "APNEA_EDF/00001486-100507/00001486-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "c97121d2f34d5511fca151985c3054604c1e678544ec7044afdca948f3c33b31"
+    },
+    {
+      "subject": "00001486",
+      "recording": "00001486-100507",
+      "rml": "APNEA_RML/00001486-100507.rml",
+      "rmlGitOID": "a6c1236d8abcdd05f7f213bbf9b0f899f4ce0bb9",
+      "path": "APNEA_EDF/00001486-100507/00001486-100507[005].edf",
+      "bytes": 710738976,
+      "sha256": "fbfb8e64f56c58f1cdf6c537918ab862d688f761aa25d41c5d031b5758d8efbf"
+    },
+    {
+      "subject": "00001057",
+      "recording": "00001057-100507",
+      "rml": "APNEA_RML/00001057-100507.rml",
+      "rmlGitOID": "d13f36d2fbba31b09e2f41559df8fc4f490a2a73",
+      "path": "APNEA_EDF/00001057-100507/00001057-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "5b695b53a2a2ae930cb65890470777af0bb982de56ae0ed16b587993f458378c"
+    },
+    {
+      "subject": "00001057",
+      "recording": "00001057-100507",
+      "rml": "APNEA_RML/00001057-100507.rml",
+      "rmlGitOID": "d13f36d2fbba31b09e2f41559df8fc4f490a2a73",
+      "path": "APNEA_EDF/00001057-100507/00001057-100507[004].edf",
+      "bytes": 395252228,
+      "sha256": "11a1b11b01b297113208d23d2fec9c31dc5ae8543196fec68ac1bd323e88ad8b"
+    },
+    {
+      "subject": "00001679",
+      "recording": "00001679-100507",
+      "rml": "APNEA_RML/00001679-100507.rml",
+      "rmlGitOID": "f1d9ef658d5d2a19194d3511b3b4996e041873f2",
+      "path": "APNEA_EDF/00001679-100507/00001679-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "0a9fb8bf9adce0cf42d16444d814139e1e1106f41d4878096fcc50ba3330441e"
+    },
+    {
+      "subject": "00001679",
+      "recording": "00001679-100507",
+      "rml": "APNEA_RML/00001679-100507.rml",
+      "rmlGitOID": "f1d9ef658d5d2a19194d3511b3b4996e041873f2",
+      "path": "APNEA_EDF/00001679-100507/00001679-100507[005].edf",
+      "bytes": 710738976,
+      "sha256": "0c34e1ed9276f6e579720ed8743550d68eca68017dd8157efb52d6fe31b7cf9e"
+    },
+    {
+      "subject": "00001576",
+      "recording": "00001576-100507",
+      "rml": "APNEA_RML/00001576-100507.rml",
+      "rmlGitOID": "c387721334b42b21dba4747083d354f7770bc6cf",
+      "path": "APNEA_EDF/00001576-100507/00001576-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "ab065cd389f94c1e9a2ffab47f72dba3f98b7eef39503e69faa2ee6cfac803ad"
+    },
+    {
+      "subject": "00001576",
+      "recording": "00001576-100507",
+      "rml": "APNEA_RML/00001576-100507.rml",
+      "rmlGitOID": "c387721334b42b21dba4747083d354f7770bc6cf",
+      "path": "APNEA_EDF/00001576-100507/00001576-100507[004].edf",
+      "bytes": 611038846,
+      "sha256": "bdfea0aa8c8507e80febcd69d5a6b31fa2321acff57b23638b88121973f0a4b1"
+    },
+    {
+      "subject": "00001082",
+      "recording": "00001082-100507",
+      "rml": "APNEA_RML/00001082-100507.rml",
+      "rmlGitOID": "e9168a730406fdfcdb8a850851cf7452b4d0f002",
+      "path": "APNEA_EDF/00001082-100507/00001082-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "cb6f34a48dda2a9f5e9e5cbec782585d643a15ab6347d8e0334382de60e4cc59"
+    },
+    {
+      "subject": "00001082",
+      "recording": "00001082-100507",
+      "rml": "APNEA_RML/00001082-100507.rml",
+      "rmlGitOID": "e9168a730406fdfcdb8a850851cf7452b4d0f002",
+      "path": "APNEA_EDF/00001082-100507/00001082-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "a4f075ec256958f8548fc65013ee2e81977fce6bed0d4116942c83d2b70d120f"
+    },
+    {
+      "subject": "00001438",
+      "recording": "00001438-100507",
+      "rml": "APNEA_RML/00001438-100507.rml",
+      "rmlGitOID": "b8cb1aea1dc8903d91ad5dfe896cdeab801494fa",
+      "path": "APNEA_EDF/00001438-100507/00001438-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "cca9834b0392bc9d4f79d4061b80a81dd39965727b92247c00c97b139f376539"
+    },
+    {
+      "subject": "00001438",
+      "recording": "00001438-100507",
+      "rml": "APNEA_RML/00001438-100507.rml",
+      "rmlGitOID": "b8cb1aea1dc8903d91ad5dfe896cdeab801494fa",
+      "path": "APNEA_EDF/00001438-100507/00001438-100507[006].edf",
+      "bytes": 710738976,
+      "sha256": "5d70f9a1e8aaa182044c974204d7e8d01fc0a90c4a4a171699204afb94ab2c2b"
+    },
+    {
+      "subject": "00001615",
+      "recording": "00001615-100507",
+      "rml": "APNEA_RML/00001615-100507.rml",
+      "rmlGitOID": "549044c8fa8803efc880ed4ae5ff621a7afa8ba0",
+      "path": "APNEA_EDF/00001615-100507/00001615-100507[003].edf",
+      "bytes": 710738976,
+      "sha256": "1d6509637e9d92758eabe63f9f3926fb1a52f29a4e520908a788d18fddf6988b"
+    },
+    {
+      "subject": "00001615",
+      "recording": "00001615-100507",
+      "rml": "APNEA_RML/00001615-100507.rml",
+      "rmlGitOID": "549044c8fa8803efc880ed4ae5ff621a7afa8ba0",
+      "path": "APNEA_EDF/00001615-100507/00001615-100507[007].edf",
+      "bytes": 710738976,
+      "sha256": "f7e6fd3558b30f66de01006cb260b88ead25acaaaa7cdae93c83794f83028fc4"
+    },
+    {
+      "subject": "00001611",
+      "recording": "00001611-100507",
+      "rml": "APNEA_RML/00001611-100507.rml",
+      "rmlGitOID": "963f75376745b8642ef00dbf52e5d916e38fc0d1",
+      "path": "APNEA_EDF/00001611-100507/00001611-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "d15204039a379fbd31738d9928e51992a12a0d747f0ee768d060d261fe179678"
+    },
+    {
+      "subject": "00001611",
+      "recording": "00001611-100507",
+      "rml": "APNEA_RML/00001611-100507.rml",
+      "rmlGitOID": "963f75376745b8642ef00dbf52e5d916e38fc0d1",
+      "path": "APNEA_EDF/00001611-100507/00001611-100507[006].edf",
+      "bytes": 710738976,
+      "sha256": "08566da4e4c87e8427a95cae51229b448067dbc103ab5f6c82a9125cf849b751"
+    },
+    {
+      "subject": "00001510",
+      "recording": "00001510-100507",
+      "rml": "APNEA_RML/00001510-100507.rml",
+      "rmlGitOID": "6892e857f9d9ce2aaa90a81fec24bdab2a5ba864",
+      "path": "APNEA_EDF/00001510-100507/00001510-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "965737559af4b2f45e738655deab892697a83d994192fd1868eb38595b4811d5"
+    },
+    {
+      "subject": "00001510",
+      "recording": "00001510-100507",
+      "rml": "APNEA_RML/00001510-100507.rml",
+      "rmlGitOID": "6892e857f9d9ce2aaa90a81fec24bdab2a5ba864",
+      "path": "APNEA_EDF/00001510-100507/00001510-100507[004].edf",
+      "bytes": 57061490,
+      "sha256": "9580fb575b5df7ac853837147044c50ab4e113bf99022f2ce7a0f43228cf6c70"
+    },
+    {
+      "subject": "00001424",
+      "recording": "00001424-100507",
+      "rml": "APNEA_RML/00001424-100507.rml",
+      "rmlGitOID": "855f4933a4d3a394ec83fb3a6cae02eb6eabf738",
+      "path": "APNEA_EDF/00001424-100507/00001424-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "6768faf7a19cd3007eecd2f94a940b701d58c43a62ddaf0b2d85fe1c164f4ee4"
+    },
+    {
+      "subject": "00001424",
+      "recording": "00001424-100507",
+      "rml": "APNEA_RML/00001424-100507.rml",
+      "rmlGitOID": "855f4933a4d3a394ec83fb3a6cae02eb6eabf738",
+      "path": "APNEA_EDF/00001424-100507/00001424-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "e09724b23b31e2d7f3b4f7b1182dbb18055b872299d56b3485c730e22a61e2dc"
+    },
+    {
+      "subject": "00001541",
+      "recording": "00001541-100507",
+      "rml": "APNEA_RML/00001541-100507.rml",
+      "rmlGitOID": "c5b36637e9e840dba100537f50f08da07e78d358",
+      "path": "APNEA_EDF/00001541-100507/00001541-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "b37fd19e7c8b861d2c68dc09a478a56e8f2c916babafd098645ef59c266310f3"
+    },
+    {
+      "subject": "00001541",
+      "recording": "00001541-100507",
+      "rml": "APNEA_RML/00001541-100507.rml",
+      "rmlGitOID": "c5b36637e9e840dba100537f50f08da07e78d358",
+      "path": "APNEA_EDF/00001541-100507/00001541-100507[004].edf",
+      "bytes": 181834722,
+      "sha256": "a7ea5522711a523db03795054c64d32d5da7beecf35e1e1cb3231ee068e19a6e"
+    },
+    {
+      "subject": "00001118",
+      "recording": "00001118-100507",
+      "rml": "APNEA_RML/00001118-100507.rml",
+      "rmlGitOID": "7f8b2eef0fdaac41b8e28710b40cd573754ff611",
+      "path": "APNEA_EDF/00001118-100507/00001118-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "31821929423775c7694e6c9dee12707ce3fe1fea229b50f97f7b76cb2a59b952"
+    },
+    {
+      "subject": "00001118",
+      "recording": "00001118-100507",
+      "rml": "APNEA_RML/00001118-100507.rml",
+      "rmlGitOID": "7f8b2eef0fdaac41b8e28710b40cd573754ff611",
+      "path": "APNEA_EDF/00001118-100507/00001118-100507[004].edf",
+      "bytes": 544111432,
+      "sha256": "f597139a81f650387a17249ff9240c41b51deda4a3618ad01dd39876156c951f"
+    },
+    {
+      "subject": "00001322",
+      "recording": "00001322-100507",
+      "rml": "APNEA_RML/00001322-100507.rml",
+      "rmlGitOID": "e86b680201b36a67bf7f7d320222267052b2f08c",
+      "path": "APNEA_EDF/00001322-100507/00001322-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "b2da37de9e7dd7e90d77c0aafdf8e13adb692f0ac3f1adf16a194cdb1e12fb50"
+    },
+    {
+      "subject": "00001322",
+      "recording": "00001322-100507",
+      "rml": "APNEA_RML/00001322-100507.rml",
+      "rmlGitOID": "e86b680201b36a67bf7f7d320222267052b2f08c",
+      "path": "APNEA_EDF/00001322-100507/00001322-100507[004].edf",
+      "bytes": 694747470,
+      "sha256": "c35a2b77305a261ba3eb9b5a4cf9fa80e50ae2a6cfaea971416de91d91c96db9"
+    },
+    {
+      "subject": "00001371",
+      "recording": "00001371-100507",
+      "rml": "APNEA_RML/00001371-100507.rml",
+      "rmlGitOID": "0fbb3defd1943ebedfa60b8ce95ca126724d0db8",
+      "path": "APNEA_EDF/00001371-100507/00001371-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "521dbc59bc9d1249c434f51b7a898693547164769867946357863b8e5e72c9b1"
+    },
+    {
+      "subject": "00001371",
+      "recording": "00001371-100507",
+      "rml": "APNEA_RML/00001371-100507.rml",
+      "rmlGitOID": "0fbb3defd1943ebedfa60b8ce95ca126724d0db8",
+      "path": "APNEA_EDF/00001371-100507/00001371-100507[004].edf",
+      "bytes": 710738976,
+      "sha256": "31ff343245d083b6c1214b57cbb6ba2a41a1a520ba8ecff97521cba63e697c85"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "jobId": "9e41e3d220c0458897dd5e2c05fbd0b3",
+  "status": "passed",
+  "createdAt": "2026-11-16T11:09:00.832449+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "6b8f5296dd34a53007c5a455a6ea450d43c9106c",
+    "lane": "codex-sleep-wake-evaluate-v3",
+    "argv": [
+      "python3",
+      "Packages/SleepWakeKit/Training/evaluate_final.py",
+      "--selection",
+      "/srv/ai-team/artifacts/sleep-wake-model-v3",
+      "--test",
+      "/srv/ai-team/artifacts/sleep-wake-final-test-v3",
+      "--baseline14",
+      "/srv/ai-team/artifacts/sleep-wake-baseline-v1/model.json",
+      "--baseline40",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v2/model.json"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-16T11:09:01.012384+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-wake-evaluate-v3",
+  "sourceSha": "6b8f5296dd34a53007c5a455a6ea450d43c9106c",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-16T11:09:10.635283+00:00"
+}

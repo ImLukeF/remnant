@@ -1,0 +1,41 @@
+{
+  "jobId": "dd8a3061740c4ee6b78a286e9a0fe83a",
+  "status": "passed",
+  "createdAt": "2026-11-16T10:35:04.885772+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "0b6b00094194a87815f64cef0017991f4e2767a0",
+    "lane": "codex-sleep-wake-model-v3",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=3",
+      "OMP_NUM_THREADS=3",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with",
+      "numpy==2.5.5",
+      "--with",
+      "scipy==1.18.1",
+      "--with",
+      "xgboost-cpu==3.4.1",
+      "python",
+      "Packages/SleepWakeKit/Training/improve_model.py",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v2",
+      "--output",
+      "/srv/ai-team/artifacts/sleep-wake-model-v3"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 900
+  },
+  "startedAt": "2026-11-16T10:35:05.230592+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-wake-model-v3",
+  "sourceSha": "0b6b00094194a87815f64cef0017991f4e2767a0",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-16T10:36:17.423219+00:00"
+}

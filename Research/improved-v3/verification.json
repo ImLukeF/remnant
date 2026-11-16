@@ -1,0 +1,27 @@
+{
+  "status": "failed-independent-generalization",
+  "approvedForAlarmTiming": false,
+  "modelParametersSHA256": "a14acabd1ef873a46d6cf32d7d1ffbf93951e9bd69bd31f767de825485c095af",
+  "developmentNativeCheck": {
+    "epochs": 120,
+    "maximumProbabilityDifference": 5.551115123125783e-17,
+    "passed": true,
+    "tolerance": 2e-06
+  },
+  "finalNativeCheck": {
+    "epochs": 120,
+    "maximumProbabilityDifference": 5.551115123125783e-17,
+    "passed": true,
+    "tolerance": 2e-06
+  },
+  "iOSSimulatorBuild": {
+    "passed": true,
+    "sourceSha": "3bbd65f6b4818b10ef2a4a2faff7c3ad1155b851",
+    "appLaunched": false,
+    "microphoneCapture": false
+  },
+  "focusedSwiftTests": 3,
+  "focusedPythonTests": 11,
+  "allKnownParticipantsRetiredFromFutureFinalTests": 72,
+  "modelSHA256": "371b83091aceed81b973cc44f3654d57391f036a86a47ad92a0b85a588db5348"
+}

@@ -6,6 +6,27 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_prefetch_bounds_unprocessed_audio_and_resumes_completed_features(self):
+        from unittest.mock import patch
+        from run_dataset import prefetched_audio
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw, features = root / "raw", root / "features"
+            raw.mkdir(); features.mkdir()
+            plan = [{"path": f"block-{n}.edf"} for n in range(6)]
+            (features / "block-1.jsonl").write_text("already extracted")
+            def fetch(item, destination):
+                destination.write_text(item["path"])
+            completed = []
+            with patch("run_dataset.download", side_effect=fetch):
+                for number, item, source in prefetched_audio(plan, raw, features, 2):
+                    self.assertLessEqual(len(list(raw.glob("*.edf"))), 2)
+                    self.assertEqual(source.read_text(), item["path"])
+                    completed.append(number)
+                    source.unlink()
+            self.assertEqual(sorted(completed), [1, 3, 4, 5, 6])
+            self.assertEqual(list(raw.iterdir()), [])
+
     def test_causal_context_uses_bounded_past_and_resets_at_gaps_and_people(self):
         import math
         from causal_model import Context, transform

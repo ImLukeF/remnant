@@ -124,7 +124,7 @@ def prepare(args):
     if not args.prepare_only:
         run(argparse.Namespace(output=root, subjects=args.subjects, blocks=2, max_download_gib=args.max_download_gib,
                                supplement=[], supplement_reason="", prepare_only=False, extract_only=True, steps=40,
-                               feature_profile=profile, model_id="extract-only"))
+                               feature_profile=profile, model_id="extract-only", download_workers=args.download_workers))
 
 
 if __name__ == "__main__":
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-download-gib", type=float, default=24)
     parser.add_argument("--known-subjects", type=Path)
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--download-workers", type=int, choices=(1, 2, 3, 4), default=1)
     args = parser.parse_args()
     if not 8 <= args.subjects <= 30 or not 0 < args.max_download_gib <= 48:
         parser.error("Final-test cohort and download budget exceed the bounded protocol.")

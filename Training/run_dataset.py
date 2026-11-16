@@ -1,10 +1,11 @@
 """Bounded, resumable private training run on pinned PSG-Audio bedside recordings.
 
-Raw EDF files are checksum-verified, processed one at a time and removed after extraction.
+Raw EDF files are checksum-verified, prefetched within a bounded queue and removed after extraction.
 Only derived observations, provenance, evaluation and the experimental model are retained.
 """
 import argparse
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import datetime as dt
 import hashlib
 from html.parser import HTMLParser
@@ -197,6 +198,29 @@ def annotation_start(path):
     return start
 
 
+def prefetched_audio(plan, cache, features_dir, workers):
+    """Yield verified sources while bounding both downloads and unprocessed raw files."""
+    pending = iter((number, item) for number, item in enumerate(plan, 1)
+                   if not (features_dir / (Path(item["path"]).stem + ".jsonl")).exists())
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        active = {}
+        def enqueue():
+            pair = next(pending, None)
+            if pair is not None:
+                number, item = pair
+                source = cache / (Path(item["path"]).stem + ".edf")
+                active[pool.submit(download, item, source)] = (number, item, source)
+        for _ in range(workers):
+            enqueue()
+        while active:
+            ready, _ = wait(active, return_when=FIRST_COMPLETED)
+            future = next(iter(ready))
+            number, item, source = active.pop(future)
+            future.result()
+            yield number, item, source
+            enqueue()
+
+
 def run(args):
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -251,11 +275,9 @@ def run(args):
     if args.prepare_only:
         return
     import pyedflib
-    for number, item in enumerate(plan, 1):
+    for number, item, source in prefetched_audio(plan, cache, features_dir, getattr(args, "download_workers", 1)):
         key = Path(item["path"]).stem
         output = features_dir / (key + ".jsonl")
-        if output.exists():
-            continue
         labels = cache / (item["recording"] + ".rml")
         if labels.exists():
             contents = labels.read_bytes()
@@ -268,9 +290,6 @@ def run(args):
             if oid != item["rmlGitOID"]:
                 raise ValueError("Annotation checksum mismatch.")
             labels.write_bytes(contents)
-        source = cache / (key + ".edf")
-        print(json.dumps({"event": "download", "block": number, "total": len(plan), "subject": item["subject"]}), flush=True)
-        download(item, source)
         with pyedflib.EdfReader(str(source)) as edf:
             offset = (edf.getStartdatetime() - annotation_start(labels)).total_seconds()
             if not 0 <= offset < 24 * 3600 or "Mic" not in edf.getSignalLabels():
@@ -327,6 +346,7 @@ if __name__ == "__main__":
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--extract-only", action="store_true", help="Prepare observations without fitting or scoring a model.")
     parser.add_argument("--feature-profile", choices=("basic", "spectral"), default="basic")
+    parser.add_argument("--download-workers", type=int, choices=(1, 2, 3, 4), default=1)
     parser.add_argument("--supplement", action="append", default=[], help="Explicit EDF block for annotation coverage, from an already selected night.")
     parser.add_argument("--supplement-reason", default="")
     arguments = parser.parse_args()

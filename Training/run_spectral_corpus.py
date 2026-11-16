@@ -1,4 +1,4 @@
-"""Re-extract frequency observations for development people only, with two bounded downloads."""
+"""Re-extract frequency observations for development people only, with bounded downloads."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from collections import Counter
@@ -62,15 +62,15 @@ def run(args):
                 raise ValueError("Previously extracted frequency observations changed.")
     pending = iter(item for item in files if item["path"] not in progress)
     import pyedflib
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=args.download_workers) as pool:
         active = {}
         def enqueue():
             item = next(pending, None)
             if item is not None:
                 source = cache / (Path(item["path"]).stem + ".edf")
                 active[pool.submit(download, item, source)] = (item, source)
-        enqueue()
-        enqueue()
+        for _ in range(args.download_workers):
+            enqueue()
         while active:
             ready, _ = wait(active, return_when=FIRST_COMPLETED)
             future = next(iter(ready))
@@ -108,6 +108,7 @@ if __name__ == "__main__":
     parser.add_argument("--retired-test", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-download-gib", type=float, default=112)
+    parser.add_argument("--download-workers", type=int, choices=(1, 2, 3, 4), default=2)
     args = parser.parse_args()
     if not 0 < args.max_download_gib <= 128:
         parser.error("Bounded development download budget must not exceed 128 GiB.")

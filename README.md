@@ -1,7 +1,8 @@
 # SleepWakeKit
 
 Experimental, private-by-default sleep research and coordinated wake plans for Swift apps.
-MIT licensed. No account, API key, paid SDK or network service is required.
+Private development. An MIT release is planned once a working version is ready.
+No account, API key, paid SDK or network service is required.
 
 ## What works
 
@@ -54,8 +55,16 @@ replaces or postpones the safety sequence.
 
 Use independently scored bedroom audio, with permission and appropriate dataset rights.
 PSG-Audio is one research starting point: https://doi.org/10.1038/s41597-021-00977-w
-and https://doi.org/10.11922/sciencedb.00345. Dataset terms are separate from this code's MIT licence.
+and https://doi.org/10.11922/sciencedb.00345. Dataset terms are separate from the planned code licence.
 No dataset, recordings or external model weights are included or downloaded automatically.
+
+The explicit `Training/run_dataset.py` command verifies the original provider's CC BY 4.0
+metadata, pins a source mirror revision, checks source hashes and derives offsets from EDF/RML
+timestamps. Its default run selects 20 people and two temporal blocks per person before reading
+labels, caps planned downloads at 32 GiB, and deletes each EDF after extraction. Run it only in a
+private research workspace; derived features and annotation caches are also sensitive research data.
+
+    python3 Training/run_dataset.py --output /private/research/baseline-v1
 
 The optional Training/extract_psg.py tool requires pyedflib. Supply an audio EDF, one RML
 UserStaging sequence, a stable subject identifier, the exact **ambient** microphone channel label,

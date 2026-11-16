@@ -6,6 +6,36 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_downloader_recovers_completed_and_slow_partial_files(self):
+        import hashlib
+        import io
+        from unittest.mock import patch
+        from run_dataset import download
+        payload = b"abcdef"
+        item = {"path": "fixture.edf", "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+        class Response(io.BytesIO):
+            def __init__(self, data, status, headers):
+                super().__init__(data)
+                self.status, self.headers = status, headers
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "fixture.edf"
+            partial = target.with_suffix(".part")
+            partial.write_bytes(payload)
+            with patch("run_dataset.urllib.request.urlopen", side_effect=AssertionError("Completed verified file must not be downloaded again")):
+                download(item, target)
+            self.assertEqual(target.read_bytes(), payload)
+            target.unlink()
+            requests = []
+            def respond(request, **kwargs):
+                requests.append(request)
+                return (Response(payload[:3], 200, {}) if len(requests) == 1 else
+                        Response(payload[3:], 206, {"Content-Range": "bytes 3-5/6"}))
+            with patch("run_dataset.urllib.request.urlopen", side_effect=respond), patch("run_dataset.time.sleep"), patch("run_dataset.time.monotonic", side_effect=[0, 31, 32, 33]):
+                download(item, target)
+            self.assertEqual(requests[1].get_header("Range"), "bytes=3-")
+            self.assertEqual(target.read_bytes(), payload)
+            self.assertFalse(partial.exists())
+
     def test_expanded_cohort_keeps_previous_test_people_out_of_final_test(self):
         from expand_cohort import assignments
         names = [str(i) for i in range(100)]

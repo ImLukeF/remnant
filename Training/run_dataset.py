@@ -143,6 +143,12 @@ def download(item, target):
     for attempt in range(3):
         try:
             offset = partial.stat().st_size if partial.exists() else 0
+            if offset == item["bytes"]:
+                if checksum(partial) == item["sha256"]:
+                    partial.replace(target)
+                    return
+                partial.unlink()
+                offset = 0
             if offset > item["bytes"]:
                 partial.unlink()
                 offset = 0
@@ -158,10 +164,16 @@ def download(item, target):
                 if not offset and response.status != 200:
                     raise ValueError("Unexpected partial response for a full download.")
                 with partial.open("ab" if offset else "wb") as output:
+                    window_start, window_bytes = time.monotonic(), offset
                     while block := response.read(1024 * 1024):
                         if output.tell() + len(block) > item["bytes"]:
                             raise ValueError("Downloaded object exceeds its declared size.")
                         output.write(block)
+                        elapsed = time.monotonic() - window_start
+                        if elapsed >= 30:
+                            if (output.tell() - window_bytes) / elapsed < 1024 * 1024:
+                                raise TimeoutError("Retrying an unusually slow source transfer from its verified byte offset.")
+                            window_start, window_bytes = time.monotonic(), output.tell()
             if partial.stat().st_size != item["bytes"] or checksum(partial) != item["sha256"]:
                 partial.unlink(missing_ok=True)
                 raise ValueError("Source checksum or length mismatch.")

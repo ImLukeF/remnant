@@ -1,8 +1,8 @@
 """Expand the private cohort, reserve new test people, and compare frozen models fairly."""
 import argparse
 import bisect
-from collections import Counter, deque
-from concurrent.futures import ThreadPoolExecutor
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import datetime as dt
 import hashlib
 import json
@@ -199,16 +199,18 @@ def run(args):
     import numpy as np
     # At most two independent source downloads and two raw files; feature extraction remains sequential.
     with ThreadPoolExecutor(max_workers=2) as pool:
-        queue = deque()
+        active = {}
         def enqueue():
             item = next(pending, None)
             if item is not None:
                 source = cache / (Path(item["path"]).stem + ".edf")
-                queue.append((item, source, pool.submit(download, item, source)))
+                active[pool.submit(download, item, source)] = (item, source)
         enqueue()
         enqueue()
-        while queue:
-            item, source, future = queue.popleft()
+        while active:
+            ready, _ = wait(active, return_when=FIRST_COMPLETED)
+            future = next(iter(ready))
+            item, source = active.pop(future)
             future.result()
             labels = cache / (item["recording"] + ".rml")
             if not labels.exists():

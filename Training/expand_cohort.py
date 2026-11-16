@@ -51,7 +51,7 @@ def timing(header, start):
             except ValueError:
                 continue
     duration = int(header[236:244]) * float(header[244:252])
-    if len(candidates) != 1 or not math.isfinite(duration) or not 30 <= duration <= 86400:
+    if len(candidates) != 1 or not math.isfinite(duration) or not 0 < duration <= 86400:
         raise ValueError("Unverified EDF/annotation timing.")
     return {"offsetSeconds": candidates[0], "durationSeconds": duration}
 

@@ -58,6 +58,24 @@ def prepare(args):
             plan.extend(sources[recording][i] for i in indexes)
         with ThreadPoolExecutor(max_workers=4) as pool:
             plan = list(pool.map(lambda item: header_timing(item, cache / (item["recording"] + ".rml")), plan))
+        short = [item for item in plan if item["durationSeconds"] < 30]
+        plan = [item for item in plan if item["durationSeconds"] >= 30]
+        substitutions = []
+        for tail in short:
+            options = sources[tail["recording"]]
+            position = next(i for i, item in enumerate(options) if item["path"] == tail["path"])
+            for index in sorted(range(len(options)), key=lambda i: (abs(i - position), i)):
+                item = options[index]
+                if item["path"] == tail["path"] or item["path"] in {old["path"] for old in plan}:
+                    continue
+                candidate = header_timing(item, cache / (item["recording"] + ".rml"))
+                if candidate["durationSeconds"] >= 30:
+                    plan.append(candidate)
+                    substitutions.append({"excluded": tail["path"], "replacement": candidate["path"],
+                                          "reason": "Source tail shorter than one 30-second observation."})
+                    break
+            else:
+                raise ValueError("No usable replacement block in the selected participant's night.")
         counts = Counter()
         for item in plan:
             counts.update(scored_counts(item, stages[item["recording"]]))
@@ -86,6 +104,7 @@ def prepare(args):
                  "extractorSHA256": fingerprint, "licenceEvidence": evidence, "files": plan,
                  "selectedParametersSHA256": selection["parametersSHA256"], "previouslyObservedSubjects": sorted(known),
                  "testSubjects": sorted(person[0] for person in people), "annotationCoverageAdditions": additions,
+                 "sourceQualitySubstitutions": substitutions,
                  "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
                  "fittingForbidden": True}
         if sum(item["bytes"] for item in plan) > args.max_download_gib * 1024 ** 3:

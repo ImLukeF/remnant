@@ -81,6 +81,8 @@ class TrainingContracts(unittest.TestCase):
         header[236:244], header[244:252] = b"3600    ", b"1       "
         start = dt.datetime(2019, 12, 31, 23, 30)
         self.assertEqual(timing(header, start), {"offsetSeconds": 1800, "durationSeconds": 3600})
+        header[236:244] = b"14      "
+        self.assertEqual(timing(header, start)["durationSeconds"], 14)
         header[168:176] = b"02.01.20"
         with self.assertRaises(ValueError):
             timing(header, start)

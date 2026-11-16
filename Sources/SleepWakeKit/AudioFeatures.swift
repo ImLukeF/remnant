@@ -1,5 +1,22 @@
 import Foundation
 
+/// A false result requires discarding the partial observation before starting a new segment.
+public struct AudioFrameContinuity: Sendable {
+    private var expected: Int64?
+    public init() {}
+    public mutating func accept(sampleTime: Int64, frameCount: Int) -> Bool {
+        guard frameCount > 0 else { expected = nil; return false }
+        let (end, overflow) = sampleTime.addingReportingOverflow(Int64(frameCount))
+        guard !overflow else { expected = nil; return false }
+        if let expected {
+            let (difference, overflow) = sampleTime.subtractingReportingOverflow(expected)
+            guard !overflow, (-1...1).contains(difference) else { self.expected = nil; return false }
+        }
+        expected = end
+        return true
+    }
+}
+
 /// An observation of audio, not a sleep-stage diagnosis. No waveform leaves the extractor.
 public struct AudioEpoch: Codable, Equatable, Sendable {
     public let start: Date

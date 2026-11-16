@@ -2,6 +2,16 @@ import Foundation
 import Testing
 @testable import SleepWakeKit
 
+@Test func audioFrameContinuityRejectsDroppedBuffersAndOverflow() {
+    var timeline = AudioFrameContinuity()
+    #expect(timeline.accept(sampleTime: 0, frameCount: 4096))
+    #expect(timeline.accept(sampleTime: 4096, frameCount: 4096))
+    #expect(!timeline.accept(sampleTime: 12288, frameCount: 4096))
+    #expect(timeline.accept(sampleTime: 12288, frameCount: 4096))
+    #expect(!timeline.accept(sampleTime: Int64.max - 1, frameCount: 4096))
+    #expect(!timeline.accept(sampleTime: 0, frameCount: 0))
+}
+
 @Test func streamingFeaturesDoNotDependOnBufferBoundaries() throws {
     let start = Date(timeIntervalSince1970: 1_000)
     let pcm = (0..<(8_000 * 30)).map { Float($0.isMultiple(of: 2) ? 0.5 : -0.5) }

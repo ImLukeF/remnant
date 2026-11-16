@@ -62,7 +62,12 @@ public final class OvernightAudio {
                 self.stop()
             }
         }
-        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, continuation: continuation)
+        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, continuation: continuation) { [weak self] in
+            Task { @MainActor in
+                guard let self, self.generation == attempt else { return }
+                self.interrupt()
+            }
+        }
         input.installTap(onBus: 0, bufferSize: 4_096, format: format) { buffer, time in
             processor.process(buffer, time: time)
         }
@@ -123,28 +128,28 @@ private final class Processor: Sendable {
     private let worker: Task<Void, Never>
     private let sampleRate: Int
 
-    init(sampleRate: Int, spectral: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation) throws {
+    init(sampleRate: Int, spectral: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation,
+         interrupted: @escaping @Sendable () -> Void) throws {
         self.sampleRate = sampleRate
         let (packets, input) = AsyncStream<Packet>.makeStream(bufferingPolicy: .bufferingNewest(16))
         self.input = input
         self.worker = Task.detached(priority: .utility) {
             var extractor: AudioFeatureExtractor?
-            var expectedSample: AVAudioFramePosition?
+            var timeline = AudioFrameContinuity()
             for await packet in packets {
                 guard !Task.isCancelled else { break }
                 guard let time = packet.sampleTime, !packet.samples.isEmpty else {
-                    continuation.yield(.interrupted)
-                    break
+                    interrupted()
+                    return
                 }
-                if let expectedSample, abs(time - expectedSample) > AVAudioFramePosition(sampleRate / 4) {
-                    continuation.yield(.interrupted)
-                    break
+                if !timeline.accept(sampleTime: time, frameCount: packet.samples.count) {
+                    interrupted()
+                    return
                 }
                 if extractor == nil {
                     do { extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: packet.capturedAt, spectral: spectral) }
-                    catch { continuation.yield(.interrupted); break }
+                    catch { interrupted(); return }
                 }
-                expectedSample = time + AVAudioFramePosition(packet.samples.count)
                 for epoch in extractor?.append(packet.samples) ?? [] {
                     if case .terminated = continuation.yield(.epoch(epoch)) { return }
                 }

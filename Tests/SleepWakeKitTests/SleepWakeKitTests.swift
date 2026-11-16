@@ -4,12 +4,13 @@ import Testing
 
 @Test func audioFrameContinuityRejectsDroppedBuffersAndOverflow() {
     var timeline = AudioFrameContinuity()
-    #expect(timeline.accept(sampleTime: 0, frameCount: 4096))
-    #expect(timeline.accept(sampleTime: 4096, frameCount: 4096))
-    #expect(!timeline.accept(sampleTime: 12288, frameCount: 4096))
-    #expect(timeline.accept(sampleTime: 12288, frameCount: 4096))
-    #expect(!timeline.accept(sampleTime: Int64.max - 1, frameCount: 4096))
-    #expect(!timeline.accept(sampleTime: 0, frameCount: 0))
+    let outcomes = [timeline.accept(sampleTime: 0, frameCount: 4096),
+                    timeline.accept(sampleTime: 4096, frameCount: 4096),
+                    timeline.accept(sampleTime: 12288, frameCount: 4096),
+                    timeline.accept(sampleTime: 12288, frameCount: 4096),
+                    timeline.accept(sampleTime: Int64.max - 1, frameCount: 4096),
+                    timeline.accept(sampleTime: 0, frameCount: 0)]
+    #expect(outcomes == [true, true, false, true, false, false])
 }
 
 @Test func streamingFeaturesDoNotDependOnBufferBoundaries() throws {

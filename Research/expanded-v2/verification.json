@@ -1,0 +1,44 @@
+{
+  "sourceSha": "c3aabf0a7b0ccf02aff53983551f9925e2b31df6",
+  "modelID": "psg-audio-expanded-v2",
+  "reportConsistency": true,
+  "participantIsolation": true,
+  "freshTestExcludesEveryPreviousParticipant": true,
+  "audioQuality": {
+    "train": {
+      "total": 8962,
+      "usable": 8631,
+      "rejected": 331
+    },
+    "validation": {
+      "total": 2681,
+      "usable": 2666,
+      "rejected": 15
+    },
+    "test": {
+      "total": 2059,
+      "usable": 2037,
+      "rejected": 22
+    }
+  },
+  "approvedForAlarmTiming": false,
+  "nativeExportCheck": {
+    "heldOutEpochs": 20,
+    "maximumProbabilityDifference": 1.1102230246251565e-16,
+    "tolerance": 1e-09,
+    "passed": true
+  },
+  "focusedTrainingContracts": {
+    "tests": 9,
+    "passed": true
+  },
+  "artifactsSHA256": {
+    "model.json": "5ad673f22993889a89747a879ceb59208310ab8925f86a32be4dd57334f521b7",
+    "evaluation.json": "9df1c4ed47d6a8e5079938de784ad546ddb72a8d902dcb901bbf48d8f86745e8",
+    "cohort-plan.json": "6b9da31726d0e9965f9678c3042dec0b09c3b16bfd1023931f75550ad75800a7",
+    "feature-checksums.json": "b540661732a24168b96d53711d04e96b8fb28cba49dd2f44cff9be3b82bf99f9",
+    "training-receipt.json": "c11f276424d542a205efd774af65761ee3307490a1455485f1a85e4868062413",
+    "preflight-receipt.json": "988510f8b1e07beb1145af7c618ed13911b5fcbdbc2fe9e1197a9b4a4edfae7b",
+    "download-resume-receipt.json": "b872138f153a35362791691bb112d609002898475d36656f9392e71a39494bcb"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "jobId": "443bf9dec6dd457c94ca77d84fc59585",
+  "status": "cancelled",
+  "createdAt": "2026-11-16T09:31:23.154801+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "5c703b0d77be768db3667e3114e0fabbf8be2076",
+    "lane": "codex-sleep-wake-expanded",
+    "argv": [
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with",
+      "numpy==2.5.5",
+      "--with",
+      "pyedflib==0.1.42",
+      "python",
+      "Packages/SleepWakeKit/Training/expand_cohort.py",
+      "--output",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v2",
+      "--previous",
+      "/srv/ai-team/artifacts/sleep-wake-baseline-v1",
+      "--subjects",
+      "60",
+      "--max-download-gib",
+      "96"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 3600
+  },
+  "startedAt": "2026-11-16T09:31:23.299804+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-wake-expanded",
+  "sourceSha": "5c703b0d77be768db3667e3114e0fabbf8be2076",
+  "finishedAt": "2026-11-16T09:55:52.295864+00:00"
+}

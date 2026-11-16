@@ -92,8 +92,63 @@ import Testing
                                                  features: Array(repeating: 0, count: 7), usable: true))
     #expect(prediction.stage == .light && prediction.confidence == 1)
     #expect(prediction.probabilities.values.reduce(0, +) == 1)
+    var compatible = try SleepModel(data: data(names: AudioFeatureExtractor.featureNames)).makePredictor()
+    #expect(try compatible.predict(AudioEpoch(start: .distantPast, end: .distantPast.addingTimeInterval(30),
+        features: Array(repeating: 0, count: 7), usable: true)).stage == .light)
     #expect(throws: LinearSleepModel.ModelError.self) {
         try LinearSleepModel(data: data(names: ["wrong"]))
+    }
+}
+
+@Test func researchModelContextUsesOnlyThePastAndResetsOnGapsOrUnusableAudio() throws {
+    let raw = AudioFeatureExtractor.featureNames
+    var weights = Array(repeating: Array(repeating: 0.0, count: 28), count: 4)
+    weights[1][7] = 1
+    let data = try JSONSerialization.data(withJSONObject: [
+        "schemaVersion": 2, "modelKind": "linear", "modelID": "context-fixture", "dataSource": "synthetic",
+        "rawFeatureNames": raw, "featureNames": raw + ["past_mean_", "past_std_", "past_delta_"].flatMap { prefix in raw.map { prefix + $0 } },
+        "classes": ["awake", "light", "deep", "rem"], "contextEpochs": 10,
+        "heldOutSubjects": ["fixture"], "balancedAccuracy": 0, "biases": [0, 0, 0, 0],
+        "means": Array(repeating: 0, count: 28), "scales": Array(repeating: 1, count: 28), "weights": weights,
+    ])
+    var predictor = try SleepModel(data: data).makePredictor()
+    func epoch(_ start: Double, _ value: Double, usable: Bool = true) -> AudioEpoch {
+        AudioEpoch(start: Date(timeIntervalSince1970: start), end: Date(timeIntervalSince1970: start + 30),
+                   features: Array(repeating: value, count: 7), usable: usable)
+    }
+    #expect(try predictor.predict(epoch(0, 0)).probabilities[.light] == 0.25)
+    let second = try predictor.predict(epoch(30, 2))
+    #expect(abs((second.probabilities[.light] ?? 0) - exp(1) / (exp(1) + 3)) < 1e-12)
+    let afterGap = try predictor.predict(epoch(300, 2))
+    #expect(abs((afterGap.probabilities[.light] ?? 0) - exp(2) / (exp(2) + 3)) < 1e-12)
+    let invalid = try predictor.predict(epoch(330, 0, usable: false))
+    #expect(!invalid.usable && invalid.probabilities.isEmpty)
+    #expect(try predictor.predict(epoch(360, 2)).probabilities == afterGap.probabilities)
+    predictor.reset()
+    #expect(try predictor.predict(epoch(390, 2)).probabilities == afterGap.probabilities)
+}
+
+@Test func researchTreeImportValidatesGraphsAndUsesStrictFloat32Thresholds() throws {
+    let raw = AudioFeatureExtractor.featureNames
+    func payload(left: [Int] = [1, -1, -1], features: [Int] = [0, -1, -1], values: [Double] = [1, 2, -2]) throws -> Data {
+        try JSONSerialization.data(withJSONObject: [
+            "schemaVersion": 2, "modelKind": "trees", "modelID": "tree-fixture", "dataSource": "synthetic",
+            "rawFeatureNames": raw, "featureNames": raw, "classes": ["awake", "light", "deep", "rem"],
+            "contextEpochs": 1, "heldOutSubjects": ["fixture"], "balancedAccuracy": 0, "biases": [0, 0, 0, 0],
+            "trees": [["classIndex": 1, "left": left, "right": [2, -1, -1], "features": features, "values": values]],
+        ])
+    }
+    var predictor = try SleepModel(data: payload()).makePredictor()
+    func epoch(_ value: Double) -> AudioEpoch {
+        AudioEpoch(start: Date(timeIntervalSince1970: 0), end: Date(timeIntervalSince1970: 30), features: Array(repeating: value, count: 7), usable: true)
+    }
+    #expect(try predictor.predict(epoch(0.5)).probabilities[.light]! > 0.7)
+    #expect(try predictor.predict(epoch(1)).probabilities[.light]! < 0.05)
+    for bad in [try payload(left: [0, -1, -1]), try payload(features: [7, -1, -1]), try payload(values: [1, 1e100, -2])] {
+        #expect(throws: SleepModel.ModelError.self) { try SleepModel(data: bad) }
+    }
+    #expect(throws: SleepModel.ModelError.self) {
+        try SleepModel(data: Data(repeating: 32, count: SleepModel.maximumPayloadBytes + 1))
     }
 }
 

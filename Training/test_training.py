@@ -140,6 +140,14 @@ class TrainingContracts(unittest.TestCase):
         self.assertEqual(report["testEpochs"], 4)
         self.assertFalse(report["usesFutureAudio"])
         self.assertFalse(report["approvedForAlarmTiming"])
+        import json
+        from evaluate_final import compare_legacy
+        serialized = json.loads(json.dumps(model))
+        compared = compare_legacy(serialized, [row for row in rows if row["subject"] == test_subject])
+        self.assertEqual(compared["confusionMatrix"], report["confusionMatrix"])
+        serialized["classes"].reverse()
+        with self.assertRaises(ValueError):
+            compare_legacy(serialized, rows)
         with self.assertRaises(ValueError):
             fit(rows[:-1], steps=1)
 

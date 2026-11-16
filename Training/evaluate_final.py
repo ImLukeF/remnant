@@ -13,6 +13,12 @@ from improve_model import metrics, parameters_digest
 from train import evaluate, load_rows
 
 
+def compare_legacy(model, rows):
+    if list(model["classes"]) != list(STAGES):
+        raise ValueError("Comparison model uses an incompatible class order.")
+    return evaluate(model, rows)
+
+
 def run(args):
     root = args.selection.resolve()
     if (root / "evaluation.json").exists():
@@ -42,9 +48,7 @@ def run(args):
     older = {}
     for name, path in (("original14", args.baseline14), ("expanded40", args.baseline40)):
         old = json.loads(path.read_text())
-        if old["classes"] != STAGES:
-            raise ValueError("Comparison model uses an incompatible class order.")
-        older[name] = {"modelSHA256": hashlib.sha256(path.read_bytes()).hexdigest(), **evaluate(old, rows)}
+        older[name] = {"modelSHA256": hashlib.sha256(path.read_bytes()).hexdigest(), **compare_legacy(old, rows)}
     exported = copy.deepcopy(model)
     exported.update(heldOutSubjects=plan["testSubjects"], balancedAccuracy=score["balancedAccuracy"])
     if parameters_digest(exported) != selection["parametersSHA256"]:

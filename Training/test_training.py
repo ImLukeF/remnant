@@ -6,6 +6,15 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_repeated_nights_do_not_create_new_training_subjects(self):
+        from run_dataset import select_subjects
+        files = [{"path": "APNEA_RML/00000001-night-a.rml"},
+                 {"path": "APNEA_RML/00000001-night-b.rml"},
+                 {"path": "APNEA_RML/00000002-night-a.rml"}]
+        selected = select_subjects(files, 10)
+        self.assertEqual({item[0] for item in selected}, {"00000001", "00000002"})
+        self.assertEqual(len(selected), 2)
+
     def test_annotation_tracks_cannot_be_silently_combined(self):
         from extract_psg import annotations
         with tempfile.TemporaryDirectory() as directory:
@@ -13,6 +22,9 @@ class TrainingContracts(unittest.TestCase):
             path.write_text('<Root xmlns="urn:rml"><UserStaging><Stage Type="Wake" Start="0"/>'
                             '<Stage Type="NonREM2" Start="30"/></UserStaging></Root>')
             self.assertEqual(annotations(path), [(0, "awake"), (30, "light")])
+            path.write_text('<Root><UserStaging><Stage Type="Wake" Start="0"/>'
+                            '<Stage Type="Unscored" Start="30"/><Stage Type="REM" Start="60"/></UserStaging></Root>')
+            self.assertEqual(annotations(path), [(0, "awake"), (30, None), (60, "rem")])
             path.write_text('<Root><UserStaging><Stage Type="Wake" Start="0"/></UserStaging>'
                             '<UserStaging><Stage Type="REM" Start="30"/></UserStaging></Root>')
             with self.assertRaises(ValueError):

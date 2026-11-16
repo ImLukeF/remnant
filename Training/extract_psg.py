@@ -6,9 +6,9 @@ Never pass the tracheal/contact microphone to a model intended for phone bedside
 import argparse
 import bisect
 import json
+import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from features import extract_epoch
 
 # These are the RML format's declared stage values, not free-text interpretation.
 RML_STAGES = {"Wake": "awake", "NonREM1": "light", "NonREM2": "light", "NonREM3": "deep", "REM": "rem"}
@@ -21,8 +21,12 @@ def annotations(path):
     if len(scored) != 1:
         raise ValueError("Provide exactly one UserStaging annotation sequence.")
     for node in scored[0].iter():
-        if node.tag.rsplit("}", 1)[-1] == "Stage" and node.get("Type") in RML_STAGES:
-            result.append((float(node.attrib["Start"]), RML_STAGES[node.attrib["Type"]]))
+        if node.tag.rsplit("}", 1)[-1] == "Stage":
+            start = float(node.attrib["Start"])
+            if not math.isfinite(start) or start < 0:
+                raise ValueError("Invalid scored stage time.")
+            # Unsupported/unscored intervals must remain gaps, never inherit the previous stage.
+            result.append((start, RML_STAGES.get(node.attrib["Type"])))
     result.sort()
     if not result or any(a[0] >= b[0] for a, b in zip(result, result[1:])):
         raise ValueError("Use one RML scored staging sequence, with distinct ascending stage times.")
@@ -39,6 +43,8 @@ def main():
                         help="Explicit verified PSG time of audio sample zero.")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    if not math.isfinite(args.audio_offset_seconds):
+        parser.error("audio offset must be finite")
     import pyedflib
     import numpy as np
     stages = annotations(args.stages_rml)
@@ -57,7 +63,7 @@ def main():
         for offset in range(0, int(edf.getNSamples()[channel]) - 30 * rate + 1, 30 * rate):
             start = offset / rate + args.audio_offset_seconds
             index = bisect.bisect_right(times, start) - 1
-            if index < 0 or (index + 1 < len(times) and times[index + 1] < start + 30):
+            if index < 0 or stages[index][1] is None or (index + 1 < len(times) and times[index + 1] < start + 30):
                 continue  # Never assign one label across a scored stage transition.
             pcm = (edf.readSignal(channel, offset, 30 * rate, digital=True) - center) / scale
             # Vectorized equivalent of the dependency-free reference, for full-night recordings.

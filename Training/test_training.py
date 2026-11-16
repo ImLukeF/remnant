@@ -6,6 +6,16 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_final_tree_refit_uses_the_frozen_round_count(self):
+        from improve_model import boosted
+        from features import STAGES
+        rows = [{"stage": stage, "modelFeatures": [float(k), float(i % 3)] + [0.0] * 5}
+                for i in range(40) for k, stage in enumerate(STAGES)]
+        model, detail = boosted(rows, rows[::3], 1, depth=2, balance=0.5, fixed_rounds=3)
+        self.assertEqual(detail["rounds"], 3)
+        self.assertEqual(len(model["trees"]), 12)
+        self.assertLess(detail["nativeExportMaximumDifference"], 2e-6)
+
     def test_prefetch_bounds_unprocessed_audio_and_resumes_completed_features(self):
         from unittest.mock import patch
         from run_dataset import prefetched_audio

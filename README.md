@@ -108,7 +108,10 @@ spectral profile. `Training/improve_model.py --profile spectral` compares curren
 five-minute causal context with regularized linear and boosted-tree candidates. It selects on
 validation macro F1, subject to the native import size limit; balanced accuracy and light-sleep
 recall break ties. Training normalization and fitting never read validation labels as training data.
-Tree early stopping uses validation only. `Training/prepare_final_test.py` reserves new people
+Tree early stopping uses validation only. The optional `--refit-development` flag then retrains the
+selected settings on all development people, using the selected fixed tree-round count and no
+further early stopping. Its reported validation score belongs to the earlier selection checkpoint;
+only the new final test measures the refitted model. `Training/prepare_final_test.py` reserves new people
 after model parameters are frozen, and `Training/evaluate_final.py` evaluates once without fitting.
 Previously tested people become development data and are excluded from every later fresh test.
 The evaluation checks preprocessing fingerprints and compares older models on the same usable epochs.

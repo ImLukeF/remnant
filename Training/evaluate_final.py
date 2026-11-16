@@ -80,7 +80,9 @@ def run(args):
     atomic_json(root / "export-check.json", samples)
     atomic_json(root / "evaluation.json", {"status": "experimental", "approvedForAlarmTiming": False, "usesFutureAudio": False,
                 "freshTest": score, "comparisons": older, "selectedCandidate": selection["id"],
-                "validation": selection["validation"], "trainingPeople": len(selection["trainingSubjects"]),
+                "validation": selection["validation"],
+                "trainingPeople": len(selection["finalRefit"]["trainingSubjects"]) if selection.get("finalRefit") else len(selection["trainingSubjects"]),
+                "selectionTrainingPeople": len(selection["trainingSubjects"]), "finalRefit": selection.get("finalRefit"),
                 "validationPeople": len(selection["validationSubjects"]), "parametersSHA256": selection["parametersSHA256"],
                 "testEpochsSHA256": combined.hexdigest(), "testFeatureSHA256": feature_hashes,
                 "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),

@@ -58,7 +58,7 @@ def linear(train, validation, history, penalty):
             "weights": coefficients[:, :dim].tolist(), "biases": coefficients[:, dim].tolist()}, {"converged": True, "iterations": result.nit, "objective": result.fun}
 
 
-def boosted(train, validation, history, depth, balance, primary="balancedAccuracy"):
+def boosted(train, validation, history, depth, balance, primary="balancedAccuracy", fixed_rounds=None):
     import numpy as np
     import xgboost as xgb
     x = np.asarray([row["modelFeatures"] for row in train], dtype=np.float32)
@@ -74,12 +74,15 @@ def boosted(train, validation, history, depth, balance, primary="balancedAccurac
             return "macro_f1", float(np.mean([2 * np.sum((actual == k) & (expected == k)) /
                                                (np.sum(actual == k) + np.sum(expected == k)) for k in range(4)]))
         return "balanced", float(np.mean([np.mean(actual[expected == k] == k) for k in range(4)]))
+    stopping = {"evals": [(check, "validation")], "custom_metric": balanced, "maximize": True,
+                "early_stopping_rounds": 40} if fixed_rounds is None else {"evals": []}
     booster = xgb.train({"objective": "multi:softprob", "num_class": 4, "tree_method": "hist", "max_depth": depth,
                          "eta": 0.05, "min_child_weight": 10, "lambda": 10, "subsample": 1, "colsample_bytree": 1,
-                         "seed": 7, "nthread": 3, "base_score": 0}, source, num_boost_round=300,
-                        evals=[(check, "validation")], custom_metric=balanced, maximize=True,
-                        early_stopping_rounds=40, verbose_eval=False)
-    booster = booster[:booster.best_iteration + 1]
+                         "seed": 7, "nthread": 3, "base_score": 0}, source,
+                        num_boost_round=300 if fixed_rounds is None else fixed_rounds,
+                        verbose_eval=False, **stopping)
+    if fixed_rounds is None:
+        booster = booster[:booster.best_iteration + 1]
     obj = json.loads(bytes(booster.save_raw(raw_format="json")))
     learner = obj["learner"]
     if learner["gradient_booster"]["name"] != "gbtree" or learner["objective"]["name"] != "multi:softprob":
@@ -144,6 +147,7 @@ def run(args):
               "maximumPayloadBytes": 512000, "evaluationMetadataReserveBytes": 4096,
               "developmentEpochsSHA256": combined.hexdigest(), "developmentExtractorSHA256": previous["extractorSHA256"],
               "featureProfile": args.profile, "previouslyObservedSubjects": observed, "excludedForNoUsableAudio": excluded,
+              "refitOnAllDevelopment": args.refit_development,
               "selectionMetric": primary + "; balanced accuracy and light recall break ties", "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()}
     atomic_json(root / "protocol.json", config)
     candidates = []
@@ -175,11 +179,28 @@ def run(args):
         raise ValueError("No selected candidate fits the native model import budget.")
     winner = max(eligible, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
     chosen = json.loads((root / f"candidate-{winner['id']}.json").read_text())
+    refit = None
+    if args.refit_development:
+        contextual = transform(rows, winner["history"], raw_names)
+        validation = [row for row in contextual if roles[row["subject"]] == "validation"]
+        if winner["kind"] == "linear":
+            fitted, detail = linear(contextual, validation, winner["history"], **winner["settings"])
+        else:
+            fitted, detail = boosted(contextual, validation, winner["history"], **winner["settings"],
+                                      fixed_rounds=winner["fit"]["rounds"])
+        chosen.update(fitted)
+        payload_bytes = len((json.dumps(chosen, separators=(",", ":"), allow_nan=False) + "\n").encode())
+        if payload_bytes > config["maximumPayloadBytes"] - config["evaluationMetadataReserveBytes"]:
+            raise ValueError("Final refit exceeds the native import budget; no final test may be read.")
+        refit = {"trainingSubjects": sorted(roles), "epochs": len(contextual), "fit": detail,
+                 "payloadBytes": payload_bytes, "validationScoreBelongsToSelectionCheckpoint": True,
+                 "fixedSettingsBeforeRefit": winner["settings"]}
     atomic_json(root / "selected-model.json", chosen, compact=True)
     atomic_json(root / "selection.json", {**winner, "parametersSHA256": parameters_digest(chosen), "finalTestRead": False,
                                          "trainingSubjects": config["trainingSubjects"], "validationSubjects": config["validationSubjects"]})
     saved = json.loads((root / "selection.json").read_text())
-    saved.update(previouslyObservedSubjects=observed, excludedForNoUsableAudio=excluded, selectionMetric=primary)
+    saved.update(previouslyObservedSubjects=observed, excludedForNoUsableAudio=excluded, selectionMetric=primary,
+                 finalRefit=refit)
     atomic_json(root / "selection.json", saved)
     print(json.dumps({"event": "selected", "candidate": winner["id"], "kind": winner["kind"], "history": winner["history"],
                       "balancedAccuracy": winner["validation"]["balancedAccuracy"]}), flush=True)
@@ -190,4 +211,6 @@ if __name__ == "__main__":
     parser.add_argument("--development", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--profile", choices=("basic", "spectral"), default="basic")
+    parser.add_argument("--refit-development", action="store_true",
+                        help="After selection, refit fixed settings on all development people before reserving a new test.")
     run(parser.parse_args())

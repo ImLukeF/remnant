@@ -2,11 +2,12 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
 
-from causal_model import names, predict, transform
+from causal_model import names, predict, transform, load_observations
 from expand_cohort import atomic_json
 from features import FEATURE_NAMES, STAGES
 from train import load_rows
@@ -19,10 +20,12 @@ def metrics(rows, probabilities):
     if any(sum(row) == 0 for row in matrix):
         raise ValueError("Evaluation requires all four stages.")
     recall = [matrix[k][k] / sum(matrix[k]) for k in range(4)]
+    f1 = [2 * matrix[k][k] / (sum(matrix[k]) + sum(row[k] for row in matrix)) for k in range(4)]
     predicted_light = sum(row[1] for row in matrix)
     return {"confusionMatrix": matrix, "classOrder": STAGES, "recallPerClass": recall,
             "balancedAccuracy": sum(recall) / 4, "ordinaryAccuracy": sum(matrix[k][k] for k in range(4)) / len(rows),
             "lightPrecision": matrix[1][1] / predicted_light if predicted_light else 0,
+            "f1PerClass": f1, "macroF1": sum(f1) / 4,
             "epochs": len(rows), "subjects": sorted({row["subject"] for row in rows})}
 
 
@@ -55,7 +58,7 @@ def linear(train, validation, history, penalty):
             "weights": coefficients[:, :dim].tolist(), "biases": coefficients[:, dim].tolist()}, {"converged": True, "iterations": result.nit, "objective": result.fun}
 
 
-def boosted(train, validation, history, depth, balance):
+def boosted(train, validation, history, depth, balance, primary="balancedAccuracy"):
     import numpy as np
     import xgboost as xgb
     x = np.asarray([row["modelFeatures"] for row in train], dtype=np.float32)
@@ -67,6 +70,9 @@ def boosted(train, validation, history, depth, balance):
     source, check = xgb.DMatrix(x, label=y, weight=weights, nthread=3), xgb.DMatrix(v, label=vy, nthread=3)
     def balanced(values, data):
         actual, expected = values.argmax(axis=1), data.get_label().astype(int)
+        if primary == "macroF1":
+            return "macro_f1", float(np.mean([2 * np.sum((actual == k) & (expected == k)) /
+                                               (np.sum(actual == k) + np.sum(expected == k)) for k in range(4)]))
         return "balanced", float(np.mean([np.mean(actual[expected == k] == k) for k in range(4)]))
     booster = xgb.train({"objective": "multi:softprob", "num_class": 4, "tree_method": "hist", "max_depth": depth,
                          "eta": 0.05, "min_child_weight": 10, "lambda": 10, "subsample": 1, "colsample_bytree": 1,
@@ -118,25 +124,41 @@ def run(args):
         combined.update(data)
     if combined.hexdigest() != hashlib.sha256((args.development / "epochs.jsonl").read_bytes()).hexdigest():
         raise ValueError("Combined development epochs do not match verified feature files.")
-    rows = load_rows(args.development / "epochs.jsonl")
+    if args.profile == "spectral":
+        from spectral import SPECTRAL_NAMES
+        raw_names = SPECTRAL_NAMES
+        rows = load_observations(args.development / "epochs.jsonl", raw_names)
+    else:
+        raw_names = FEATURE_NAMES
+        rows = load_rows(args.development / "epochs.jsonl")
     roles = {subject: "train" if role == "train" else "validation" for subject, role in previous["splits"].items()}
+    observed = sorted(roles)
+    present = {row["subject"] for row in rows}
+    excluded = sorted(set(roles) - present)
+    roles = {person: role for person, role in roles.items() if person in present}
+    primary = "macroF1" if args.profile == "spectral" else "balancedAccuracy"
     config = {"trainingSubjects": sorted(s for s, role in roles.items() if role == "train"),
               "validationSubjects": sorted(s for s, role in roles.items() if role != "train"),
               "finalTestNotRead": True, "seed": 7, "histories": [1, 10], "linearPenalties": [0.01, 0.1],
               "treeDepths": [2, 4], "treeBalancePowers": [0.5, 1.0], "treeMaxRounds": 300,
               "developmentEpochsSHA256": combined.hexdigest(), "developmentExtractorSHA256": previous["extractorSHA256"],
-              "selectionMetric": "validation balanced accuracy; light recall breaks ties", "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()}
+              "featureProfile": args.profile, "previouslyObservedSubjects": observed, "excludedForNoUsableAudio": excluded,
+              "selectionMetric": primary + "; balanced accuracy and light recall break ties", "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()}
     atomic_json(root / "protocol.json", config)
     candidates = []
     for history in config["histories"]:
-        contextual = transform(rows, history)
+        contextual = transform(rows, history, raw_names)
         train = [row for row in contextual if roles[row["subject"]] == "train"]
         validation = [row for row in contextual if roles[row["subject"]] == "validation"]
+        if any({row["stage"] for row in subset} != set(STAGES) for subset in (train, validation)):
+            raise ValueError("Usable development audio must cover all four stages in both groups.")
         for kind, settings in [("linear", {"penalty": p}) for p in config["linearPenalties"]] + [("trees", {"depth": d, "balance": b}) for d in config["treeDepths"] for b in config["treeBalancePowers"]]:
-            fitted, detail = linear(train, validation, history, **settings) if kind == "linear" else boosted(train, validation, history, **settings)
-            model = {"schemaVersion": 2, "modelID": "psg-audio-improved-v3", "dataSource": "PSG-Audio V3; CC BY 4.0; DOI 10.11922/sciencedb.00345",
-                     "rawFeatureNames": FEATURE_NAMES, "featureNames": names(history), "classes": STAGES,
+            fitted, detail = linear(train, validation, history, **settings) if kind == "linear" else boosted(train, validation, history, primary=primary, **settings)
+            model = {"schemaVersion": 2, "modelID": "psg-audio-spectral-v4" if args.profile == "spectral" else "psg-audio-improved-v3", "dataSource": "PSG-Audio V3; CC BY 4.0; DOI 10.11922/sciencedb.00345",
+                     "rawFeatureNames": raw_names, "featureNames": names(history, raw_names), "classes": STAGES,
                      "contextEpochs": history, "heldOutSubjects": [], "balancedAccuracy": 0, **fitted}
+            if args.profile == "spectral":
+                model["featureProfile"] = "spectral-v4"
             score = metrics(validation, [predict(model, row["modelFeatures"]) for row in validation])
             entry = {"id": len(candidates), "history": history, "kind": kind, "settings": settings, "fit": detail, "validation": score}
             atomic_json(root / f"candidate-{entry['id']}.json", model)
@@ -144,11 +166,14 @@ def run(args):
             atomic_json(root / "candidates.json", candidates)
             print(json.dumps({"event": "candidate", "id": entry["id"], "history": history, "kind": kind,
                               "balancedAccuracy": score["balancedAccuracy"], "lightRecall": score["recallPerClass"][1]}), flush=True)
-    winner = max(candidates, key=lambda entry: (entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
+    winner = max(candidates, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
     chosen = json.loads((root / f"candidate-{winner['id']}.json").read_text())
     atomic_json(root / "selected-model.json", chosen)
     atomic_json(root / "selection.json", {**winner, "parametersSHA256": parameters_digest(chosen), "finalTestRead": False,
                                          "trainingSubjects": config["trainingSubjects"], "validationSubjects": config["validationSubjects"]})
+    saved = json.loads((root / "selection.json").read_text())
+    saved.update(previouslyObservedSubjects=observed, excludedForNoUsableAudio=excluded, selectionMetric=primary)
+    atomic_json(root / "selection.json", saved)
     print(json.dumps({"event": "selected", "candidate": winner["id"], "kind": winner["kind"], "history": winner["history"],
                       "balancedAccuracy": winner["validation"]["balancedAccuracy"]}), flush=True)
 
@@ -157,4 +182,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--development", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--profile", choices=("basic", "spectral"), default="basic")
     run(parser.parse_args())

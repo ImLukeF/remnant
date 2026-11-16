@@ -1,7 +1,22 @@
 """Dependency-free causal context and inference for portable research models."""
 import math
 import struct
-from features import FEATURE_NAMES
+import json
+from pathlib import Path
+from features import FEATURE_NAMES, STAGES
+
+
+def load_observations(path, raw_names=FEATURE_NAMES):
+    result = []
+    for line in Path(path).read_text().splitlines():
+        row = json.loads(line)
+        if (not isinstance(row.get("subject"), str) or not row["subject"] or row.get("stage") not in STAGES
+                or len(row["features"]) != len(raw_names) or not math.isfinite(row["startSeconds"])
+                or not all(isinstance(x, (int, float)) and math.isfinite(x) for x in row["features"])):
+            raise ValueError("Invalid declared observation schema.")
+        if row.get("usable") is True:
+            result.append(row)
+    return result
 
 
 def names(history, raw_names=FEATURE_NAMES):

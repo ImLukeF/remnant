@@ -23,6 +23,9 @@ class TrainingContracts(unittest.TestCase):
         self.assertEqual(before[:3], changed[:3])
         other = transform(rows + [{"subject": "two", "startSeconds": 120, "features": [50.0] * 7}], 10)
         self.assertEqual(other[-1]["modelFeatures"], [50.0] * 14 + [0] * 14)
+        spectral = Context(1, 58).append(0, [0.1234567] * 58)
+        self.assertEqual(spectral[:7], [0.1234567] * 7)
+        self.assertEqual(spectral[7:], [0.123457] * 51)
 
     def test_portable_tree_respects_strict_float32_split_and_class_margins(self):
         from causal_model import predict

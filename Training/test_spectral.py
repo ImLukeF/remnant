@@ -22,18 +22,20 @@ class SpectralContracts(unittest.TestCase):
 
     def test_reference_fixture_for_streaming_swift_parity(self):
         # Exact binary fractions and a deterministic integer generator avoid waveform generation differences.
-        rate, state = 8000, 7
-        samples = []
-        for i in range(rate * 30):
-            state = (1664525 * state + 1013904223) & 0xFFFFFFFF
-            value = ((state >> 16) - 32768) / 262144 + (0.125 if i // 4 % 2 == 0 else -0.125)
-            samples.append(value)
-        features, usable = extract_epoch(samples, rate)
-        self.assertTrue(usable)
-        self.assertTrue(np.isfinite(features).all())
+        references = {}
+        for rate in (8000, 48000):
+            state, samples = 7, []
+            for i in range(rate * 30):
+                state = (1664525 * state + 1013904223) & 0xFFFFFFFF
+                value = ((state >> 16) - 32768) / 262144 + (0.125 if i // (rate // 2000) % 2 == 0 else -0.125)
+                samples.append(value)
+            features, usable = extract_epoch(samples, rate)
+            self.assertTrue(usable)
+            self.assertTrue(np.isfinite(features).all())
+            references[str(rate)] = features
         if __name__ == "__main__":
             import json
-            print(json.dumps({"syntheticSwiftReference": features}), flush=True)
+            print(json.dumps({"syntheticSwiftReferences": references}), flush=True)
 
 
 if __name__ == "__main__":

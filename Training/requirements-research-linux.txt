@@ -1,0 +1,5 @@
+# Pinned CPU dependencies used by the private Linux research jobs.
+numpy==2.5.5
+scipy==1.18.1
+pyedflib==0.1.42
+xgboost-cpu==3.4.1

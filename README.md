@@ -116,6 +116,10 @@ after model parameters are frozen, and `Training/evaluate_final.py` evaluates on
 Previously tested people become development data and are excluded from every later fresh test.
 The evaluation checks preprocessing fingerprints and compares older models on the same usable epochs.
 These scripts require explicitly supplied private corpus paths; they do not run during app startup.
+The pinned CPU environment is in `Training/requirements-research-linux.txt`. The spectral reference
+requires NumPy; extraction also requires pyedflib, and model selection requires SciPy and XGBoost.
+The optional refit contract skips when XGBoost is absent, keeping the original standard-library
+checks usable without installing the research environment.
 
 Check live epoch end timestamps against callback receipt times. Offline accuracy does not establish
 live latency or accuracy. TV-noise testing, held-out phone/room evaluation and prospective overnight

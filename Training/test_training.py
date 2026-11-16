@@ -7,6 +7,10 @@ from train import fit, partition
 
 class TrainingContracts(unittest.TestCase):
     def test_final_tree_refit_uses_the_frozen_round_count(self):
+        try:
+            import xgboost
+        except ModuleNotFoundError:
+            self.skipTest("Install the optional CPU research dependencies for the refit check.")
         from improve_model import boosted
         from features import STAGES
         rows = [{"stage": stage, "modelFeatures": [float(k), float(i % 3)] + [0.0] * 5}

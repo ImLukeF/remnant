@@ -26,9 +26,27 @@ def probabilities(features, means, scales, weights, biases):
     return [value / total for value in values], normalized
 
 
-def fit(rows, steps=40):
-    train = [row for row in rows if partition(row["subject"]) == "train"]
-    test = [row for row in rows if partition(row["subject"]) == "test"]
+def evaluate(model, rows):
+    if {row["stage"] for row in rows} != set(STAGES):
+        raise ValueError("Evaluation needs observations of all four sleep stages.")
+    confusion = [[0] * 4 for _ in STAGES]
+    for row in rows:
+        values, _ = probabilities(row["features"], model["means"], model["scales"], model["weights"], model["biases"])
+        confusion[STAGES.index(row["stage"])][max(range(4), key=values.__getitem__)] += 1
+    recalls = [confusion[k][k] / sum(confusion[k]) for k in range(4)]
+    return {"confusionMatrix": confusion, "classOrder": STAGES, "recallPerClass": recalls,
+            "balancedAccuracy": sum(recalls) / 4,
+            "ordinaryAccuracy": sum(confusion[k][k] for k in range(4)) / len(rows),
+            "epochs": len(rows), "subjects": sorted({row["subject"] for row in rows}),
+            "subjectsPerStage": {stage: len({row["subject"] for row in rows if row["stage"] == stage}) for stage in STAGES}}
+
+
+def fit(rows, steps=40, split_by_subject=None):
+    if split_by_subject is not None and any(split_by_subject.get(row["subject"]) not in {"train", "validation", "test"} for row in rows):
+        raise ValueError("Every participant needs one explicit train, validation or test assignment.")
+    role = (lambda subject: split_by_subject[subject]) if split_by_subject is not None else partition
+    train = [row for row in rows if role(row["subject"]) == "train"]
+    test = [row for row in rows if role(row["subject"]) == "test"]
     for name, subset in (("train", train), ("test", test)):
         if {row["stage"] for row in subset} != set(STAGES):
             raise ValueError(f"{name} needs independent subjects with all four sleep stages.")
@@ -52,19 +70,16 @@ def fit(rows, steps=40):
                 for i in range(count):
                     weights[k][i] -= rate * (error * features[i] + 0.001 * weights[k][i])
                 biases[k] -= rate * error
-    confusion = [[0] * 4 for _ in STAGES]
-    for row in test:
-        values, _ = probabilities(row["features"], means, scales, weights, biases)
-        confusion[STAGES.index(row["stage"])][max(range(4), key=values.__getitem__)] += 1
-    recalls = [confusion[k][k] / sum(confusion[k]) for k in range(4)]
-    return {
+    model = {
         "schemaVersion": 1, "featureNames": FEATURE_NAMES, "classes": STAGES,
         "means": means, "scales": scales, "weights": weights, "biases": biases,
         "heldOutSubjects": sorted({row["subject"] for row in test}),
-        "balancedAccuracy": sum(recalls) / 4,
-    }, {
-        "status": "experimental", "confusionMatrix": confusion, "classOrder": STAGES,
-        "recallPerClass": recalls, "trainingEpochs": len(train), "testEpochs": len(test),
+    }
+    metrics = evaluate(model, test)
+    model["balancedAccuracy"] = metrics["balancedAccuracy"]
+    return model, {
+        "status": "experimental", "confusionMatrix": metrics["confusionMatrix"], "classOrder": STAGES,
+        "recallPerClass": metrics["recallPerClass"], "trainingEpochs": len(train), "testEpochs": len(test),
         "trainingSubjects": len({row["subject"] for row in train}),
         "testSubjects": len({row["subject"] for row in test}),
         "usesFutureAudio": False, "approvedForAlarmTiming": False,

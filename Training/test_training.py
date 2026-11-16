@@ -6,6 +6,27 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_expanded_cohort_keeps_previous_test_people_out_of_final_test(self):
+        from expand_cohort import assignments
+        names = [str(i) for i in range(100)]
+        old_test = next(name for name in names if partition(name) == "test")
+        old_train = next(name for name in names if partition(name) == "train")
+        new_test = next(name for name in names if partition(name) == "test" and name != old_test)
+        roles = assignments([old_test, old_train, new_test], {old_test, old_train})
+        self.assertEqual(roles, {old_test: "validation", old_train: "train", new_test: "test"})
+
+    def test_preflight_timing_resolves_year_rollover_and_rejects_unaligned_dates(self):
+        import datetime as dt
+        from expand_cohort import timing
+        header = bytearray(b" " * 256)
+        header[168:176], header[176:184] = b"01.01.20", b"00.00.00"
+        header[236:244], header[244:252] = b"3600    ", b"1       "
+        start = dt.datetime(2019, 12, 31, 23, 30)
+        self.assertEqual(timing(header, start), {"offsetSeconds": 1800, "durationSeconds": 3600})
+        header[168:176] = b"02.01.20"
+        with self.assertRaises(ValueError):
+            timing(header, start)
+
     def test_repeated_nights_do_not_create_new_training_subjects(self):
         from run_dataset import select_subjects
         files = [{"path": "APNEA_RML/00000001-night-a.rml"},
@@ -61,6 +82,21 @@ class TrainingContracts(unittest.TestCase):
         self.assertFalse(report["approvedForAlarmTiming"])
         with self.assertRaises(ValueError):
             fit(rows[:-1], steps=1)
+
+    def test_explicit_validation_and_test_people_cannot_affect_fitting(self):
+        from features import STAGES
+        roles = {"training-person": "train", "development-person": "validation", "new-person": "test"}
+        rows = [{"subject": subject, "stage": stage, "features": [offset + i] * 7, "usable": True}
+                for subject, offset in (("training-person", 0), ("development-person", 100), ("new-person", 1000))
+                for i, stage in enumerate(STAGES)]
+        first, _ = fit(rows, steps=2, split_by_subject=roles)
+        changed = [{**row, "features": [x + 9000 for x in row["features"]]} if roles[row["subject"]] != "train" else row for row in rows]
+        second, _ = fit(changed, steps=2, split_by_subject=roles)
+        for key in ("means", "scales", "weights", "biases"):
+            self.assertEqual(first[key], second[key])
+        self.assertEqual(first["heldOutSubjects"], ["new-person"])
+        with self.assertRaises(ValueError):
+            fit(rows, split_by_subject={"training-person": "train"})
 
 
 if __name__ == "__main__":

@@ -42,6 +42,15 @@ Feed normalized mono float PCM to AudioFeatureExtractor. Sample rates must be in
 8 kHz and 192 kHz. Reinitialize the extractor at discontinuities; do not join samples across gaps.
 Use the same processing and sample scaling in training and deployment.
 
+Opt into `AudioFeatureExtractor(sampleRate:start:spectral: true)` or `OvernightAudio(spectral: true)`
+for the experimental `spectral-v4` profile. It adds gain-normalized Mel-band statistics, entropy
+and spectral change to the seven original measurements. DC-only audio is unusable. The spectrum
+uses eight short frames per second and retains at most one second of waveform; the iOS source
+processes copied audio off the callback and ends capture if its bounded queue loses samples.
+Spectral models require this profile. Older models continue to use the first seven values.
+The model input rounds only the additional spectral values to six decimal places before computing
+past-only summaries; this is shared with training and reduces platform rounding differences.
+
 Use `SleepModel(data:)` to import either the legacy linear format or the current research format,
 then retain its `makePredictor()` result for one observation stream. Feed epochs in chronological
 order using the predictor's mutating `predict` method. Call `reset()` at session boundaries.
@@ -93,6 +102,17 @@ subjects only. The held-out set must contain all four stages. The tool exports a
 model and a separate evaluation report with the confusion matrix, per-class recall and balanced
 accuracy. It never marks a model as approved for alarm timing. Do not tune parameters repeatedly
 against this test set; use a separate validation cohort for model selection.
+
+`Training/run_spectral_corpus.py` re-extracts the same verified development recordings with the
+spectral profile. `Training/improve_model.py --profile spectral` compares current-epoch and
+five-minute causal context with regularized linear and boosted-tree candidates. It selects on
+validation macro F1, subject to the native import size limit; balanced accuracy and light-sleep
+recall break ties. Training normalization and fitting never read validation labels as training data.
+Tree early stopping uses validation only. `Training/prepare_final_test.py` reserves new people
+after model parameters are frozen, and `Training/evaluate_final.py` evaluates once without fitting.
+Previously tested people become development data and are excluded from every later fresh test.
+The evaluation checks preprocessing fingerprints and compares older models on the same usable epochs.
+These scripts require explicitly supplied private corpus paths; they do not run during app startup.
 
 Check live epoch end timestamps against callback receipt times. Offline accuracy does not establish
 live latency or accuracy. TV-noise testing, held-out phone/room evaluation and prospective overnight

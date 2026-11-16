@@ -6,6 +6,34 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_causal_context_uses_bounded_past_and_resets_at_gaps_and_people(self):
+        import math
+        from causal_model import Context, transform
+        context = Context(10)
+        for i in range(12):
+            result = context.append(i * 30, [float(i + 1)] * 7)
+        self.assertEqual(result[:7], [12] * 7)
+        self.assertEqual(result[7:14], [7.5] * 7)
+        self.assertEqual(result[14:21], [math.sqrt(8.25)] * 7)
+        self.assertEqual(result[21:], [9] * 7)
+        self.assertEqual(context.append(1000, [20] * 7), [20] * 14 + [0] * 14)
+        rows = [{"subject": "one", "startSeconds": i * 30, "features": [float(i)] * 7} for i in range(4)]
+        before = transform(rows, 10)
+        changed = transform(rows[:3] + [{**rows[3], "features": [9000.0] * 7}], 10)
+        self.assertEqual(before[:3], changed[:3])
+        other = transform(rows + [{"subject": "two", "startSeconds": 120, "features": [50.0] * 7}], 10)
+        self.assertEqual(other[-1]["modelFeatures"], [50.0] * 14 + [0] * 14)
+
+    def test_portable_tree_respects_strict_float32_split_and_class_margins(self):
+        from causal_model import predict
+        model = {"modelKind": "trees", "biases": [0, 0, 0, 0], "trees": [
+            {"classIndex": 1, "left": [1, -1, -1], "right": [2, -1, -1],
+             "features": [0, -1, -1], "values": [1, 2, -2]}]}
+        left, equal = predict(model, [0.5] * 7), predict(model, [1] * 7)
+        self.assertGreater(left[1], 0.7)
+        self.assertLess(equal[1], 0.05)
+        self.assertAlmostEqual(sum(left), 1)
+
     def test_downloader_recovers_completed_and_slow_partial_files(self):
         import hashlib
         import io

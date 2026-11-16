@@ -15,6 +15,13 @@ class TrainingContracts(unittest.TestCase):
         self.assertEqual({item[0] for item in selected}, {"00000001", "00000002"})
         self.assertEqual(len(selected), 2)
 
+    def test_coverage_supplements_cannot_introduce_new_participants(self):
+        from run_dataset import supplement_plan
+        plan = [{"subject": "one", "recording": "one-night", "path": "APNEA_EDF/one-night/first.edf"}]
+        self.assertEqual(supplement_plan(plan, [plan[0]["path"]]), plan)
+        with self.assertRaises(ValueError):
+            supplement_plan(plan, ["APNEA_EDF/different-night/first.edf"])
+
     def test_annotation_tracks_cannot_be_silently_combined(self):
         from extract_psg import annotations
         with tempfile.TemporaryDirectory() as directory:

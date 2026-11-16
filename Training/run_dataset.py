@@ -108,6 +108,26 @@ def build_plan(subject_count, blocks):
     return result
 
 
+def supplement_plan(plan, paths):
+    """Explicit annotation-coverage additions, limited to already selected participants/nights."""
+    result = list(plan)
+    recordings = {item["recording"]: item for item in plan}
+    for path in paths:
+        if path in {item["path"] for item in result}:
+            continue
+        recording = Path(path).parent.name
+        if recording not in recordings or str(Path(path).parent) != "APNEA_EDF/" + recording:
+            raise ValueError("Coverage supplements must belong to an already selected recording.")
+        matches = [item for item in listing("APNEA_EDF/" + recording)
+                   if item["path"] == path and item["type"] == "file" and path.endswith(".edf")]
+        if len(matches) != 1 or "lfs" not in matches[0]:
+            raise ValueError("Supplement must be one immutable EDF source file.")
+        source, original = matches[0], recordings[recording]
+        result.append({**{key: original[key] for key in ("subject", "recording", "rml", "rmlGitOID")},
+                       "path": path, "bytes": source["size"], "sha256": source["lfs"]["oid"]})
+    return result
+
+
 def checksum(path):
     value = hashlib.sha256()
     with path.open("rb") as source:
@@ -189,6 +209,21 @@ def run(args):
                                        "subjectsRequested": args.subjects, "blocksPerSubject": args.blocks,
                                        "extractorSHA256": extractor_fingerprint,
                                        "licenceEvidence": evidence, "files": plan}, indent=2) + "\n")
+    saved = json.loads(plan_path.read_text())
+    requested = sorted(set(args.supplement))
+    previous = saved.get("coverageSupplements", [])
+    if previous and (previous != requested or saved.get("supplementReason") != args.supplement_reason):
+        raise ValueError("Resume with the same documented coverage supplements.")
+    if requested and not previous:
+        if not args.supplement_reason:
+            raise ValueError("Document the annotation-coverage reason before adding source blocks.")
+        expanded = supplement_plan(plan, requested)
+        if sum(item["bytes"] for item in expanded) > args.max_download_gib * 1024 ** 3:
+            raise ValueError("Coverage supplements exceed the download limit.")
+        (root / "initial-download-plan.json").write_text(plan_path.read_text())
+        saved.update(files=expanded, coverageSupplements=requested, supplementReason=args.supplement_reason)
+        plan_path.write_text(json.dumps(saved, indent=2) + "\n")
+        plan = expanded
     total = sum(item["bytes"] for item in plan)
     if total > args.max_download_gib * 1024 ** 3:
         raise ValueError(f"Plan exceeds download limit: {total} bytes.")
@@ -239,6 +274,7 @@ def run(args):
     report.update(dataset=evidence, mirrorRevision=REVISION, downloadedBytes=total,
                   extractorSHA256=extractor_fingerprint,
                   trainingSteps=args.steps, modelID=args.model_id,
+                  coverageSupplements=requested, supplementReason=args.supplement_reason,
                   sourceSha=subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
                   stageCounts={split: dict(Counter(row["stage"] for row in rows if partition(row["subject"]) == split))
                                for split in ["train", "test"]})
@@ -263,8 +299,10 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=40)
     parser.add_argument("--model-id", default="psg-audio-baseline-v1")
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--supplement", action="append", default=[], help="Explicit EDF block for annotation coverage, from an already selected night.")
+    parser.add_argument("--supplement-reason", default="")
     arguments = parser.parse_args()
     if not (4 <= arguments.subjects <= 100 and 1 <= arguments.blocks <= 4 and 1 <= arguments.steps <= 1000
-            and 0 < arguments.max_download_gib <= 128):
+            and 0 < arguments.max_download_gib <= 128 and len(arguments.supplement) <= 4):
         parser.error("Invalid bounded training configuration.")
     run(arguments)

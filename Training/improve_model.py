@@ -161,11 +161,11 @@ def run(args):
             if args.profile == "spectral":
                 model["featureProfile"] = "spectral-v4"
             score = metrics(validation, [predict(model, row["modelFeatures"]) for row in validation])
-            payload_bytes = len((json.dumps(model, indent=2, allow_nan=False) + "\n").encode())
+            payload_bytes = len((json.dumps(model, separators=(",", ":"), allow_nan=False) + "\n").encode())
             entry = {"id": len(candidates), "history": history, "kind": kind, "settings": settings, "fit": detail, "validation": score,
                      "payloadBytes": payload_bytes,
                      "fitsNativeImporter": payload_bytes <= config["maximumPayloadBytes"] - config["evaluationMetadataReserveBytes"]}
-            atomic_json(root / f"candidate-{entry['id']}.json", model)
+            atomic_json(root / f"candidate-{entry['id']}.json", model, compact=True)
             candidates.append(entry)
             atomic_json(root / "candidates.json", candidates)
             print(json.dumps({"event": "candidate", "id": entry["id"], "history": history, "kind": kind,
@@ -175,7 +175,7 @@ def run(args):
         raise ValueError("No selected candidate fits the native model import budget.")
     winner = max(eligible, key=lambda entry: (entry["validation"][primary], entry["validation"]["balancedAccuracy"], entry["validation"]["recallPerClass"][1], -entry["id"]))
     chosen = json.loads((root / f"candidate-{winner['id']}.json").read_text())
-    atomic_json(root / "selected-model.json", chosen)
+    atomic_json(root / "selected-model.json", chosen, compact=True)
     atomic_json(root / "selection.json", {**winner, "parametersSHA256": parameters_digest(chosen), "finalTestRead": False,
                                          "trainingSubjects": config["trainingSubjects"], "validationSubjects": config["validationSubjects"]})
     saved = json.loads((root / "selection.json").read_text())

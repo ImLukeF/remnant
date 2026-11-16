@@ -76,7 +76,7 @@ def run(args):
                 samples.append({key: row[key] for key in ("subject", "startSeconds", "features", "usable")}
                               | {"expectedProbabilities": dict(zip(STAGES, probabilities))})
                 count += 1
-    atomic_json(root / "model.json", exported)
+    atomic_json(root / "model.json", exported, compact=True)
     atomic_json(root / "export-check.json", samples)
     atomic_json(root / "evaluation.json", {"status": "experimental", "approvedForAlarmTiming": False, "usesFutureAudio": False,
                 "freshTest": score, "comparisons": older, "selectedCandidate": selection["id"],

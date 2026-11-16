@@ -206,8 +206,13 @@ def run(args):
     features_dir.mkdir(exist_ok=True)
     evidence = licence_evidence()
     code = Path(__file__).parent
-    extractor_fingerprint = hashlib.sha256((code / "extract_psg.py").read_bytes()
-                                           + (code / "features.py").read_bytes()).hexdigest()
+    profile = getattr(args, "feature_profile", "basic")
+    if profile == "spectral":
+        from run_spectral_corpus import feature_fingerprint
+        extractor_fingerprint = feature_fingerprint()
+    else:
+        extractor_fingerprint = hashlib.sha256((code / "extract_psg.py").read_bytes()
+                                               + (code / "features.py").read_bytes()).hexdigest()
     plan_path = root / "download-plan.json"
     if plan_path.exists():
         saved = json.loads(plan_path.read_text())
@@ -222,6 +227,8 @@ def run(args):
                                        "extractorSHA256": extractor_fingerprint,
                                        "licenceEvidence": evidence, "files": plan}, indent=2) + "\n")
     saved = json.loads(plan_path.read_text())
+    if (saved.get("fittingForbidden") or profile == "spectral") and not args.extract_only:
+        raise ValueError("This data plan is extraction-only; fitting a model here is prohibited.")
     requested = sorted(set(args.supplement))
     previous = saved.get("coverageSupplements", [])
     if previous and (previous != requested or saved.get("supplementReason") != args.supplement_reason):
@@ -268,10 +275,14 @@ def run(args):
             offset = (edf.getStartdatetime() - annotation_start(labels)).total_seconds()
             if not 0 <= offset < 24 * 3600 or "Mic" not in edf.getSignalLabels():
                 raise ValueError("Unverified recording timing or missing canonical bedside Mic channel.")
+            if "offsetSeconds" in item and (offset != item["offsetSeconds"] or edf.getFileDuration() != item["durationSeconds"]):
+                raise ValueError("Full source timing differs from its verified header.")
         temporary = output.with_suffix(".partial")
-        subprocess.run([sys.executable, str(Path(__file__).with_name("extract_psg.py")),
+        extractor = "extract_spectral_psg.py" if profile == "spectral" else "extract_psg.py"
+        channel_args = [] if profile == "spectral" else ["--ambient-channel", "Mic"]
+        subprocess.run([sys.executable, str(Path(__file__).with_name(extractor)),
                         "--audio-edf", str(source), "--stages-rml", str(labels),
-                        "--subject", item["subject"], "--ambient-channel", "Mic",
+                        "--subject", item["subject"], *channel_args,
                         "--audio-offset-seconds", str(offset), "--output", str(temporary)], check=True)
         temporary.replace(output)
         source.unlink()
@@ -315,6 +326,7 @@ if __name__ == "__main__":
     parser.add_argument("--model-id", default="psg-audio-baseline-v1")
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--extract-only", action="store_true", help="Prepare observations without fitting or scoring a model.")
+    parser.add_argument("--feature-profile", choices=("basic", "spectral"), default="basic")
     parser.add_argument("--supplement", action="append", default=[], help="Explicit EDF block for annotation coverage, from an already selected night.")
     parser.add_argument("--supplement-reason", default="")
     arguments = parser.parse_args()

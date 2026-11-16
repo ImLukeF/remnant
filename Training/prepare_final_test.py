@@ -24,10 +24,16 @@ def prepare(args):
     if parameters_digest(selected) != selection["parametersSHA256"]:
         raise ValueError("Candidate parameters changed after validation selection.")
     known = set(selection["trainingSubjects"] + selection["validationSubjects"])
+    known.update(selection.get("previouslyObservedSubjects", []))
     if args.known_subjects:
         known.update(json.loads(args.known_subjects.read_text()))
     code = Path(__file__).parent
-    fingerprint = hashlib.sha256((code / "extract_psg.py").read_bytes() + (code / "features.py").read_bytes()).hexdigest()
+    profile = "spectral" if selected.get("featureProfile") == "spectral-v4" else "basic"
+    if profile == "spectral":
+        from run_spectral_corpus import feature_fingerprint
+        fingerprint = feature_fingerprint()
+    else:
+        fingerprint = hashlib.sha256((code / "extract_psg.py").read_bytes() + (code / "features.py").read_bytes()).hexdigest()
     plan_path = root / "download-plan.json"
     if plan_path.exists():
         saved = json.loads(plan_path.read_text())
@@ -107,6 +113,7 @@ def prepare(args):
                  "sourceQualitySubstitutions": substitutions,
                  "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
                  "fittingForbidden": True}
+        saved.update(featureProfile=profile, featureNames=selected["rawFeatureNames"])
         if sum(item["bytes"] for item in plan) > args.max_download_gib * 1024 ** 3:
             raise ValueError("Fresh-test plan exceeds its download budget.")
         atomic_json(plan_path, saved)
@@ -116,7 +123,8 @@ def prepare(args):
                       "bytes": sum(item["bytes"] for item in saved["files"]), "coverageAdditions": saved["annotationCoverageAdditions"]}), flush=True)
     if not args.prepare_only:
         run(argparse.Namespace(output=root, subjects=args.subjects, blocks=2, max_download_gib=args.max_download_gib,
-                               supplement=[], supplement_reason="", prepare_only=False, extract_only=True, steps=40, model_id="extract-only"))
+                               supplement=[], supplement_reason="", prepare_only=False, extract_only=True, steps=40,
+                               feature_profile=profile, model_id="extract-only"))
 
 
 if __name__ == "__main__":

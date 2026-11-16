@@ -40,7 +40,7 @@ public struct SleepModelPredictor: Sendable {
     }
 
     public mutating func predict(_ epoch: AudioEpoch) throws -> SleepPrediction {
-        guard epoch.features.count == 7, epoch.features.allSatisfy(\.isFinite),
+        guard (epoch.features.count == 7 || epoch.features.count == AudioFeatureExtractor.spectralFeatureNames.count), epoch.features.allSatisfy(\.isFinite),
               epoch.start.timeIntervalSince1970.isFinite, epoch.end.timeIntervalSince1970.isFinite,
               (29...31).contains(epoch.end.timeIntervalSince(epoch.start)) else {
             reset()
@@ -52,22 +52,30 @@ public struct SleepModelPredictor: Sendable {
         }
         do {
             switch backing {
-            case .legacy(let model): return try model.predict(epoch)
+            case .legacy(let model):
+                return try model.predict(AudioEpoch(start: epoch.start, end: epoch.end,
+                    features: Array(epoch.features.prefix(7)), usable: epoch.usable))
             case .contextual(let model):
+                let dimensions = model.rawFeatureNames.count
+                guard epoch.features.count >= dimensions else { throw SleepModel.ModelError.invalid }
+                var raw = Array(epoch.features.prefix(dimensions))
+                if dimensions > 7 {
+                    for index in 7..<dimensions { raw[index] = (raw[index] * 1e6).rounded(.toNearestOrEven) / 1e6 }
+                }
                 if let previousStart, abs(epoch.start.timeIntervalSince(previousStart) - 30) > 1 { reset() }
                 previousStart = epoch.start
-                frames.append(epoch.features)
+                frames.append(raw)
                 if frames.count > model.contextEpochs { frames.removeFirst(frames.count - model.contextEpochs) }
-                var values = epoch.features
+                var values = raw
                 if model.contextEpochs > 1 {
-                    let means = (0..<7).map { k in frames.reduce(0) { $0 + $1[k] } / Double(frames.count) }
-                    let deviations = (0..<7).map { k in
+                    let means = (0..<dimensions).map { k in frames.reduce(0) { $0 + $1[k] } / Double(frames.count) }
+                    let deviations = (0..<dimensions).map { k in
                         sqrt(frames.reduce(0) { total, row in
                             let delta = row[k] - means[k]
                             return total + delta * delta
                         } / Double(frames.count))
                     }
-                    values += means + deviations + (0..<7).map { epoch.features[$0] - frames[0][$0] }
+                    values += means + deviations + (0..<dimensions).map { raw[$0] - frames[0][$0] }
                 }
                 let probabilities = try model.probabilities(values)
                 return SleepPrediction(start: epoch.start, end: epoch.end,
@@ -90,6 +98,7 @@ fileprivate struct ContextualModel: Decodable, Sendable {
     let featureNames: [String]
     let classes: [SleepStage]
     let contextEpochs: Int
+    let featureProfile: String?
     let heldOutSubjects: [String]
     let balancedAccuracy: Double
     let biases: [Double]
@@ -130,12 +139,15 @@ fileprivate struct ContextualModel: Decodable, Sendable {
     }
 
     func validate() throws {
-        let raw = AudioFeatureExtractor.featureNames
+        let raw = rawFeatureNames
+        guard raw == AudioFeatureExtractor.featureNames || (raw == AudioFeatureExtractor.spectralFeatureNames && featureProfile == "spectral-v4") else {
+            throw SleepModel.ModelError.invalid
+        }
         let expected = contextEpochs == 1 ? raw : raw + ["past_mean_", "past_std_", "past_delta_"].flatMap { prefix in raw.map { prefix + $0 } }
         let dim = expected.count
         guard schemaVersion == 2, contextEpochs == 1 || contextEpochs == 10,
               !modelID.isEmpty, !dataSource.isEmpty, !heldOutSubjects.isEmpty,
-              rawFeatureNames == raw, featureNames == expected,
+              featureNames == expected,
               classes.count == 4, Set(classes) == Set(SleepStage.allCases),
               balancedAccuracy.isFinite, (0...1).contains(balancedAccuracy),
               biases.count == 4, biases.allSatisfy(\.isFinite) else { throw SleepModel.ModelError.invalid }

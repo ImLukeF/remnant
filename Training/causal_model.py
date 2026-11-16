@@ -4,23 +4,27 @@ import struct
 from features import FEATURE_NAMES
 
 
-def names(history):
+def names(history, raw_names=FEATURE_NAMES):
     if history == 1:
-        return FEATURE_NAMES
-    return FEATURE_NAMES + [prefix + name for prefix in ("past_mean_", "past_std_", "past_delta_") for name in FEATURE_NAMES]
+        return list(raw_names)
+    return list(raw_names) + [prefix + name for prefix in ("past_mean_", "past_std_", "past_delta_") for name in raw_names]
 
 
 class Context:
-    def __init__(self, history):
+    def __init__(self, history, dimensions=7):
         if history not in (1, 10):
             raise ValueError("Unsupported causal history.")
         self.limit = history
+        self.dimensions = dimensions
         self.values = []
         self.last_start = None
 
     def append(self, start, values):
-        if len(values) != 7 or not all(math.isfinite(x) for x in [start, *values]):
+        if len(values) != self.dimensions or not all(math.isfinite(x) for x in [start, *values]):
             raise ValueError("Invalid observation.")
+        values = list(values)
+        if self.dimensions > 7:
+            values[7:] = [round(value * 1e6) / 1e6 for value in values[7:]]
         if self.last_start is not None and abs(start - self.last_start - 30) > 1:
             self.values.clear()
         self.last_start = start
@@ -28,18 +32,18 @@ class Context:
         self.values = self.values[-self.limit:]
         if self.limit == 1:
             return list(values)
-        means = [sum(row[k] for row in self.values) / len(self.values) for k in range(7)]
-        std = [math.sqrt(sum((row[k] - means[k]) ** 2 for row in self.values) / len(self.values)) for k in range(7)]
-        delta = [values[k] - self.values[0][k] for k in range(7)]
+        means = [sum(row[k] for row in self.values) / len(self.values) for k in range(self.dimensions)]
+        std = [math.sqrt(sum((row[k] - means[k]) ** 2 for row in self.values) / len(self.values)) for k in range(self.dimensions)]
+        delta = [values[k] - self.values[0][k] for k in range(self.dimensions)]
         return list(values) + means + std + delta
 
 
-def transform(rows, history):
+def transform(rows, history, raw_names=FEATURE_NAMES):
     result, person, context = [], None, None
     for row in sorted(rows, key=lambda row: (row["subject"], row["startSeconds"])):
         if person != row["subject"]:
-            person, context = row["subject"], Context(history)
-        result.append({**row, "modelFeatures": context.append(row["startSeconds"], row["features"])})
+            person, context = row["subject"], Context(history, len(raw_names))
+        result.append({**row, "modelFeatures": context.append(row["startSeconds"], row["features"][:len(raw_names)])})
     return result
 
 

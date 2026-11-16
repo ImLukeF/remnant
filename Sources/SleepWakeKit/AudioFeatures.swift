@@ -23,6 +23,9 @@ public struct AudioFeatureExtractor: Sendable {
         "mean_zero_crossing_rate", "clipped_fraction", "envelope_autocorrelation",
     ]
     public static let epochSeconds = 30
+    public static let spectralFeatureNames = featureNames
+        + ["mean", "std"].flatMap { kind in (0..<24).map { "mel_relative_\(kind)_" + ($0 < 10 ? "0" : "") + String($0) } }
+        + ["spectral_entropy_mean", "spectral_flux_mean", "spectral_flux_std"]
     public let sampleRate: Int
     private var start: Date
     private var samples = 0
@@ -34,11 +37,13 @@ public struct AudioFeatureExtractor: Sendable {
     private var crossingRates: [Double] = []
     private var clippedFractions: [Double] = []
     private var invalid = false
+    private var spectrum: SpectralAccumulator?
 
-    public init(sampleRate: Int, start: Date) throws {
+    public init(sampleRate: Int, start: Date, spectral: Bool = false) throws {
         guard (8_000...192_000).contains(sampleRate) else { throw FeatureError.invalidSampleRate }
         self.sampleRate = sampleRate
         self.start = start
+        self.spectrum = spectral ? SpectralAccumulator(sampleRate: sampleRate) : nil
     }
 
     public mutating func append(_ pcm: [Float]) -> [AudioEpoch] {
@@ -50,6 +55,7 @@ public struct AudioFeatureExtractor: Sendable {
         for raw in pcm {
             let value = raw.isFinite ? raw : 0
             invalid = invalid || !raw.isFinite || abs(value) > 1
+            spectrum?.append(value)
             squares += Double(value) * Double(value)
             if abs(value) >= 0.999 { clipped += 1 }
             if let previous, (previous < 0) != (value < 0) { crossings += 1 }
@@ -67,14 +73,16 @@ public struct AudioFeatureExtractor: Sendable {
                 let mean = levels.reduce(0, +) / Double(levels.count)
                 let variance = levels.map { pow($0 - mean, 2) }.reduce(0, +) / Double(levels.count)
                 let clip = clippedFractions.reduce(0, +) / Double(levels.count)
-                let values = [
+                var values = [
                     mean, sqrt(variance), levels.min()!, levels.max()!,
                     crossingRates.reduce(0, +) / Double(levels.count), clip,
                     Self.periodicity(levels),
                 ]
+                let spectral = spectrum?.finishEpoch()
+                if let spectral { values += spectral.features }
                 let end = start.addingTimeInterval(Double(Self.epochSeconds))
                 epochs.append(AudioEpoch(start: start, end: end, features: values,
-                                         usable: !invalid && mean > -119 && clip < 0.01))
+                                         usable: !invalid && mean > -119 && clip < 0.01 && (spectral?.usable ?? true)))
                 start = end
                 levels.removeAll(keepingCapacity: true)
                 crossingRates.removeAll(keepingCapacity: true)

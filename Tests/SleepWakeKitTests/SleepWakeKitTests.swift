@@ -129,14 +129,16 @@ import Testing
 }
 
 @Test func researchTreeImportValidatesGraphsAndUsesStrictFloat32Thresholds() throws {
-    let raw = AudioFeatureExtractor.featureNames
-    func payload(left: [Int] = [1, -1, -1], features: [Int] = [0, -1, -1], values: [Double] = [1, 2, -2]) throws -> Data {
-        try JSONSerialization.data(withJSONObject: [
+    func payload(left: [Int] = [1, -1, -1], features: [Int] = [0, -1, -1], values: [Double] = [1, 2, -2], spectral: Bool = false) throws -> Data {
+        let raw = spectral ? AudioFeatureExtractor.spectralFeatureNames : AudioFeatureExtractor.featureNames
+        var object: [String: Any] = [
             "schemaVersion": 2, "modelKind": "trees", "modelID": "tree-fixture", "dataSource": "synthetic",
             "rawFeatureNames": raw, "featureNames": raw, "classes": ["awake", "light", "deep", "rem"],
             "contextEpochs": 1, "heldOutSubjects": ["fixture"], "balancedAccuracy": 0, "biases": [0, 0, 0, 0],
             "trees": [["classIndex": 1, "left": left, "right": [2, -1, -1], "features": features, "values": values]],
-        ])
+        ]
+        if spectral { object["featureProfile"] = "spectral-v4" }
+        return try JSONSerialization.data(withJSONObject: object)
     }
     var predictor = try SleepModel(data: payload()).makePredictor()
     func epoch(_ value: Double) -> AudioEpoch {
@@ -144,12 +146,42 @@ import Testing
     }
     #expect(try predictor.predict(epoch(0.5)).probabilities[.light]! > 0.7)
     #expect(try predictor.predict(epoch(1)).probabilities[.light]! < 0.05)
+    let upgraded = AudioEpoch(start: Date(timeIntervalSince1970: 0), end: Date(timeIntervalSince1970: 30),
+        features: Array(repeating: 0.5, count: AudioFeatureExtractor.spectralFeatureNames.count), usable: true)
+    #expect(try predictor.predict(upgraded).probabilities[.light]! > 0.7)
+    var spectralPredictor = try SleepModel(data: payload(features: [7, -1, -1], values: [0.5000002, 2, -2], spectral: true)).makePredictor()
+    let spectralInput = AudioEpoch(start: upgraded.start, end: upgraded.end,
+        features: Array(repeating: 0.5000004, count: AudioFeatureExtractor.spectralFeatureNames.count), usable: true)
+    #expect(try spectralPredictor.predict(spectralInput).probabilities[.light]! > 0.7)
+    #expect(throws: SleepModel.ModelError.self) { try spectralPredictor.predict(epoch(0.5)) }
     for bad in [try payload(left: [0, -1, -1]), try payload(features: [7, -1, -1]), try payload(values: [1, 1e100, -2])] {
         #expect(throws: SleepModel.ModelError.self) { try SleepModel(data: bad) }
     }
     #expect(throws: SleepModel.ModelError.self) {
         try SleepModel(data: Data(repeating: 32, count: SleepModel.maximumPayloadBytes + 1))
     }
+}
+
+@Test func spectralFeaturesMatchIndependentReferenceAcrossStreamingBuffers() throws {
+    let referenceURL = try #require(Bundle.module.url(forResource: "spectral-reference", withExtension: "json"))
+    let expected = try JSONDecoder().decode([Double].self, from: Data(contentsOf: referenceURL))
+    var extractor = try AudioFeatureExtractor(sampleRate: 8000, start: Date(timeIntervalSince1970: 0), spectral: true)
+    var state: UInt32 = 7
+    var chunk: [Float] = []
+    var epochs: [AudioEpoch] = []
+    for index in 0..<(8000 * 30) {
+        state = 1664525 &* state &+ 1013904223
+        let noise = Float(Int(state >> 16) - 32768) / 262144
+        chunk.append(noise + (index / 4 % 2 == 0 ? 0.125 : -0.125))
+        if chunk.count == 3079 { epochs += extractor.append(chunk); chunk.removeAll(keepingCapacity: true) }
+    }
+    epochs += extractor.append(chunk)
+    let result = try #require(epochs.first)
+    #expect(epochs.count == 1 && result.usable)
+    #expect(result.features.count == AudioFeatureExtractor.spectralFeatureNames.count)
+    for (actual, expected) in zip(result.features, expected) { #expect(abs(actual - expected) < 2e-6) }
+    let dc = extractor.append(Array(repeating: 0.25, count: 8000 * 30))
+    #expect(dc.count == 1 && !dc[0].usable)
 }
 
 @Test func finishingTodayDoesNotSkipTomorrowsRepeatingAlarm() {

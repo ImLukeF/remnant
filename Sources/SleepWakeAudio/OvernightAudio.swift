@@ -19,8 +19,9 @@ public final class OvernightAudio {
     private var starting = false
     private var generation = UUID()
     private var previousInput: AVAudioSessionPortDescription?
+    private let spectral: Bool
 
-    public init() {}
+    public init(spectral: Bool = false) { self.spectral = spectral }
 
     public func start(canStart: () -> Bool = { true }) async throws -> AsyncStream<Event> {
         guard engine == nil, !starting else { throw Failure.alreadyRunning }
@@ -61,7 +62,7 @@ public final class OvernightAudio {
                 self.stop()
             }
         }
-        let processor = try Processor(sampleRate: Int(format.sampleRate), continuation: continuation)
+        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, continuation: continuation)
         input.installTap(onBus: 0, bufferSize: 4_096, format: format) { buffer, time in
             processor.process(buffer, time: time)
         }
@@ -111,30 +112,58 @@ public final class OvernightAudio {
     }
 }
 
-/// The audio tap is serial. The engine owns this processor until the tap has been removed.
-private final class Processor: @unchecked Sendable {
-    private var extractor: AudioFeatureExtractor
-    private var expectedSample: AVAudioFramePosition?
+/// Bound copied PCM and keep spectrum work off the audio callback. No waveform is written to disk.
+private final class Processor: Sendable {
+    private struct Packet: Sendable {
+        let samples: [Float]
+        let sampleTime: AVAudioFramePosition?
+        let capturedAt: Date
+    }
+    private let input: AsyncStream<Packet>.Continuation
+    private let worker: Task<Void, Never>
     private let sampleRate: Int
-    private let continuation: AsyncStream<OvernightAudio.Event>.Continuation
 
-    init(sampleRate: Int, continuation: AsyncStream<OvernightAudio.Event>.Continuation) throws {
+    init(sampleRate: Int, spectral: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation) throws {
         self.sampleRate = sampleRate
-        self.extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: .now)
-        self.continuation = continuation
+        let (packets, input) = AsyncStream<Packet>.makeStream(bufferingPolicy: .bufferingNewest(16))
+        self.input = input
+        self.worker = Task.detached(priority: .utility) {
+            var extractor: AudioFeatureExtractor?
+            var expectedSample: AVAudioFramePosition?
+            for await packet in packets {
+                guard !Task.isCancelled else { break }
+                guard let time = packet.sampleTime, !packet.samples.isEmpty else {
+                    continuation.yield(.interrupted)
+                    break
+                }
+                if let expectedSample, abs(time - expectedSample) > AVAudioFramePosition(sampleRate / 4) {
+                    continuation.yield(.interrupted)
+                    break
+                }
+                if extractor == nil {
+                    do { extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: packet.capturedAt, spectral: spectral) }
+                    catch { continuation.yield(.interrupted); break }
+                }
+                expectedSample = time + AVAudioFramePosition(packet.samples.count)
+                for epoch in extractor?.append(packet.samples) ?? [] {
+                    if case .terminated = continuation.yield(.epoch(epoch)) { return }
+                }
+            }
+            continuation.finish()
+        }
     }
 
+    deinit { input.finish(); worker.cancel() }
+
     func process(_ buffer: AVAudioPCMBuffer, time: AVAudioTime) {
-        guard let channel = buffer.floatChannelData?[0], buffer.frameLength > 0 else { return }
-        if let expectedSample, abs(time.sampleTime - expectedSample) > AVAudioFramePosition(sampleRate / 4) {
-            continuation.yield(.interrupted)
-            // Discard the incomplete epoch; never join audio across a gap.
-            extractor = try! AudioFeatureExtractor(sampleRate: sampleRate, start: .now)
+        guard let channel = buffer.floatChannelData?[0], buffer.frameLength > 0, time.isSampleTimeValid,
+              buffer.format.sampleRate == Double(sampleRate) else {
+            input.yield(Packet(samples: [], sampleTime: nil, capturedAt: .now))
+            return
         }
-        expectedSample = time.sampleTime + AVAudioFramePosition(buffer.frameLength)
-        for epoch in extractor.append(UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength))) {
-            continuation.yield(.epoch(epoch))
-        }
+        let samples = Array(UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength)))
+        let capturedAt = Date.now.addingTimeInterval(-Double(buffer.frameLength) / buffer.format.sampleRate)
+        input.yield(Packet(samples: samples, sampleTime: time.sampleTime, capturedAt: capturedAt))
     }
 }
 #endif

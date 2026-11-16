@@ -11,6 +11,8 @@ No account, API key, paid SDK or network service is required.
   interruption handling, and no automatic restart after capture is interrupted.
 - A portable linear classifier format, an independently implemented Python feature reference,
   labelled-data extraction and subject-separated baseline training/evaluation.
+- An import format for causal linear and numerical tree models. Each stream gets its own
+  predictor, with bounded past-only context and resets after gaps or unusable audio.
 - Wake plans with precomputed safety attempts, a stop/finish distinction, and a conservative
   early-wake decision engine. Hosts remain responsible for scheduling real system alarms.
 
@@ -39,6 +41,13 @@ Persist the occurrence and actual scheduled IDs. A failed partial schedule must 
 Feed normalized mono float PCM to AudioFeatureExtractor. Sample rates must be integral, between
 8 kHz and 192 kHz. Reinitialize the extractor at discontinuities; do not join samples across gaps.
 Use the same processing and sample scaling in training and deployment.
+
+Use `SleepModel(data:)` to import either the legacy linear format or the current research format,
+then retain its `makePredictor()` result for one observation stream. Feed epochs in chronological
+order using the predictor's mutating `predict` method. Call `reset()` at session boundaries.
+The contextual format supports the current epoch alone or ten trailing epochs; it never reads future
+observations. Unusable epochs clear context and produce no stage probabilities. The importer rejects
+oversized payloads, unsupported schemas, non-finite parameters and invalid tree graphs.
 
 On iOS, retain an OvernightAudio instance, explicitly call start, and consume its event stream.
 Add a microphone usage explanation and the audio background mode to the host app. Call stop

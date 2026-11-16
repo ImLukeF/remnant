@@ -1,0 +1,33 @@
+{
+  "jobId": "9af85efe86724c88ae8adcb7efe9b9cc",
+  "status": "passed",
+  "createdAt": "2026-11-16T12:01:27.136349+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "e3938f00fe450794595fd7ed695106ad8b01c3d1",
+    "lane": "codex-sleep-spectral-rate-proof",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with",
+      "numpy==2.5.5",
+      "python",
+      "Packages/SleepWakeKit/Training/test_spectral.py"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 120
+  },
+  "startedAt": "2026-11-16T12:01:27.416353+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-spectral-rate-proof",
+  "sourceSha": "e3938f00fe450794595fd7ed695106ad8b01c3d1",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-16T12:01:37.511798+00:00"
+}

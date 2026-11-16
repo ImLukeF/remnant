@@ -1,0 +1,21 @@
+{
+  "featureReferenceRatesHz": [
+    8000,
+    48000
+  ],
+  "featureReferenceTolerance": 2e-06,
+  "streamingFeatureParityPassed": true,
+  "focusedPythonCausalContextAndTreeChecksPassed": true,
+  "prefetchAndResumeChecksPassed": true,
+  "microphoneStarted": false,
+  "modelApprovedForAlarmTiming": false,
+  "nativeInference": {
+    "epochs": 120,
+    "maximumProbabilityDifference": 1.1102230246251565e-16,
+    "passed": true,
+    "tolerance": 2e-06
+  },
+  "frozenParametersUnchanged": true,
+  "modelSHA256": "01ca9302ce94a703266da2fee3c61c6b9703b9e7422f22eb2cccf7c69d44ccb6",
+  "retiredSubjects": 84
+}

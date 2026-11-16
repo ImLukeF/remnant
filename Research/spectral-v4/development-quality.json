@@ -1,0 +1,24 @@
+{
+  "blocks": 145,
+  "sourcePeople": 72,
+  "usablePeopleByRole": {
+    "train": 40,
+    "validation": 32
+  },
+  "rates": {
+    "48000": 16543
+  },
+  "usableEpochsByRoleStage": {
+    "('train', 'light')": 7021,
+    "('train', 'awake')": 476,
+    "('train', 'deep')": 423,
+    "('validation', 'light')": 6033,
+    "('validation', 'awake')": 480,
+    "('train', 'rem')": 711,
+    "('validation', 'deep')": 648,
+    "('validation', 'rem')": 247
+  },
+  "noUsableAudio": [],
+  "totalEpochs": 16543,
+  "usableEpochs": 16039
+}

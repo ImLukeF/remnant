@@ -1,0 +1,37 @@
+{
+  "jobId": "5554060a3f4f4d5a9cd3a4138397121b",
+  "status": "passed",
+  "createdAt": "2026-11-16T12:37:54.194446+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "c551b884f743163baab5133dbc443d3e185f2355",
+    "lane": "codex-sleep-wake-evaluate-spectral-v4",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "python3",
+      "Packages/SleepWakeKit/Training/evaluate_final.py",
+      "--selection",
+      "/srv/ai-team/artifacts/sleep-wake-stage-complete-v4",
+      "--test",
+      "/srv/ai-team/artifacts/sleep-wake-final-test-spectral-v4",
+      "--baseline14",
+      "/srv/ai-team/artifacts/sleep-wake-baseline-v1/model.json",
+      "--baseline40",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v2/model.json",
+      "--baseline-causal",
+      "/srv/ai-team/artifacts/sleep-wake-model-v3/model.json"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-16T12:37:54.299890+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-wake-evaluate-spectral-v4",
+  "sourceSha": "c551b884f743163baab5133dbc443d3e185f2355",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-16T12:38:07.316226+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "status": "rejected-before-final-test",
+  "candidate": 10,
+  "reason": "The highest validation macro F1 candidate had zero REM recall. The selection rule was revised on development data before any fresh test was prepared.",
+  "validationMacroF1": 0.3184580348232659,
+  "validationRecalls": [
+    0.275,
+    0.9544173711254765,
+    0.038580246913580245,
+    0.0
+  ],
+  "newFinalTestRead": false,
+  "replacementRule": "Import budget and positive validation recall for every stage, then macro F1, balanced accuracy, light recall."
+}

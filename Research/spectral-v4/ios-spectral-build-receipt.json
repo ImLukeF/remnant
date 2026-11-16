@@ -1,0 +1,11 @@
+{
+  "sourceSha": "1576ec7bc6fd76e1960307930df1230dfbe498a1",
+  "platform": "iOS Simulator",
+  "configuration": "Debug",
+  "codeSigningAllowed": false,
+  "buildPassed": true,
+  "launched": false,
+  "microphoneStarted": false,
+  "physicalDeviceTested": false,
+  "nativeSourceChangesSinceBuild": []
+}

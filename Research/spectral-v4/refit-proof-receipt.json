@@ -1,0 +1,39 @@
+{
+  "jobId": "fd521e6969bb416c8b5d784bf5c77dfb",
+  "status": "passed",
+  "createdAt": "2026-11-16T12:11:49.676976+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "1abc604eeb777b79150e022f6d51326780507faa",
+    "lane": "codex-sleep-refit-proof",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with",
+      "numpy==2.5.5",
+      "--with",
+      "scipy==1.18.1",
+      "--with",
+      "xgboost-cpu==3.4.1",
+      "python",
+      "Packages/SleepWakeKit/Training/test_training.py",
+      "TrainingContracts.test_final_tree_refit_uses_the_frozen_round_count",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 120
+  },
+  "startedAt": "2026-11-16T12:11:49.788403+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-refit-proof",
+  "sourceSha": "1abc604eeb777b79150e022f6d51326780507faa",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-16T12:11:59.066917+00:00"
+}

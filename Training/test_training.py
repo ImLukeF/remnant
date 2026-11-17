@@ -6,6 +6,48 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_frozen_spectral_evaluation_compares_incumbent_once_and_keeps_all_exclusions(self):
+        import json
+        from argparse import Namespace
+        from causal_model import names
+        from evaluate_final import run
+        from features import STAGES
+        from improve_model import parameters_digest
+        from spectral import SPECTRAL_NAMES
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); selected=root/"selected"; test=root/"test"
+            selected.mkdir(); test.mkdir(); (test/"features").mkdir()
+            def save(path,value): path.write_text(json.dumps(value))
+            model={"schemaVersion":2,"modelKind":"trees","modelID":"synthetic-evaluation", "dataSource":"synthetic only",
+                   "featureProfile":"spectral-v4","rawFeatureNames":SPECTRAL_NAMES,"featureNames":names(10,SPECTRAL_NAMES),
+                   "contextEpochs":10,"classes":STAGES,"heldOutSubjects":[],"balancedAccuracy":0,
+                   "biases":[0,0,0,0],"trees":[{"classIndex":0,"left":[-1],"right":[-1],"features":[-1],"values":[0]}]}
+            parameters=parameters_digest(model)
+            save(selected/"selected-model.json",model)
+            save(selected/"selection.json",{"id":0,"parametersSHA256":parameters,"trainingSubjects":["training"],
+                "validationSubjects":[],"previouslyObservedSubjects":["training"],"validation":{"kind":"development only"}})
+            save(selected/"protocol.json",{"developmentExtractorSHA256":"synthetic-extractor"})
+            save(test/"download-plan.json",{"extractorSHA256":"synthetic-extractor","selectedParametersSHA256":parameters,
+                "testSubjects":["new-person"],"previouslyObservedSubjects":["training","older-outside-fitting"],
+                "fittingForbidden":True,"files":[{"path":"synthetic.edf"}]})
+            rows=[{"subject":"new-person","startSeconds":i*30,"stage":stage,"features":[float(i)]*58,"usable":True}
+                  for i,stage in enumerate(STAGES)]
+            data="".join(json.dumps(row)+"\n" for row in rows)
+            (test/"features/synthetic.jsonl").write_text(data); (test/"epochs.jsonl").write_text(data)
+            incumbent={**model,"biases":[0,1,0,0]}; save(root/"incumbent.json",incumbent)
+            args=Namespace(selection=selected,test=test,baseline14=None,baseline40=None,baseline_causal=None,baseline_spectral=root/"incumbent.json")
+            save(selected/"selected-model.json",{**model,"biases":[1,0,0,0]})
+            with self.assertRaises(ValueError): run(args)
+            self.assertFalse((selected/"evaluation.json").exists())
+            save(selected/"selected-model.json",model)
+            run(args)
+            report=json.loads((selected/"evaluation.json").read_text())
+            self.assertEqual(report["freshTest"]["confusionMatrix"],[[1,0,0,0]]*4)
+            self.assertEqual(report["comparisons"]["spectralV4"]["confusionMatrix"],[[0,1,0,0]]*4)
+            self.assertEqual(parameters_digest(json.loads((selected/"model.json").read_text())),parameters)
+            self.assertEqual(json.loads((selected/"known-subjects-after-test.json").read_text()),["new-person","older-outside-fitting","training"])
+            with self.assertRaises(ValueError): run(args)
+
     def test_selection_rejects_a_model_that_never_recognizes_one_stage(self):
         from improve_model import choose_candidate, metrics
         from features import STAGES

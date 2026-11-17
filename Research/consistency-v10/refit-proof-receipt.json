@@ -1,0 +1,36 @@
+{
+  "jobId": "3280dc8fa9364347ac0d09f7382a29cd",
+  "status": "passed",
+  "createdAt": "2026-11-17T09:53:51.476173+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "76438af36d7313e8914928e0a33ad5af060fc0c7",
+    "lane": "codex-sleep-consistency-refit-proof-v10",
+    "argv": [
+      "env",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-sequence-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_sequence.SequenceContracts.test_consistency_refit_requires_frozen_admission_and_keeps_final_people_unopened"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 180
+  },
+  "startedAt": "2026-11-17T09:53:51.609254+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-consistency-refit-proof-v10",
+  "sourceSha": "76438af36d7313e8914928e0a33ad5af060fc0c7",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T09:54:07.734225+00:00"
+}

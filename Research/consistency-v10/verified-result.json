@@ -1,0 +1,25 @@
+{
+  "status": "trained_not_improved",
+  "innerFittingPeople": 135,
+  "checkpointPeople": 24,
+  "validationPeople": 40,
+  "finalRefitPeople": 0,
+  "finalTestRead": false,
+  "everyStageRecognized": true,
+  "approvedForAlarmTiming": false,
+  "artifactHashes": {
+    "full-night-original-84-report.json": "6fb1f3fa2af6085b557b64a7e5f1675d524522f9dfd31d075b0fa59b8060cac8",
+    "full-night-original-84-weights.json": "37a13f5400d8b321e6477bf0073ec9ef20602d7536954d9db90acb6ef32036e1",
+    "progress.json": "4af6380acb509484c6d679ca883159f51fee3f57c4b585961997cfb21a030523",
+    "proof-receipt.json": "34ffd4188106a53d08690b1c2c3b02c78e83698687b6d473a62aff9399f35d46",
+    "protocol.json": "5b9a6757703ad27723b1e9eab35ba8f8385035ef433b5c2f8f3ddfae11955ae3",
+    "recipe-0-report.json": "da23e16694958c2aa889252f81132a14157e90f8afaf5d676d04819a386987be",
+    "recipe-0-weights.json": "d9af9b8888c4b1bbc5fc775fc349cdd78f13c46b6c0aa801c43232930361327b",
+    "recipe-1-report.json": "55ff413920ad034df520becd2658cfa9004165eb6d23054d67f5bc51e03835c9",
+    "recipe-1-weights.json": "6437be52074c9e64e9417aff34f5618d2c8f30b6f1fbfa4ad24db34541995273",
+    "refit-proof-receipt.json": "c7327f1a0acdc6f5600f2d28d9a9ccd571a26f551cbb3eceff872281f93e01bb",
+    "training-receipt.json": "0cd9db857f23b5c93676b7f2957c0a165c30693e4dddcd1f485071210e4ffd58",
+    "training-summary.json": "bd908c1cd0a6dcad96019595fc07f3b77e5abfa1d786516c8d950919d89ca1b6"
+  },
+  "verification": "Exact-source receipts, model checksums, independent PyTorch export and recomputed confusion-matrix metrics."
+}

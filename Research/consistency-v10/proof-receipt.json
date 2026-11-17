@@ -1,0 +1,38 @@
+{
+  "jobId": "ae25a8fce6474659bc5006aa58f8077d",
+  "status": "passed",
+  "createdAt": "2026-11-17T09:50:56.206057+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "79128488b0a9b01fcb47172bc4e452ab8d5ad0d0",
+    "lane": "codex-sleep-consistency-proof-v10",
+    "argv": [
+      "env",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-sequence-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_sequence.SequenceContracts.test_batched_paired_gru_matches_torch_and_never_reads_future_or_other_people",
+      "test_sequence.SequenceContracts.test_paired_consistency_is_symmetric_finite_and_excludes_checkpoint_people_from_fit",
+      "test_sequence.SequenceContracts.test_new_test_requires_both_development_metrics_and_all_stage_coverage"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T09:50:56.743883+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-consistency-proof-v10",
+  "sourceSha": "79128488b0a9b01fcb47172bc4e452ab8d5ad0d0",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T09:51:49.262415+00:00"
+}

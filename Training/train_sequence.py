@@ -22,6 +22,10 @@ CONFIGURATIONS = [
     {"history": 20, "hidden": 32, "gainDB": 0},
     {"history": 20, "hidden": 32, "gainDB": 12},
 ]
+BALANCED_CONFIGURATIONS = [
+    {"history": history, "hidden": hidden, "gainDB": 0, "classPower": 1.0}
+    for hidden in (16,32) for history in (10,20)
+] + [{"history":20,"hidden":hidden,"gainDB":12,"classPower":1.0} for hidden in (16,32)]
 
 
 def digest(path):
@@ -126,7 +130,7 @@ def export(network, config, means, scales, held_out):
             "outputBiases": network.output.bias.detach().tolist()}
 
 
-def fit(train, validation, config, seed, maximum_epochs, patience, fixed_epochs=None):
+def fit(train, validation, config, seed, maximum_epochs, patience, fixed_epochs=None, reference_score=None):
     import numpy as np
     import torch
     from collections import Counter
@@ -140,7 +144,7 @@ def fit(train, validation, config, seed, maximum_epochs, patience, fixed_epochs=
     if any(counts == 0):
         raise ValueError("Training needs all four independently scored stages.")
     subject_counts = Counter(row["subject"] for row in train)
-    sample_weights = np.asarray([(len(train)/(4*counts[label]))**0.75 * len(train)/(len(subject_counts)*subject_counts[row["subject"]])
+    sample_weights = np.asarray([(len(train)/(4*counts[label]))**config.get("classPower",0.75) * len(train)/(len(subject_counts)*subject_counts[row["subject"]])
                                  for row, label in zip(train, labels)])
     sample_weights /= sample_weights.mean()
     network = make_network(config["hidden"])
@@ -170,7 +174,9 @@ def fit(train, validation, config, seed, maximum_epochs, patience, fixed_epochs=
         entry = {"epoch": epoch, "seconds": time.monotonic()-started}
         if validation:
             score = metrics(validation, torch_probabilities(network, vx, vl).tolist())
-            key = (all(x > 0 for x in score["recallPerClass"]), score["macroF1"], score["balancedAccuracy"])
+            primary = (min(score["macroF1"]/reference_score["macroF1"], score["balancedAccuracy"]/reference_score["balancedAccuracy"])
+                       if reference_score else score["macroF1"])
+            key = (all(x > 0 for x in score["recallPerClass"]), primary, score["macroF1"], score["balancedAccuracy"])
             entry.update(macroF1=score["macroF1"], balancedAccuracy=score["balancedAccuracy"], recalls=score["recallPerClass"])
             if best_key is None or key > best_key:
                 best_key, best_epoch, stale = key, epoch, 0
@@ -214,17 +220,37 @@ def run(args):
         raise ValueError("Selection is already frozen.")
     rows, manifest = load_corpus(args.development, args.retired_test, args.previous_evaluation, args.registry)
     folds = {p: fold_for(p) for p in manifest["people"]}
+    settings_list = BALANCED_CONFIGURATIONS if args.configuration_set == "balanced" else CONFIGURATIONS
+    cached_reports, cache_record = {}, None
+    if args.baseline_cache:
+        prior = json.loads((args.baseline_cache/"protocol.json").read_text())
+        if prior["development"] != manifest or prior["folds"] != folds:
+            raise ValueError("Reuse baseline results only for the identical verified observations and subject folds.")
+        for fold in range(3):
+            path = args.baseline_cache/f"baseline-fold-{fold}.json"
+            report = json.loads(path.read_text())
+            expected_rows = [r for r in rows if folds[r["subject"]]==fold]
+            if (report["fold"] != fold or report["validation"]["subjects"] != sorted({r["subject"] for r in expected_rows})
+                    or report["validation"]["epochs"] != len(expected_rows) or report["fit"]["rounds"] != 160
+                    or not report["fit"]["nativeExportMaximumDifference"] <= 2e-6
+                    or any(sum(report["validation"]["confusionMatrix"][k]) != sum(r["stage"]==stage for r in expected_rows) for k,stage in enumerate(STAGES))):
+                raise ValueError("Cached baseline does not match this fold's fitting/evaluation contract.")
+            cached_reports[fold] = report
+        cache_record = {"sourceProtocolSHA256":digest(args.baseline_cache/"protocol.json"),"sourceSha":prior["sourceSha"],
+                        "reportsSHA256":{str(f):digest(args.baseline_cache/f"baseline-fold-{f}.json") for f in range(3)}}
     for fold in range(3):
         for held_out in (False, True):
             if {r["stage"] for r in rows if (folds[r["subject"]] == fold) == held_out} != set(STAGES):
                 raise ValueError("Every fold needs training and validation coverage of all four stages.")
     config = {"schemaVersion": 1, "experiment": "causal-gru-v5", "development": manifest,
-              "previouslyObservedSubjects": manifest["people"], "folds": folds, "configurations": CONFIGURATIONS,
+              "previouslyObservedSubjects": manifest["people"], "folds": folds, "configurations": settings_list,
               "seed": 7, "maximumEpochs": args.max_epochs, "patience": args.patience,
-              "classWeightPower": 0.75, "subjectBalancedLoss": True, "labelSmoothing": 0.02,
+              "classWeightPower": 1.0 if args.configuration_set == "balanced" else 0.75, "subjectBalancedLoss": True, "labelSmoothing": 0.02,
               "optimizer": "AdamW", "learningRate": 0.001, "weightDecay": 0.01, "dropout": 0.15,
               "developmentExtractorSHA256": manifest["extractorSHA256"], "futureAudio": False,
               "previousEvaluationSHA256": digest(args.previous_evaluation), "exclusionRegistrySHA256": digest(args.registry),
+              "baselineCache": cache_record,
+              "checkpointMetric": "Minimum relative macro F1 and balanced-accuracy improvement over the paired baseline" if args.configuration_set=="balanced" else "Macro F1",
               "selectionMetric": "Mean three-fold macro F1, then balanced accuracy; every fold must recognize every stage.",
               "finalRefitEpochs": "Median best epoch over three validation folds, fixed before fitting all development people.",
               "torchVersion": torch.__version__, "numpyVersion": np.__version__, "torchCPUOnly": True,
@@ -237,7 +263,10 @@ def run(args):
         train = [r for r in rows if folds[r["subject"]] != fold]
         validation = [r for r in rows if folds[r["subject"]] == fold]
         saved = root/f"baseline-fold-{fold}.json"
-        if saved.exists():
+        if fold in cached_reports:
+            report = cached_reports[fold]
+            atomic_json(saved,report)
+        elif saved.exists():
             report = json.loads(saved.read_text())
         else:
             transformed_train, transformed_val = transform(train, 10, SPECTRAL_NAMES), transform(validation, 10, SPECTRAL_NAMES)
@@ -246,7 +275,7 @@ def run(args):
             atomic_json(saved, report)
         baseline.append(report)
         print(json.dumps({"event": "baseline", "fold": fold, "macroF1": report["validation"]["macroF1"]}), flush=True)
-    for index, settings in enumerate(CONFIGURATIONS):
+    for index, settings in enumerate(settings_list):
         reports = []
         for fold in range(3):
             report_path, model_path = root/f"candidate-{index}-fold-{fold}.json", root/f"weights-{index}-fold-{fold}.json"
@@ -258,7 +287,8 @@ def run(args):
                 train = [r for r in rows if folds[r["subject"]] != fold]
                 validation = [r for r in rows if folds[r["subject"]] == fold]
                 print(json.dumps({"event": "fit", "candidate": index, "fold": fold, "settings": settings}), flush=True)
-                model, score, detail = fit(train, validation, settings, 7+fold, args.max_epochs, args.patience)
+                model, score, detail = fit(train, validation, settings, 7+fold, args.max_epochs, args.patience,
+                                          reference_score=baseline[fold]["validation"] if args.configuration_set=="balanced" else None)
                 atomic_json(model_path, model, compact=True)
                 report = {"fold": fold, "validation": score, "fit": detail, "modelFileSHA256": digest(model_path)}
                 atomic_json(report_path, report)
@@ -274,7 +304,15 @@ def run(args):
     eligible = [r for r in candidates if r["everyFoldRecognizesEveryStage"]]
     if not eligible:
         raise ValueError("No recurrent candidate recognizes every stage across all validation folds.")
-    winner = max(eligible, key=lambda r:(r["meanMacroF1"],r["meanBalancedAccuracy"],-r["id"]))
+    baseline_f1 = float(np.mean([r["validation"]["macroF1"] for r in baseline]))
+    baseline_accuracy = float(np.mean([r["validation"]["balancedAccuracy"] for r in baseline]))
+    improved = [r for r in eligible if r["meanMacroF1"]>baseline_f1 and r["meanBalancedAccuracy"]>baseline_accuracy]
+    if not improved:
+        atomic_json(root/"development-review.json",{"status":"not_improved","baselineMeanMacroF1":baseline_f1,
+                    "baselineMeanBalancedAccuracy":baseline_accuracy,"freshTestUntouched":True})
+        print(json.dumps({"event":"not_improved","freshTestUntouched":True}),flush=True)
+        return
+    winner = max(improved, key=lambda r:(r["meanMacroF1"],r["meanBalancedAccuracy"],-r["id"]))
     epochs = int(np.median([r["fit"]["bestEpoch"] for r in winner["folds"]]))
     model, _, detail = fit(rows, [], winner["settings"], 7, args.max_epochs, args.patience, fixed_epochs=epochs)
     encoded_bytes = len((json.dumps(model,separators=(",",":"))+"\n").encode())
@@ -302,6 +340,8 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-epochs", type=int, default=40)
     parser.add_argument("--patience", type=int, default=8)
+    parser.add_argument("--configuration-set",choices=("initial","balanced"),default="initial")
+    parser.add_argument("--baseline-cache",type=Path)
     args = parser.parse_args()
     if not 8 <= args.max_epochs <= 60 or not 3 <= args.patience <= 12:
         parser.error("Keep the CPU experiment within its declared epoch bounds.")

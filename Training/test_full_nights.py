@@ -19,6 +19,60 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions(self):
+        import numpy as np
+        from argparse import Namespace
+        from causal_model import names
+        from evaluate_expanded import run
+        from expanded_features import fingerprint
+        from features import STAGES
+        from improve_model import parameters_digest
+        from run_dataset import checksum
+        from spectral import SPECTRAL_NAMES
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);model_root=root/"models";test=root/"test"
+            model_root.mkdir();test.mkdir();(test/"features").mkdir()
+            save=lambda path,value:path.write_text(json.dumps(value))
+            people=[f"new-{i:03d}" for i in range(30)];known=[f"fitting-{i:03d}" for i in range(200)]
+            model={"schemaVersion":2,"modelKind":"trees","modelID":"synthetic-only","dataSource":"synthetic only",
+                   "featureProfile":"spectral-v4","rawFeatureNames":SPECTRAL_NAMES,"featureNames":names(10,SPECTRAL_NAMES),
+                   "contextEpochs":10,"classes":STAGES,"heldOutSubjects":[],"balancedAccuracy":0,
+                   "biases":[1,0,0,0],"trees":[{"classIndex":0,"left":[-1],"right":[-1],"features":[-1],"values":[0]}]}
+            digest=parameters_digest(model);save(model_root/"selected-model.json",model)
+            save(model_root/"selection.json",{"parametersSHA256":digest})
+            save(root/"incumbent.json",{**model,"biases":[0,1,0,0]})
+            reference=model_root/"full-night-original-84-weights.json";save(reference,{**model,"biases":[0,0,1,0]})
+            save(model_root/"full-night-original-84-report.json",{"modelFileSHA256":checksum(reference)})
+            save(model_root/"protocol.json",{"previouslyObservedSubjects":known,"reservedTestSubjects":people,
+                "baselineModelSHA256":checksum(root/"incumbent.json"),"development":{"extractorSHA256":fingerprint(),"noiseManifestSHA256":"synthetic-bank"}})
+            files=[{"path":person+".edf","subject":person,"sha256":"a"*64} for person in people]
+            plan={"phase":"final","fittingForbidden":True,"roles":{p:"test" for p in people},"reservedTestSubjects":[],
+                  "previouslyObservedSubjects":known,"selectedParametersSHA256":digest,"files":files}
+            save(test/"development-plan.json",plan);checks={}
+            for item in files:
+                path=test/"features"/(item["subject"]+".npz")
+                np.savez_compressed(path,features=np.zeros((4,58)),augmentedFeatures=np.ones((4,58)),startSeconds=np.arange(4)*30.,
+                    stage=np.arange(4,dtype=np.int8),usable=np.ones(4,dtype=bool),augmentedUsable=np.ones(4,dtype=bool),
+                    subject=np.asarray(item["subject"]),sourcePath=np.asarray(item["path"]),sourceSHA256=np.asarray(item["sha256"]),
+                    noiseRole=np.asarray("test"),recordingDuration=np.asarray(120),noiseManifestSHA256=np.asarray("synthetic-bank"),extractorSHA256=np.asarray(fingerprint()))
+                checks[item["path"]]=checksum(path)
+            save(test/"feature-checksums.json",checks)
+            save(test/"extraction-protocol.json",{"extractorSHA256":fingerprint(),"noiseManifestSHA256":"synthetic-bank","developmentPlanSHA256":checksum(test/"development-plan.json")})
+            save(test/"development-complete.json",{"extractorSHA256":fingerprint(),"noiseManifestSHA256":"synthetic-bank",
+                "featureChecksumsSHA256":checksum(test/"feature-checksums.json"),"usableEpochs":120})
+            args=Namespace(selection=model_root,test=test,baseline=root/"incumbent.json")
+            save(model_root/"selected-model.json",{**model,"biases":[0,0,0,1]})
+            with self.assertRaises(ValueError): run(args)
+            save(model_root/"selected-model.json",model);run(args)
+            report=json.loads((model_root/"evaluation.json").read_text())
+            self.assertEqual(report["results"]["expanded200"]["clean"]["confusionMatrix"],[[30,0,0,0]]*4)
+            self.assertEqual(report["results"]["incumbent72"]["clean"]["confusionMatrix"],[[0,30,0,0]]*4)
+            self.assertEqual(report["results"]["fullNight84"]["clean"]["confusionMatrix"],[[0,0,30,0]]*4)
+            self.assertEqual(parameters_digest(json.loads((model_root/"model.json").read_text())),digest)
+            self.assertEqual(len(json.loads((model_root/"known-subjects-after-test.json").read_text())),230)
+            self.assertEqual(report["pairedParticipantIntervals"]["clean"]["validResamples"],1000)
+            with self.assertRaises(ValueError): run(args)
+
     def test_distinct_recording_names_cannot_hide_a_repeated_clinical_participant(self):
         from expanded_contracts import participant_identities
         with tempfile.TemporaryDirectory() as directory:

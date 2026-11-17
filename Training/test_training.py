@@ -6,6 +6,20 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_full_night_expansion_keeps_known_people_in_training_and_reserves_new_people(self):
+        from full_night_cohort import participant_roles
+        people=[f"participant-{i}" for i in range(16)]; known=people[:4]
+        roles,test=participant_roles(people,known,development=10,validation=3,test=3)
+        self.assertEqual(sum(role=="train" for role in roles.values()),7)
+        self.assertEqual(sum(role=="validation" for role in roles.values()),3)
+        self.assertEqual(len(test),3)
+        self.assertTrue(all(roles[person]=="train" for person in known))
+        self.assertFalse(set(roles)&set(test))
+        self.assertEqual((roles,test),participant_roles(reversed(people),known,development=10,validation=3,test=3))
+        with self.assertRaises(ValueError): participant_roles(people,known+["missing"],10,3,3)
+        with self.assertRaises(ValueError): participant_roles(people,known,7,4,3)
+        with self.assertRaises(ValueError): participant_roles(people,known,15,3,3)
+
     def test_frozen_spectral_evaluation_compares_incumbent_once_and_keeps_all_exclusions(self):
         import json
         from argparse import Namespace

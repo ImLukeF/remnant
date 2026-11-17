@@ -84,21 +84,28 @@ def prepare(args):
     with ThreadPoolExecutor(max_workers=4) as pool:
         groups=list(pool.map(inventory,selected))
     flat=[item for group in groups for item in group]
+    atomic_json(root/"source-inventory.json",flat)
     if sum(f["bytes"] for f in flat)>args.max_download_gib*1024**3:
         raise ValueError("Complete available development recordings exceed the download bound.")
     progress_path=root/"header-checks.json"
     checked=json.loads(progress_path.read_text()) if progress_path.exists() else {}
     pending=[f for f in flat if f["path"] not in checked]
-    def inspect(item): return retry(lambda: header_timing(item,labels/(item["recording"]+".rml")))
+    def inspect(item): return retry(lambda: header_timing(item,labels/(item["recording"]+".rml"),allow_empty=True))
     with ThreadPoolExecutor(max_workers=4) as pool:
         for result in pool.map(inspect,pending):
             checked[result["path"]]=result
             atomic_json(progress_path,checked)
             if len(checked)%50==0: print(json.dumps({"event":"full_night_headers","complete":len(checked),"total":len(flat)}),flush=True)
-    files=[]; tails=[]; coverage={}; gaps=[]
+    files=[]; tails=[]; coverage={}; gaps=[]; unusable=[]
     for group in groups:
         staged=annotations(labels/(group[0]["recording"]+".rml"))
-        ordered=sorted((checked[item["path"]] for item in group),key=lambda f:f["offsetSeconds"])
+        records=[checked[item["path"]] for item in group]
+        for item in records:
+            original=next(old for old in group if old["path"]==item["path"])
+            if any(original[k]!=item[k] for k in original): raise ValueError("Cached header source changed.")
+        unusable.extend(item for item in records if "unusableReason" in item)
+        ordered=sorted((item for item in records if "unusableReason" not in item),key=lambda f:f["offsetSeconds"])
+        if not ordered: raise ValueError("A reserved development participant has no valid source headers.")
         end=None; counts={}
         for item in ordered:
             original=next(old for old in group if old["path"]==item["path"])
@@ -114,7 +121,7 @@ def prepare(args):
     saved={"schemaVersion":1,"repository":REPOSITORY,"revision":REVISION,"featureProfile":"spectral-v4",
            "extractorSHA256":feature_fingerprint(),"roles":roles,"reservedTestSubjects":held_out,
            "participantReservationSHA256":checksum(reservation_path),"licenceEvidence":evidence,"files":files,
-           "shortTailsExcluded":tails,"gaps":gaps,"annotatedStageCountsByPerson":coverage,
+           "shortTailsExcluded":tails,"unusableSourceBlocks":unusable,"gaps":gaps,"annotatedStageCountsByPerson":coverage,
            "allAvailableBlocks":True,"sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     atomic_json(plan_path,saved)
     print(json.dumps({"event":"full_night_plan_frozen","developmentPeople":len(roles),"trainingPeople":sum(r=="train" for r in roles.values()),

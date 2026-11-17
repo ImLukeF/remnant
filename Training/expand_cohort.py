@@ -56,7 +56,7 @@ def timing(header, start):
     return {"offsetSeconds": candidates[0], "durationSeconds": duration}
 
 
-def header_timing(item, label_path):
+def header_timing(item, label_path, *, allow_empty=False):
     url = resolve(item["path"]) + "?request=" + uuid.uuid4().hex
     request = urllib.request.Request(url, headers={"Range": "bytes=0-255", "User-Agent": "SleepWakeKit-research/0.1"})
     with urllib.request.urlopen(request, timeout=60) as response:
@@ -65,6 +65,10 @@ def header_timing(item, label_path):
         data = response.read(257)
     if len(data) != 256:
         raise ValueError("Invalid EDF header length.")
+    if not any(data):
+        if allow_empty:
+            return {**item, "unusableReason": "The pinned source has an all-zero EDF header."}
+        raise ValueError("Empty EDF header.")
     return {**item, **timing(data, annotation_start(label_path))}
 
 

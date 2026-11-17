@@ -6,6 +6,21 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_zero_edf_header_is_explicitly_quarantined_without_guessing_timing(self):
+        from io import BytesIO
+        from unittest.mock import patch
+        from expand_cohort import header_timing
+        class Response(BytesIO):
+            status=206
+            headers={"Content-Range":"bytes 0-255/4096"}
+        item={"path":"synthetic.edf","bytes":4096}
+        with patch("expand_cohort.urllib.request.urlopen",return_value=Response(bytes(256))):
+            result=header_timing(item,Path("must-not-be-read.rml"),allow_empty=True)
+        self.assertIn("unusableReason",result)
+        self.assertNotIn("offsetSeconds",result)
+        with patch("expand_cohort.urllib.request.urlopen",return_value=Response(bytes(256))):
+            with self.assertRaises(ValueError): header_timing(item,Path("must-not-be-read.rml"))
+
     def test_full_night_expansion_keeps_known_people_in_training_and_reserves_new_people(self):
         from full_night_cohort import participant_roles
         people=[f"participant-{i}" for i in range(16)]; known=people[:4]

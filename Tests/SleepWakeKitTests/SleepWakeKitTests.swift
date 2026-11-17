@@ -284,6 +284,68 @@ import Testing
     }
 }
 
+@Test func acousticModelMatchesIndependentEncoderAndRecurrentReference() throws {
+    struct Row: Decodable {
+        let seed: Int
+        let startSeconds: Double
+        let usable: Bool
+        let expectedProbabilities: [String: Double]?
+    }
+    let url = try #require(Bundle.module.url(forResource: "acoustic-model-reference", withExtension: "json"))
+    let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let model = try SleepModel(data: JSONSerialization.data(withJSONObject: try #require(object["model"])))
+    let rows = try JSONDecoder().decode([Row].self, from: JSONSerialization.data(withJSONObject: try #require(object["rows"])))
+    func epoch(seed: Int, time: Double, usable: Bool = true) -> AudioEpoch {
+        var frames: [Float] = []
+        for frame in 0..<240 {
+            for channel in 0..<25 { frames.append(Float(((frame+seed)*(channel+3))%37-18)/16) }
+        }
+        let start = Date(timeIntervalSince1970: time)
+        return AudioEpoch(start: start, end: start.addingTimeInterval(30), features: Array(repeating: 0, count: 58), usable: usable, acousticFrames: frames)
+    }
+    var predictor = model.makePredictor()
+    for row in rows {
+        let actual = try predictor.predict(epoch(seed: row.seed, time: row.startSeconds, usable: row.usable))
+        if let expected = row.expectedProbabilities {
+            for stage in SleepStage.allCases {
+                let actualValue = try #require(actual.probabilities[stage])
+                let expectedValue = try #require(expected[stage.rawValue])
+                #expect(abs(actualValue-expectedValue) < 2e-10)
+            }
+        } else { #expect(!actual.usable && actual.probabilities.isEmpty) }
+    }
+    var full = model.makePredictor(), bounded = model.makePredictor()
+    var lastFull: SleepPrediction?, lastBounded: SleepPrediction?
+    for index in 0..<30 {
+        let observation = epoch(seed: index+1, time: Double(index*30))
+        lastFull = try full.predict(observation)
+        if index >= 20 { lastBounded = try bounded.predict(observation) }
+    }
+    #expect(lastFull == lastBounded)
+}
+
+@Test func acousticModelRejectsMalformedEncodersAndMissingFrames() throws {
+    let url = try #require(Bundle.module.url(forResource: "acoustic-model-reference", withExtension: "json"))
+    let fixture = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let source = try #require(fixture["model"] as? [String: Any])
+    let encoder = try #require(source["encoder"] as? [String: Any])
+    for (key,value) in [("channels",-1 as Any),("channels",0),("channels",17),("weights1",[[[0.0]]]),
+                        ("weights2",[[[0.0]]]),("scales",Array(repeating:0.0,count:25)),("embeddingClip",0)] {
+        var object = source, invalid = encoder
+        invalid[key] = value
+        object["encoder"] = invalid
+        let data = try JSONSerialization.data(withJSONObject: object)
+        #expect(throws: SleepModel.ModelError.self) { try SleepModel(data: data) }
+    }
+    var predictor = try SleepModel(data: JSONSerialization.data(withJSONObject: source)).makePredictor()
+    let start = Date(timeIntervalSince1970: 0)
+    for frames in [nil, Array(repeating: Float(0), count: 5999)] as [[Float]?] {
+        #expect(throws: SleepModel.ModelError.self) {
+            try predictor.predict(AudioEpoch(start: start, end: start.addingTimeInterval(30), features: Array(repeating:0,count:58), usable:true, acousticFrames:frames))
+        }
+    }
+}
+
 @Test func finishingTodayDoesNotSkipTomorrowsRepeatingAlarm() {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(secondsFromGMT: 0)!

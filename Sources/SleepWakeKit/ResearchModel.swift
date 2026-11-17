@@ -7,6 +7,7 @@ public struct SleepModel: Sendable {
         case legacy(LinearSleepModel)
         case contextual(ContextualModel)
         case recurrent(RecurrentSleepModel)
+        case acoustic(AcousticSleepModel)
     }
     fileprivate let backing: Backing
 
@@ -23,6 +24,10 @@ public struct SleepModel: Sendable {
             let model = try JSONDecoder().decode(RecurrentSleepModel.self, from: data)
             try model.validate()
             backing = .recurrent(model)
+        case 4:
+            let model = try JSONDecoder().decode(AcousticSleepModel.self, from: data)
+            try model.validate()
+            backing = .acoustic(model)
         default: throw ModelError.invalid
         }
     }
@@ -95,6 +100,16 @@ public struct SleepModelPredictor: Sendable {
                 frames.append(raw)
                 if frames.count > model.contextEpochs { frames.removeFirst(frames.count-model.contextEpochs) }
                 let probabilities = try model.probabilities(frames)
+                return SleepPrediction(start: epoch.start, end: epoch.end,
+                    probabilities: Dictionary(uniqueKeysWithValues: zip(model.classes, probabilities)), usable: true)
+            case .acoustic(let model):
+                guard let detailed = epoch.acousticFrames else { throw SleepModel.ModelError.invalid }
+                let embedding = try model.encoder.encode(detailed)
+                if let previousStart, abs(epoch.start.timeIntervalSince(previousStart)-30)>1 { reset() }
+                previousStart = epoch.start
+                frames.append(embedding)
+                if frames.count > model.contextEpochs { frames.removeFirst(frames.count-model.contextEpochs) }
+                let probabilities = try model.recurrent.probabilities(frames)
                 return SleepPrediction(start: epoch.start, end: epoch.end,
                     probabilities: Dictionary(uniqueKeysWithValues: zip(model.classes, probabilities)), usable: true)
             }

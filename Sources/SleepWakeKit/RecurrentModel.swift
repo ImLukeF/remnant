@@ -24,20 +24,54 @@ struct RecurrentSleepModel: Decodable, Sendable {
     let outputWeights: [[Double]]
     let outputBiases: [Double]
 
+    var layer: GRULayer {
+        GRULayer(hiddenSize: hiddenSize, inputWeights: inputWeights, recurrentWeights: recurrentWeights,
+                 inputBiases: inputBiases, recurrentBiases: recurrentBiases, outputWeights: outputWeights, outputBiases: outputBiases)
+    }
+
     func validate() throws {
         let dimensions = AudioFeatureExtractor.spectralFeatureNames.count
-        func matrix(_ values: [[Double]], rows: Int, columns: Int) -> Bool {
-            values.count == rows && values.allSatisfy { $0.count == columns && $0.allSatisfy(\.isFinite) }
-        }
         guard schemaVersion == 3, modelKind == "gru", !modelID.isEmpty, !dataSource.isEmpty,
               featureProfile == "spectral-v4", rawFeatureNames == AudioFeatureExtractor.spectralFeatureNames,
               featureNames == rawFeatureNames, classes.count == 4, Set(classes) == Set(SleepStage.allCases),
               !heldOutSubjects.isEmpty, balancedAccuracy.isFinite, (0...1).contains(balancedAccuracy),
-              [1, 10, 20].contains(contextEpochs), (1...64).contains(hiddenSize),
+              [1, 10, 20].contains(contextEpochs),
               normalizedClip.isFinite, (1...16).contains(normalizedClip),
               means.count == dimensions, scales.count == dimensions,
-              means.allSatisfy(\.isFinite), scales.allSatisfy({ $0.isFinite && $0 > 0 }),
-              inputBiases.count == 3*hiddenSize, recurrentBiases.count == 3*hiddenSize, outputBiases.count == 4,
+              means.allSatisfy(\.isFinite), scales.allSatisfy({ $0.isFinite && $0 > 0 }) else { throw SleepModel.ModelError.invalid }
+        try layer.validate(dimensions: dimensions)
+    }
+
+    func probabilities(_ frames: [[Double]]) throws -> [Double] {
+        guard !frames.isEmpty, frames.count <= contextEpochs else { throw SleepModel.ModelError.invalid }
+        let normalized = try frames.map { raw in
+            guard raw.count == means.count else { throw SleepModel.ModelError.invalid }
+            return try raw.indices.map { index in
+                let value = (raw[index]-means[index])/scales[index]
+                guard value.isFinite else { throw SleepModel.ModelError.invalid }
+                return max(-normalizedClip, min(normalizedClip, value))
+            }
+        }
+        return try layer.probabilities(normalized)
+    }
+}
+
+/// Shared recurrent equations for raw-observation and learned-embedding models.
+struct GRULayer: Decodable, Sendable {
+    let hiddenSize: Int
+    let inputWeights: [[Double]]
+    let recurrentWeights: [[Double]]
+    let inputBiases: [Double]
+    let recurrentBiases: [Double]
+    let outputWeights: [[Double]]
+    let outputBiases: [Double]
+
+    func validate(dimensions: Int) throws {
+        func matrix(_ values: [[Double]], rows: Int, columns: Int) -> Bool {
+            values.count == rows && values.allSatisfy { $0.count == columns && $0.allSatisfy(\.isFinite) }
+        }
+        guard (1...64).contains(hiddenSize), inputBiases.count == 3*hiddenSize,
+              recurrentBiases.count == 3*hiddenSize, outputBiases.count == 4,
               (inputBiases+recurrentBiases+outputBiases).allSatisfy(\.isFinite),
               matrix(inputWeights, rows: 3*hiddenSize, columns: dimensions),
               matrix(recurrentWeights, rows: 3*hiddenSize, columns: hiddenSize),
@@ -59,17 +93,10 @@ struct RecurrentSleepModel: Decodable, Sendable {
     }
 
     func probabilities(_ frames: [[Double]]) throws -> [Double] {
-        guard !frames.isEmpty, frames.count <= contextEpochs else { throw SleepModel.ModelError.invalid }
+        guard !frames.isEmpty, let dimensions = inputWeights.first?.count else { throw SleepModel.ModelError.invalid }
         var hidden = Array(repeating: 0.0, count: hiddenSize)
-        for raw in frames {
-            guard raw.count == means.count else { throw SleepModel.ModelError.invalid }
-            var input: [Double] = []
-            input.reserveCapacity(raw.count)
-            for index in raw.indices {
-                let normalized = (raw[index]-means[index])/scales[index]
-                guard normalized.isFinite else { throw SleepModel.ModelError.invalid }
-                input.append(max(-normalizedClip, min(normalizedClip, normalized)))
-            }
+        for input in frames {
+            guard input.count == dimensions, input.allSatisfy(\.isFinite) else { throw SleepModel.ModelError.invalid }
             let incoming = Self.affine(inputWeights, input, inputBiases)
             let recurrent = Self.affine(recurrentWeights, hidden, recurrentBiases)
             guard (incoming+recurrent).allSatisfy(\.isFinite) else { throw SleepModel.ModelError.invalid }

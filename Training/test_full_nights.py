@@ -19,6 +19,121 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint(self):
+        from argparse import Namespace
+        from orchestrate_expansion import run
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);state_path=root/"controller-state.json"
+            old="a"*40;new="b"*40;fingerprint="c"*64
+            original={"featureSource":old,"jobs":[{"status":"cancelled","reason":"planned scheduling upgrade"}],"completedPhases":[]}
+            (root/"extraction-protocol.json").write_text(json.dumps({"extractorSHA256":fingerprint}))
+            # Completed development data avoids dispatching external jobs; the transition
+            # still has to reject active ownership and a changed measurement fingerprint.
+            (root/"development-complete.json").write_text("{}")
+            args=Namespace(root=root,noise_bank=root,feature_source=new,previous_feature_source=old,
+                expected_extractor=fingerprint,extract_workers=3,idle_wait=1,initial_job=None,max_batches=1)
+            for state,expected,previous in (({**original,"activeJob":"still-running"},fingerprint,old),
+                    (original,"d"*64,old),(original,fingerprint,"e"*40)):
+                state_path.write_text(json.dumps(state));args.expected_extractor=expected;args.previous_feature_source=previous
+                with self.assertRaises(ValueError): run(args)
+                self.assertEqual(json.loads(state_path.read_text()),state)
+            state_path.write_text(json.dumps(original));args.expected_extractor=fingerprint;args.previous_feature_source=old
+            run(args);state=json.loads(state_path.read_text())
+            self.assertEqual(state["status"],"development_ready")
+            self.assertEqual(state["featureSource"],new)
+            self.assertEqual(state["sourceUpgrades"][0]["extractorSHA256"],fingerprint)
+            self.assertEqual(state["jobs"],original["jobs"])
+            self.assertEqual(state["workerSettings"],{"extractWorkers":3,"blasThreads":2,"idleWait":1})
+
+    def test_short_idle_wait_preserves_measurements_bit_for_bit(self):
+        import os
+        import subprocess
+        import sys
+        code='''import hashlib,sys
+import numpy as np
+from run_expanded_corpus import extraction_bank
+from spectral import extract_epoch
+bank=extraction_bank(sys.argv[1]);digest=hashlib.sha256()
+for rate in (8000,48000):
+ for i,scale in enumerate((0,1e-7,1e-4,0.02,0.1,0.3)):
+  pcm=np.random.default_rng(i).normal(0,scale,30*rate)
+  clean,valid=extract_epoch(pcm,rate)
+  for role in ("train","validation"):
+   mixed,snr=bank.mix(pcm,rate,"synthetic-only",i*30,role)
+   noisy,usable=extract_epoch(mixed,rate)
+   digest.update(np.asarray(clean+noisy+[valid,usable,snr],dtype=np.float64).tobytes())
+print(digest.hexdigest())'''
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);write_bank(root)
+            # Thread-count changes can alter rounding, so retain two BLAS threads.
+            # Only their idle wait changes; exact measurements must remain unchanged.
+            base={k:v for k,v in os.environ.items() if k!="OPENBLAS_THREAD_TIMEOUT"}
+            base.update(OPENBLAS_NUM_THREADS="2",OMP_NUM_THREADS="2")
+            results=[subprocess.check_output([sys.executable,"-c",code,str(root)],text=True,
+                env={**base,**({"OPENBLAS_THREAD_TIMEOUT":str(wait)} if wait is not None else {})},timeout=120).strip()
+                for wait in (None,1)]
+            self.assertEqual(results[0],results[1])
+
+    def test_parallel_extraction_preserves_every_array_and_complete_checkpoint(self):
+        import datetime
+        import shutil
+        from argparse import Namespace
+        from unittest.mock import patch
+        import numpy as np
+        import pyedflib
+        from run_dataset import checksum
+        from run_expanded_corpus import run
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);write_bank(root/"noise")
+            rate=48000;start=datetime.datetime(2020,1,1)
+            tone=np.where(np.arange(30*rate)//8%2==0,2000,-2000).astype(np.int32)
+            signal=np.concatenate((tone,np.zeros(30*rate,dtype=np.int32),tone*2,tone*3))
+            original=root/"original.edf"
+            with pyedflib.EdfWriter(str(original),2,file_type=pyedflib.FILETYPE_EDFPLUS) as writer:
+                writer.setStartdatetime(start)
+                for channel,name in enumerate(("Tracheal","Mic")):
+                    writer.setSignalHeader(channel,{"label":name,"dimension":"a.u.","sample_frequency":rate,
+                        "physical_min":-1,"physical_max":1,"digital_min":-32768,"digital_max":32767,"transducer":"","prefilter":""})
+                writer.writeSamples([np.full(len(signal),16000,dtype=np.int32),signal],digital=True)
+            labels=(f'<Root><Session><RecordingStart>{start.isoformat()}</RecordingStart><Duration>120</Duration></Session>'
+                    '<UserStaging><Stage Type="NonREM2" Start="0"/><Stage Type="REM" Start="30"/>'
+                    '<Stage Type="NonREM3" Start="60"/><Stage Type="Wake" Start="90"/></UserStaging></Root>').encode()
+            oid=hashlib.sha1(f"blob {len(labels)}\0".encode()+labels).hexdigest()
+            roles={"synthetic1":"train","synthetic2":"train","synthetic3":"validation"}
+            items=[{"subject":p,"recording":p,"path":p+".edf","sha256":checksum(original),"rmlGitOID":oid,
+                    "offsetSeconds":0,"durationSeconds":120,"bytes":original.stat().st_size} for p in roles]
+            # Only external transport is replaced. Extraction, worker processes, DSP and
+            # checkpoint publication run through the production owner on real synthetic EDFs.
+            def sources(selected,cache,features,workers):
+                for number,item in enumerate(selected):
+                    path=cache/(item["subject"]+".edf");shutil.copyfile(original,path)
+                    self.assertEqual(checksum(path),item["sha256"])
+                    yield number,item,path
+            outputs=[]
+            for workers in (1,3):
+                output=root/str(workers);output.mkdir();(output/"labels").mkdir()
+                for p in roles: (output/"labels"/(p+".rml")).write_bytes(labels)
+                (output/"development-plan.json").write_text(json.dumps({"roles":roles,"files":items,"reservedTestSubjects":["unopened"]}))
+                args=Namespace(output=output,noise_bank=root/"noise",max_download_gib=1,batch_gib=1,download_workers=2,extract_workers=workers)
+                with patch("run_expanded_corpus.prefetched_audio",sources): run(args)
+                checks=json.loads((output/"feature-checksums.json").read_text())
+                complete=json.loads((output/"development-complete.json").read_text())
+                self.assertEqual(set(checks),{i["path"] for i in items})
+                self.assertEqual(complete["blocks"],3)
+                self.assertEqual(complete["usableEpochs"],9)
+                self.assertEqual(set(complete["people"]),set(roles))
+                for item in items:
+                    self.assertEqual(checksum(output/"features"/(item["subject"]+".npz")),checks[item["path"]])
+                self.assertFalse(list((output/"raw-cache").glob("*.edf")))
+                # A completed run must reuse all checkpoints without fetching the sources again.
+                with patch("run_expanded_corpus.prefetched_audio",sources): run(args)
+                self.assertEqual(json.loads((output/"feature-checksums.json").read_text()),checks)
+                outputs.append(output)
+            for p in roles:
+                with np.load(outputs[0]/"features"/(p+".npz"),allow_pickle=False) as serial, np.load(outputs[1]/"features"/(p+".npz"),allow_pickle=False) as parallel:
+                    self.assertEqual(serial.files,parallel.files)
+                    for key in serial.files: np.testing.assert_array_equal(serial[key],parallel[key],err_msg=key)
+
     def test_expanded_training_refits_all_200_people_without_reading_reserved_people(self):
         import numpy as np
         from argparse import Namespace

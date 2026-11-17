@@ -19,11 +19,30 @@ def cli(*argv):
 
 def run(args):
     root=args.root.resolve();root.mkdir(parents=True,exist_ok=True)
-    lock=(root/"controller.lock").open("a")
-    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    with (root/"controller.lock").open("a") as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        return run_locked(args,root)
+
+
+def run_locked(args,root):
     path=root/"controller-state.json"
-    state=json.loads(path.read_text()) if path.exists() else {"featureSource":args.feature_source,"jobs":[],"completedPhases":[]}
-    if state["featureSource"]!=args.feature_source: raise ValueError("Resume the same extraction source.")
+    settings={"extractWorkers":args.extract_workers,"blasThreads":2,"idleWait":args.idle_wait}
+    state=json.loads(path.read_text()) if path.exists() else {"featureSource":args.feature_source,"jobs":[],"completedPhases":[],"workerSettings":settings}
+    previous_settings=state.get("workerSettings",{"extractWorkers":1,"blasThreads":2,"idleWait":None})
+    if state["featureSource"]!=args.feature_source or previous_settings!=settings:
+        # A scheduling-only upgrade preserves the frozen source plan and DSP fingerprint.
+        # An old worker must be fully stopped and its receipt retained before this transition.
+        protocol=json.loads((root/"extraction-protocol.json").read_text())
+        if (args.previous_feature_source!=state["featureSource"] or state.get("activeJob")
+                or len(args.expected_extractor or "")!=64
+                or protocol["extractorSHA256"]!=args.expected_extractor):
+            raise ValueError("Stop the prior worker and explicitly verify the unchanged extraction fingerprint before upgrading.")
+        state.setdefault("sourceUpgrades",[]).append({"previousSource":state["featureSource"],
+            "sourceSha":args.feature_source,"previousSettings":previous_settings,"settings":settings,
+            "extractorSHA256":args.expected_extractor,"at":time.time()})
+        state["featureSource"]=args.feature_source
+    state["workerSettings"]=settings
+    state.pop("error",None)
     if args.initial_job and not state.get("activeJob") and not state["jobs"]:
         state.update(activeJob=args.initial_job,activePhase="development_batch_0")
     save(path,state)
@@ -72,9 +91,10 @@ def run(args):
         if not (folder/"development-complete.json").exists(): raise RuntimeError("The bounded batch count was exhausted.")
 
     feature_request={"sourceSha":args.feature_source,"lane":"codex-sleep-expanded-features-v8","argv":[
-        "env","OPENBLAS_NUM_THREADS=2","OMP_NUM_THREADS=2","uv","run","--python","3.12","--with-requirements",
+        "env","OPENBLAS_NUM_THREADS=2","OMP_NUM_THREADS=2",*([f"OPENBLAS_THREAD_TIMEOUT={args.idle_wait}"] if args.idle_wait is not None else []),"uv","run","--python","3.12","--with-requirements",
         "Packages/SleepWakeKit/Training/requirements-research-linux.txt","python","Packages/SleepWakeKit/Training/run_expanded_corpus.py",
-        "--output",str(root),"--noise-bank",str(args.noise_bank),"--max-download-gib","768","--batch-gib","64","--download-workers","4"]}
+        "--output",str(root),"--noise-bank",str(args.noise_bank),"--max-download-gib","768","--batch-gib","64","--download-workers","4",
+        "--extract-workers",str(args.extract_workers)]}
     try:
         state["status"]="extracting_development";save(path,state)
         extract_batches(root,feature_request,"development")
@@ -100,6 +120,9 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root",type=Path,required=True);parser.add_argument("--noise-bank",type=Path,required=True)
     parser.add_argument("--feature-source",required=True);parser.add_argument("--initial-job")
+    parser.add_argument("--previous-feature-source");parser.add_argument("--expected-extractor")
+    parser.add_argument("--extract-workers",type=int,choices=(1,2,3),default=1)
+    parser.add_argument("--idle-wait",type=int,choices=range(1,29))
     parser.add_argument("--max-batches",type=int,default=20)
     args=parser.parse_args()
     if not 1<=args.max_batches<=20: parser.error("Bound the number of one-hour extraction batches.")

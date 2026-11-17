@@ -147,6 +147,20 @@ on the same verified participant folds. It reuses the paired baseline and applie
 two-metric admission rule. `Training/evaluate_final.py --baseline-spectral` compares a frozen
 spectral candidate with the incumbent on identical fresh test observations.
 
+`Training/full_night_cohort.py` freezes the expanded full-night protocol before reading labels:
+160 fitting people (including every previously observed person), 40 new validation people and
+30 untouched final-test people. `Training/run_expanded_corpus.py` extracts verified bedside Mic
+measurements and controlled MUSAN speech/music/ambient mixtures. Noise source licences and
+content-disjoint fitting/validation/test clips are checked; synthetic noise is not home-TV validation.
+`Training/train_expanded.py` fits clean and augmented recipes, compares them with the incumbent
+on both validation conditions, then refits the chosen recipe on all 200 development people.
+Both macro F1 and balanced accuracy must improve in both conditions, with every stage recognized,
+before the reserved final cohort may be read. Otherwise the 200-person model stays experimental.
+`Training/evaluate_expanded.py` compares the frozen model, original-84 full-night control and
+incumbent on the same 30 new people, reporting paired participant uncertainty without fitting.
+`Training/orchestrate_expansion.py` runs these phases as bounded exact-source VPS jobs, retains
+verified checkpoints and stops on failures. This research route never enables model-driven alarms.
+
 Use the pinned CPU-only `Training/requirements-sequence-linux.txt` environment for neural research.
 `Training/prepare_sequence_test.py` enforces development admission and prepares a new cohort;
 `Training/evaluate_sequence.py` or `Training/evaluate_acoustic.py` scores the frozen model once.

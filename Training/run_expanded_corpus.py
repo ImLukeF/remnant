@@ -1,6 +1,7 @@
 """Bounded resumable clean/noisy extraction for a frozen expanded development cohort."""
 import argparse
 from collections import Counter
+from functools import lru_cache
 import json
 from pathlib import Path
 import shutil
@@ -17,6 +18,10 @@ def run(args):
     import numpy as np
     root=args.output.resolve();plan_path=root/"development-plan.json"
     plan=json.loads(plan_path.read_text());bank=NoiseBank(args.noise_bank)
+    # Retain the immutable resampled public clips across epochs. The original DSP body is unchanged;
+    # the cache proof verifies byte-identical mixtures. At 48 kHz this stays below one GiB.
+    resample=NoiseBank.resampled.__wrapped__
+    bank.resampled=lru_cache(maxsize=40)(lambda index,rate:resample(bank,index,rate))
     if set(plan["roles"])&set(plan["reservedTestSubjects"]): raise ValueError("Final-test people leaked into development.")
     files=plan["files"]
     if sum(f["bytes"] for f in files)>args.max_download_gib*1024**3: raise ValueError("Frozen source plan exceeds the total download bound.")

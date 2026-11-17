@@ -1,0 +1,11 @@
+{
+  "phase": "final",
+  "fittingForbidden": true,
+  "testPeople": 30,
+  "blocks": 169,
+  "sourceGiB": 101.44226905331016,
+  "audioHours": 153.25277777777777,
+  "selectedParametersSHA256": "19b1438e0534ec62d34e2b0c361062ecf5b76577c30fe24e5a662aa5311665c5",
+  "observedPeopleRetired": 230,
+  "usesExactlyReservedPeople": true
+}

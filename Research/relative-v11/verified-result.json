@@ -1,5 +1,5 @@
 {
-  "status": "refitted_pending_untouched_final",
+  "status": "refitted_untouched_final_extracting",
   "actualRefitPeople": 199,
   "backboneSelectionFittingPeople": 135,
   "innerCheckpointPeople": 24,
@@ -32,7 +32,10 @@
     "selection.json": "210667f8acca0f367d98e7e2c0639c13d227a78a20fd214793cb1a34b497a9f6",
     "training-summary.json": "5d656556d657d929e7e02ee57ea33f6352713f96589012e8bcdeee995fc70eae",
     "verified-selection.json": "6f063c31216049d837a9a674fe1d372c899edc91cd8b53ce76c7a9d97988aa9f",
-    "wake-calibration-review.json": "ac9772f0e96b99c559f35e8dd2da9a7ccfed96aec651d4621dfba36a87e37ddc"
+    "wake-calibration-review.json": "ac9772f0e96b99c559f35e8dd2da9a7ccfed96aec651d4621dfba36a87e37ddc",
+    "final-preparation-receipt.json": "964fc228ab4aab8d71446f3f22335721cfa1b0f4dd188c7217ce2f4a7c443854",
+    "final-preparation-verification.json": "5d7ad42a9251482f78b9b2a537fe4c4b72f7ef214a2f5822459c98e9e4abd7e9"
   },
-  "verification": "Exact-source receipts; model and inference-parameter digests; 199-person fixed-epoch fit counts; original paired admission verified. Final evaluation not yet complete."
+  "verification": "Exact-source receipts; model and inference-parameter digests; 199-person fixed-epoch fit counts; original paired admission verified. Final evaluation not yet complete.",
+  "observedPeopleRetiredFromFutureTests": 230
 }

@@ -75,6 +75,11 @@ def run(args):
     validation=sorted(p for p,r in plan["roles"].items() if r=="validation")
     if len(training)!=160 or len(validation)!=40 or len(plan["reservedTestSubjects"])!=30:
         raise ValueError("Use the frozen 160/40/30 participant protocol.")
+    excluded=manifest.get("qualityExcludedSubjects",{})
+    if not set(excluded).issubset(training): raise ValueError("Quality exclusions cannot change independent validation or final-test people.")
+    training=[p for p in training if p not in excluded]
+    refit_people=sorted(set(plan["roles"])-set(excluded))
+    reference_people=sorted(set(known)-set(excluded))
     baseline=json.loads(args.baseline.read_text())
     if baseline["rawFeatureNames"]!=SPECTRAL_NAMES or baseline["contextEpochs"]!=10 or baseline["classes"]!=list(STAGES):
         raise ValueError("The incumbent input/stage contract changed.")
@@ -82,11 +87,12 @@ def run(args):
         "reservedTestSubjects":plan["reservedTestSubjects"],"previouslyObservedSubjects":sorted(plan["roles"]),
         "baselineModelSHA256":checksum(args.baseline),"originalRegistrySHA256":checksum(args.original_registry),
         "participantIdentityHashes":identities,
+        "qualityExcludedSubjects":excluded,"refitSubjects":refit_people,
         "parameters":PARAMETERS,"rounds":160,"contextEpochs":10,"subjectBalancedLoss":True,"classBalancedLoss":True,
         "candidates":["clean","clean-plus-room-noise"],"reference":"Full-night original 84, same fixed fitting recipe",
         "admission":"Both macro F1 and balanced accuracy must improve on both clean and controlled-noise validation; every stage recognized.",
         "selection":"Best minimum relative metric improvement, then mean clean/noisy macro F1.",
-        "refit":"Selected fixed recipe on all 200 development people. Unadmitted weights remain experimental and final-test people stay untouched.",
+        "refit":f"Selected fixed recipe on all {len(refit_people)} usable development people. Unadmitted weights remain experimental and final-test people stay untouched.",
         "xgboostVersion":xgboost.__version__,"numpyVersion":np.__version__,"usesFutureAudio":False,"finalTestRead":False,
         "sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     if (root/"protocol.json").exists() and json.loads((root/"protocol.json").read_text())!=protocol:
@@ -95,7 +101,7 @@ def run(args):
     print(json.dumps({"event":"building_causal_views","people":len(plan["roles"]),"scoredEpochs":len(arrays["stage"])}),flush=True)
     views={"clean":context(arrays),"noisy":context(arrays,noisy=True)}
     baseline_scores=score_views(baseline,views,validation);reports={}
-    def fit_cached(name,people,augmented):
+    def fit_cached(name,people,augmented,final_refit=False):
         path=root/(name+"-weights.json");report_path=root/(name+"-report.json")
         if path.exists() and report_path.exists():
             model=json.loads(path.read_text());report=json.loads(report_path.read_text())
@@ -106,15 +112,16 @@ def run(args):
         inputs=np.concatenate([v["inputs"][m] for v,m in zip(chosen,masks)])
         labels=np.concatenate([v["labels"][m] for v,m in zip(chosen,masks)])
         person_ids=np.concatenate([v["people"][m] for v,m in zip(chosen,masks)])
-        probe=views["clean"]["inputs"][np.isin(views["clean"]["people"],validation)] if len(people)<200 else inputs[:128]
+        if set(person_ids)!=set(people): raise ValueError("A fitting participant disappeared without the frozen quality exclusion.")
+        probe=inputs[:128] if final_refit else views["clean"]["inputs"][np.isin(views["clean"]["people"],validation)]
         print(json.dumps({"event":"expanded_fit","name":name,"people":len(people),"rows":len(labels)}),flush=True)
         model,fit=fit_arrays(inputs,labels,person_ids,probe)
         atomic_json(path,model,compact=True)
         report={"fit":fit,"modelFileSHA256":checksum(path)}
-        if len(people)<200: report["validation"]=score_views(model,views,validation)
+        if not final_refit: report["validation"]=score_views(model,views,validation)
         atomic_json(report_path,report)
         return model,report
-    _,reference=fit_cached("full-night-original-84",known,False)
+    _,reference=fit_cached("full-night-original-84",reference_people,False)
     for label,augmented in (("clean",False),("clean-plus-room-noise",True)):
         _,report=fit_cached(label,training,augmented)
         report["admitted"]=admitted(report["validation"],baseline_scores);reports[label]=report
@@ -122,7 +129,7 @@ def run(args):
             "cleanBalancedAccuracy":report["validation"]["clean"]["balancedAccuracy"],"noisyBalancedAccuracy":report["validation"]["noisy"]["balancedAccuracy"]}),flush=True)
     eligible=[name for name,report in reports.items() if report["admitted"]]
     chosen=max(eligible or list(reports),key=lambda name:quality_key(reports[name]["validation"],baseline_scores))
-    model,refit=fit_cached("refit-200",sorted(plan["roles"]),chosen=="clean-plus-room-noise")
+    model,refit=fit_cached(f"refit-{len(refit_people)}",refit_people,chosen=="clean-plus-room-noise",final_refit=True)
     data_source="PSG-Audio V3; full available nights; CC BY 4.0"
     if chosen=="clean-plus-room-noise": data_source+="; MUSAN speech/music/ambient augmentation with per-source attribution"
     model.update(schemaVersion=2,modelID="psg-audio-expanded-v8",dataSource=data_source,
@@ -133,18 +140,20 @@ def run(args):
     if output.stat().st_size>508000: raise ValueError("The expanded model exceeds the native import budget.")
     summary={"status":"admitted" if eligible else "trained_not_improved","chosenRecipe":chosen,"parametersSHA256":parameters_digest(model),
         "validation":reports,"baselineValidation":baseline_scores,"fullNight84Validation":reference,
-        "fittingPeople":160,"validationPeople":40,"finalRefitPeople":200,"finalTestRead":False,
+        "fittingPeople":len(training),"validationPeople":len(validation),"finalRefitPeople":len(refit_people),"finalTestRead":False,
+        "reservedDevelopmentPeople":len(plan["roles"]),"qualityExcludedSubjects":excluded,
         "approvedForAlarmTiming":False,"sourceSha":protocol["sourceSha"],"refit":refit}
     atomic_json(root/"training-summary.json",summary)
     if eligible:
         score=reports[chosen]["validation"]["clean"];previous=baseline_scores["clean"]
-        atomic_json(root/"selection.json",{"id":chosen,"trainingSubjects":sorted(plan["roles"]),"validationSubjects":[],
+        atomic_json(root/"selection.json",{"id":chosen,"trainingSubjects":refit_people,"validationSubjects":[],
+            "qualityExcludedSubjects":excluded,
             "previouslyObservedSubjects":sorted(plan["roles"]),"parametersSHA256":parameters_digest(model),"finalTestRead":False,
             "meanMacroF1":score["macroF1"],"meanBalancedAccuracy":score["balancedAccuracy"],
             "baselineMeanMacroF1":previous["macroF1"],"baselineMeanBalancedAccuracy":previous["balancedAccuracy"],
             "everyValidationViewRecognizesEveryStage":True,"controlledNoiseAdmissionPassed":True})
     else: atomic_json(root/"development-review.json",summary)
-    print(json.dumps({"event":"expanded_training_complete","status":summary["status"],"refitPeople":200,"finalTestRead":False}),flush=True)
+    print(json.dumps({"event":"expanded_training_complete","status":summary["status"],"refitPeople":len(refit_people),"finalTestRead":False}),flush=True)
 
 
 if __name__=="__main__":

@@ -119,20 +119,10 @@ def run(args):
         print(json.dumps({"event":"expanded_extracted","complete":len(progress),"total":len(files),
                           "usableEpochs":detail["usableEpochs"]}),flush=True)
     if len(progress)==len(files):
-        if set(progress)!=set(summaries): raise ValueError("Every verified block needs a matching quality summary.")
-        people={}
-        for detail in summaries.values():
-            person=people.setdefault(detail["subject"],{"role":detail["role"],"usableEpochs":0,"stageCounts":[0]*4})
-            person["usableEpochs"]+=detail["usableEpochs"]
-            person["stageCounts"]=[a+b for a,b in zip(person["stageCounts"],detail["cleanStageCounts"])]
-        if set(people)!=set(plan["roles"]) or any(p["usableEpochs"]==0 for p in people.values()):
-            raise ValueError("A reserved development participant has no usable labelled audio.")
-        quality={"people":people,"blocks":len(progress),"usableEpochs":sum(p["usableEpochs"] for p in people.values()),
-                 "stageOrder":STAGES,"sourceBlocksExcluded":plan.get("unusableSourceBlocks",[]),
-                 "extractorSHA256":protocol["extractorSHA256"],"noiseManifestSHA256":bank.sha,
-                 "featureChecksumsSHA256":checksum(progress_path),"developmentPlanSHA256":checksum(plan_path)}
+        from corpus_quality import complete
+        quality=complete(root,plan,progress,summaries,protocol)
         atomic_json(root/"development-complete.json",quality)
-        print(json.dumps({"event":"expanded_complete","people":len(people),"usableHours":quality["usableEpochs"]/120}),flush=True)
+        print(json.dumps({"event":"expanded_complete","people":len(quality["people"]),"usableHours":quality["usableEpochs"]/120}),flush=True)
 
 
 if __name__=="__main__":

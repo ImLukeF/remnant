@@ -41,11 +41,16 @@ def final_admission(root,reservation,known):
     summary=json.loads((root/"training-summary.json").read_text())
     model=json.loads((root/"selected-model.json").read_text())
     parameters=parameters_digest(model)
+    excluded=selection.get("qualityExcludedSubjects",{})
+    trained=set(selection["trainingSubjects"])
     if (summary["status"]!="admitted" or summary["chosenRecipe"]!=selection["id"]
             or not selection["controlledNoiseAdmissionPassed"]
             or not admitted(summary["validation"][selection["id"]]["validation"],summary["baselineValidation"])
             or parameters!=selection["parametersSHA256"] or parameters!=summary["parametersSHA256"]
-            or set(selection["trainingSubjects"])!=set(reservation["roles"])
+            or trained&set(excluded) or trained|set(excluded)!=set(reservation["roles"])
+            or excluded!=summary.get("qualityExcludedSubjects",{})
+            or any(reservation["roles"].get(p)!="train" for p in excluded)
+            or summary["refit"]["fit"]["trainingPeople"]!=len(trained)
             or set(known)!=set(reservation["roles"])
             or set(reservation["reservedTestSubjects"])&set(known)
             or len(set(reservation["reservedTestSubjects"]))!=30 or len(reservation["reservedTestSubjects"])!=30):

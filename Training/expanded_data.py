@@ -53,9 +53,20 @@ def load(root,phase="development"):
         raise ValueError("Duplicated clinical intervals would leak or overweight observations.")
     if set(arrays["subject"])!=set(plan["roles"]): raise ValueError("A reserved person disappeared from the complete cache.")
     if int(arrays["usable"].sum())!=complete["usableEpochs"]: raise ValueError("Full-night quality counts changed.")
-    return arrays,plan,{"developmentPlanSHA256":checksum(plan_path),"extractorSHA256":protocol["extractorSHA256"],
+    excluded=complete.get("qualityExcludedSubjects",{})
+    if excluded:
+        from corpus_quality import exclusions
+        summaries=json.loads((root/"block-summary.json").read_text())
+        if (exclusions(root,plan,checks,summaries)!=excluded
+                or checksum(root/"quality-amendment.json")!=complete["qualityAmendmentSHA256"]):
+            raise ValueError("The explicit pre-fitting quality exclusion changed.")
+    usable=set(arrays["subject"][arrays["usable"]])
+    if set(plan["roles"])-usable!=set(excluded): raise ValueError("A participant disappeared without a verified quality amendment.")
+    manifest={"developmentPlanSHA256":checksum(plan_path),"extractorSHA256":protocol["extractorSHA256"],
         "featureChecksumsSHA256":checksum(checks_path),"noiseManifestSHA256":protocol["noiseManifestSHA256"],
         "people":sorted(plan["roles"]),"epochs":len(order)}
+    if excluded: manifest.update(qualityExcludedSubjects=excluded,usableSubjects=sorted(usable),qualityAmendmentSHA256=complete["qualityAmendmentSHA256"])
+    return arrays,plan,manifest
 
 
 def context(arrays,noisy=False):

@@ -192,6 +192,36 @@ print(digest.hexdigest())'''
             self.assertEqual(final_admission(models,reservation,people),summary["parametersSHA256"])
             self.assertEqual(json.loads((models/"selected-model.json").read_text())["heldOutSubjects"],[])
             self.assertEqual({p.stem for p in (data/"labels").glob("*.rml")},set(people))
+            # A separate synthetic corpus exercises the real silence-only recovery.
+            import shutil
+            from corpus_quality import amend,complete
+            amended=root/"silent-development";shutil.copytree(data,amended);bad=people[0]
+            path=amended/"features"/(bad+".npz")
+            with np.load(path,allow_pickle=False) as old: values={k:old[k].copy() for k in old.files}
+            silent=np.zeros((4,58));silent[:,[0,2,3]]=-120
+            values.update(features=silent,augmentedFeatures=silent.copy(),usable=np.zeros(4,dtype=bool),augmentedUsable=np.zeros(4,dtype=bool))
+            np.savez_compressed(path,**values);checks[bad+".edf"]=checksum(path)
+            save(amended/"feature-checksums.json",checks)
+            summaries={p+".edf":{"subject":p,"role":roles[p],"usableEpochs":0 if p==bad else 4,
+                "cleanStageCounts":[0]*4 if p==bad else [1]*4} for p in people}
+            save(amended/"block-summary.json",summaries)
+            plan=json.loads((amended/"development-plan.json").read_text())
+            with self.assertRaises(ValueError): complete(amended,plan,checks,summaries,protocol)
+            with self.assertRaises(ValueError): amend(amended,models)
+            models2=root/"models-199"
+            amend(amended,models2)
+            self.assertEqual(json.loads((amended/"development-complete.json").read_text())["usablePeople"],199)
+            with self.assertRaises(ValueError): amend(amended,models2)
+            run(Namespace(output=models2,development=amended,original_registry=root/"original-registry.json",baseline=root/"baseline.json"))
+            report=json.loads((models2/"training-summary.json").read_text());selection=json.loads((models2/"selection.json").read_text())
+            self.assertEqual((report["fittingPeople"],report["validationPeople"],report["finalRefitPeople"]),(159,40,199))
+            self.assertEqual(report["refit"]["fit"]["trainingPeople"],199)
+            self.assertNotIn("validation",report["refit"])
+            self.assertEqual(report["fullNight84Validation"]["fit"]["trainingPeople"],83)
+            self.assertNotIn(bad,selection["trainingSubjects"])
+            self.assertIn(bad,selection["previouslyObservedSubjects"])
+            self.assertEqual(final_admission(models2,reservation,people),report["parametersSHA256"])
+            self.assertFalse(report["finalTestRead"])
 
     def test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions(self):
         import numpy as np
@@ -213,11 +243,11 @@ print(digest.hexdigest())'''
                    "contextEpochs":10,"classes":STAGES,"heldOutSubjects":[],"balancedAccuracy":0,
                    "biases":[1,0,0,0],"trees":[{"classIndex":0,"left":[-1],"right":[-1],"features":[-1],"values":[0]}]}
             digest=parameters_digest(model);save(model_root/"selected-model.json",model)
-            save(model_root/"selection.json",{"parametersSHA256":digest})
+            save(model_root/"selection.json",{"parametersSHA256":digest,"trainingSubjects":known[:199]})
             save(root/"incumbent.json",{**model,"biases":[0,1,0,0]})
             reference=model_root/"full-night-original-84-weights.json";save(reference,{**model,"biases":[0,0,1,0]})
-            save(model_root/"full-night-original-84-report.json",{"modelFileSHA256":checksum(reference)})
-            save(model_root/"protocol.json",{"previouslyObservedSubjects":known,"reservedTestSubjects":people,
+            save(model_root/"full-night-original-84-report.json",{"modelFileSHA256":checksum(reference),"fit":{"trainingPeople":83}})
+            save(model_root/"protocol.json",{"previouslyObservedSubjects":known,"reservedTestSubjects":people,"refitSubjects":known[:199],
                 "baselineModelSHA256":checksum(root/"incumbent.json"),"development":{"extractorSHA256":fingerprint(),"noiseManifestSHA256":"synthetic-bank"}})
             files=[{"path":person+".edf","subject":person,"sha256":"a"*64} for person in people]
             plan={"phase":"final","fittingForbidden":True,"roles":{p:"test" for p in people},"reservedTestSubjects":[],
@@ -239,9 +269,11 @@ print(digest.hexdigest())'''
             with self.assertRaises(ValueError): run(args)
             save(model_root/"selected-model.json",model);run(args)
             report=json.loads((model_root/"evaluation.json").read_text())
-            self.assertEqual(report["results"]["expanded200"]["clean"]["confusionMatrix"],[[30,0,0,0]]*4)
+            self.assertEqual(report["trainingPeople"],199)
+            self.assertEqual(report["originalControlTrainingPeople"],83)
+            self.assertEqual(report["results"]["expanded199"]["clean"]["confusionMatrix"],[[30,0,0,0]]*4)
             self.assertEqual(report["results"]["incumbent72"]["clean"]["confusionMatrix"],[[0,30,0,0]]*4)
-            self.assertEqual(report["results"]["fullNight84"]["clean"]["confusionMatrix"],[[0,0,30,0]]*4)
+            self.assertEqual(report["results"]["fullNight83"]["clean"]["confusionMatrix"],[[0,0,30,0]]*4)
             self.assertEqual(parameters_digest(json.loads((model_root/"model.json").read_text())),digest)
             self.assertEqual(len(json.loads((model_root/"known-subjects-after-test.json").read_text())),230)
             self.assertEqual(report["pairedParticipantIntervals"]["clean"]["validResamples"],1000)

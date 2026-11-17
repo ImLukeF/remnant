@@ -75,6 +75,12 @@ class SequenceContracts(unittest.TestCase):
                  "noisy":{"macroF1":0.25,"balancedAccuracy":0.4,"recallPerClass":[0.4]*4}}
         self.assertGreater(checkpoint_key(a_score,reference),checkpoint_key(b_score,reference))
         self.assertLess(checkpoint_key(a_score),checkpoint_key(b_score))
+        from review_wake_signals import review
+        reviewed=review(np.asarray(["a"]*4+["b"]*2),np.asarray([0,30,90,120,150,180]),np.asarray([1,1,2,3,0,1]),
+            np.asarray([[0.03,0.9,0.03,0.04]]*6))
+        self.assertEqual(reviewed["candidatePairs"],3)
+        self.assertAlmostEqual(reviewed["bothEpochsLightFraction"],1/3)
+        self.assertEqual(reviewed["currentDeepOrREMCount"],1)
         a=torch.tensor([[2.0,-1,0,1]],dtype=torch.float64,requires_grad=True)
         b=torch.tensor([[-1.0,2,1,0]],dtype=torch.float64,requires_grad=True)
         self.assertLess(abs(float(consistency(a,a).detach())),1e-12)

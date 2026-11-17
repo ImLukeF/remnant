@@ -19,7 +19,10 @@
     "recipe-1-weights.json": "6437be52074c9e64e9417aff34f5618d2c8f30b6f1fbfa4ad24db34541995273",
     "refit-proof-receipt.json": "c7327f1a0acdc6f5600f2d28d9a9ccd571a26f551cbb3eceff872281f93e01bb",
     "training-receipt.json": "0cd9db857f23b5c93676b7f2957c0a165c30693e4dddcd1f485071210e4ffd58",
-    "training-summary.json": "bd908c1cd0a6dcad96019595fc07f3b77e5abfa1d786516c8d950919d89ca1b6"
+    "training-summary.json": "bd908c1cd0a6dcad96019595fc07f3b77e5abfa1d786516c8d950919d89ca1b6",
+    "wake-signal-review.json": "fd6949e6357c9ae19392ecc82d95888d963cd56caf3ef9f40f8fc4fb5224667f",
+    "wake-signal-receipt.json": "5d02e0cf6cd167955f32344e4f52238b82b79bd70052ba131c0bf137b1bb86bc"
   },
-  "verification": "Exact-source receipts, model checksums, independent PyTorch export and recomputed confusion-matrix metrics."
+  "verification": "Exact-source receipts, model checksums, independent PyTorch export and recomputed confusion-matrix metrics.",
+  "fixedWakeSignalCandidates": 0
 }

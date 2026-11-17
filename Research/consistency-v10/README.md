@@ -16,3 +16,11 @@ and exact-source receipt verification. The independent batched GRU matches PyTor
 2e-10; synthetic proofs are not clinical accuracy. Private JSON weights and aggregate reports
 are retained here. Raw audio, clinical labels and derived observations remain outside Git.
 The incumbent is unchanged. Both repositories stay private; no app, microphone or phone use.
+
+The separate fixed-wake-signal review found zero qualifying adjacent epoch pairs across all
+40 validation people for both new GRUs and the incumbent, under both clean and added noise.
+The actual app rule requires two contiguous light predictions each at least .85 confidence.
+These are class-weighted model outputs, without probability calibration. Consequently even
+better aggregate stage scores would not produce useful early wake attempts with this rule.
+The threshold is not lowered or enabled. A separate diagnostic fits light-probability
+calibration only on the 24 inner people and measures it on the 40 validation people.

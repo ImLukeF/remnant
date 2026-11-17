@@ -1,0 +1,39 @@
+{
+  "jobId": "77f98d1e44a74543aff7640450a18f86",
+  "status": "passed",
+  "createdAt": "2026-11-17T10:00:10.855329+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "6491d324b5f2d6c81f8dd31074b5423d4d287f14",
+    "lane": "codex-sleep-signal-review-v10",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "Packages/SleepWakeKit/Training/review_wake_signals.py",
+      "--selection",
+      "/srv/ai-team/artifacts/sleep-wake-consistency-v10",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v8",
+      "--baseline",
+      "/srv/ai-team/artifacts/sleep-wake-stage-complete-v4/model.json"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T10:00:11.060636+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-signal-review-v10",
+  "sourceSha": "6491d324b5f2d6c81f8dd31074b5423d4d287f14",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T10:01:05.572904+00:00"
+}

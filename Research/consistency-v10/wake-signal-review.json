@@ -1,0 +1,71 @@
+{
+  "validationPeople": 40,
+  "confidenceThreshold": 0.85,
+  "requiredContiguousEpochs": 2,
+  "results": {
+    "incumbent": {
+      "clean": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      },
+      "noisy": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      }
+    },
+    "recipe-0": {
+      "clean": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      },
+      "noisy": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      }
+    },
+    "recipe-1": {
+      "clean": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      },
+      "noisy": {
+        "eligibleAdjacentPairs": 22822,
+        "candidatePairs": 0,
+        "peopleWithCandidates": 0,
+        "currentLightFraction": null,
+        "bothEpochsLightFraction": null,
+        "currentDeepOrREMCount": 0,
+        "currentAwakeCount": 0
+      }
+    }
+  },
+  "finalTestRead": false,
+  "approvedForAlarmTiming": false,
+  "realPhoneOvernightValidated": false,
+  "limitation": "All available adjacent development intervals, not scheduled wake windows, independent accuracy, wake comfort or real-TV validation."
+}

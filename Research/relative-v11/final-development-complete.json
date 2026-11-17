@@ -1,0 +1,317 @@
+{
+  "people": {
+    "00001578": {
+      "role": "test",
+      "usableEpochs": 827,
+      "stageCounts": [
+        89,
+        576,
+        0,
+        162
+      ]
+    },
+    "00001265": {
+      "role": "test",
+      "usableEpochs": 498,
+      "stageCounts": [
+        12,
+        443,
+        0,
+        43
+      ]
+    },
+    "00001026": {
+      "role": "test",
+      "usableEpochs": 445,
+      "stageCounts": [
+        32,
+        386,
+        0,
+        27
+      ]
+    },
+    "00001228": {
+      "role": "test",
+      "usableEpochs": 475,
+      "stageCounts": [
+        22,
+        373,
+        0,
+        80
+      ]
+    },
+    "00001016": {
+      "role": "test",
+      "usableEpochs": 581,
+      "stageCounts": [
+        13,
+        491,
+        63,
+        14
+      ]
+    },
+    "00001157": {
+      "role": "test",
+      "usableEpochs": 424,
+      "stageCounts": [
+        50,
+        342,
+        32,
+        0
+      ]
+    },
+    "00001234": {
+      "role": "test",
+      "usableEpochs": 489,
+      "stageCounts": [
+        44,
+        445,
+        0,
+        0
+      ]
+    },
+    "00001182": {
+      "role": "test",
+      "usableEpochs": 467,
+      "stageCounts": [
+        17,
+        409,
+        0,
+        41
+      ]
+    },
+    "00001394": {
+      "role": "test",
+      "usableEpochs": 636,
+      "stageCounts": [
+        11,
+        600,
+        0,
+        25
+      ]
+    },
+    "00001222": {
+      "role": "test",
+      "usableEpochs": 648,
+      "stageCounts": [
+        91,
+        511,
+        24,
+        22
+      ]
+    },
+    "00001088": {
+      "role": "test",
+      "usableEpochs": 505,
+      "stageCounts": [
+        27,
+        411,
+        58,
+        9
+      ]
+    },
+    "00001579": {
+      "role": "test",
+      "usableEpochs": 815,
+      "stageCounts": [
+        25,
+        614,
+        0,
+        176
+      ]
+    },
+    "00001000": {
+      "role": "test",
+      "usableEpochs": 491,
+      "stageCounts": [
+        22,
+        388,
+        81,
+        0
+      ]
+    },
+    "00001506": {
+      "role": "test",
+      "usableEpochs": 705,
+      "stageCounts": [
+        37,
+        645,
+        0,
+        23
+      ]
+    },
+    "00001112": {
+      "role": "test",
+      "usableEpochs": 709,
+      "stageCounts": [
+        137,
+        543,
+        1,
+        28
+      ]
+    },
+    "00001294": {
+      "role": "test",
+      "usableEpochs": 527,
+      "stageCounts": [
+        44,
+        478,
+        5,
+        0
+      ]
+    },
+    "00001457": {
+      "role": "test",
+      "usableEpochs": 445,
+      "stageCounts": [
+        5,
+        397,
+        20,
+        23
+      ]
+    },
+    "00001374": {
+      "role": "test",
+      "usableEpochs": 591,
+      "stageCounts": [
+        0,
+        320,
+        271,
+        0
+      ]
+    },
+    "00001607": {
+      "role": "test",
+      "usableEpochs": 867,
+      "stageCounts": [
+        63,
+        498,
+        170,
+        136
+      ]
+    },
+    "00001608": {
+      "role": "test",
+      "usableEpochs": 841,
+      "stageCounts": [
+        39,
+        704,
+        48,
+        50
+      ]
+    },
+    "00001208": {
+      "role": "test",
+      "usableEpochs": 566,
+      "stageCounts": [
+        74,
+        489,
+        3,
+        0
+      ]
+    },
+    "00001590": {
+      "role": "test",
+      "usableEpochs": 856,
+      "stageCounts": [
+        33,
+        686,
+        31,
+        106
+      ]
+    },
+    "00001459": {
+      "role": "test",
+      "usableEpochs": 662,
+      "stageCounts": [
+        83,
+        570,
+        0,
+        9
+      ]
+    },
+    "00001292": {
+      "role": "test",
+      "usableEpochs": 542,
+      "stageCounts": [
+        0,
+        372,
+        170,
+        0
+      ]
+    },
+    "00001006": {
+      "role": "test",
+      "usableEpochs": 477,
+      "stageCounts": [
+        20,
+        453,
+        2,
+        2
+      ]
+    },
+    "00001378": {
+      "role": "test",
+      "usableEpochs": 586,
+      "stageCounts": [
+        27,
+        529,
+        0,
+        30
+      ]
+    },
+    "00001636": {
+      "role": "test",
+      "usableEpochs": 420,
+      "stageCounts": [
+        27,
+        393,
+        0,
+        0
+      ]
+    },
+    "00001193": {
+      "role": "test",
+      "usableEpochs": 605,
+      "stageCounts": [
+        22,
+        527,
+        0,
+        56
+      ]
+    },
+    "00001606": {
+      "role": "test",
+      "usableEpochs": 439,
+      "stageCounts": [
+        44,
+        384,
+        0,
+        11
+      ]
+    },
+    "00001306": {
+      "role": "test",
+      "usableEpochs": 615,
+      "stageCounts": [
+        29,
+        485,
+        77,
+        24
+      ]
+    }
+  },
+  "blocks": 169,
+  "usableEpochs": 17754,
+  "stageOrder": [
+    "awake",
+    "light",
+    "deep",
+    "rem"
+  ],
+  "sourceBlocksExcluded": [],
+  "extractorSHA256": "48239b36ff58c8604e42dfe58e51b81e7e048b4ee1b98021cbc7c11dfb235a23",
+  "noiseManifestSHA256": "3669bb5394c54c8d93630db5b8f3ca71487cebe9a3063e08e4e66db5f88d9c66",
+  "featureChecksumsSHA256": "db2212e5605915d1e511e164fa9047884bb3dc705b6840a97cca8fe84f3c045c",
+  "developmentPlanSHA256": "baef587b7cb7308e4c9bda8e9ccab7dd55dbf4a3350e5a25d356edd797b22ba9"
+}

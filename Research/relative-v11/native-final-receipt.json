@@ -1,0 +1,12 @@
+{
+  "approvedForAlarmTiming": false,
+  "maximumProbabilityDifference": 4.440892098500626e-16,
+  "modelBytes": 189226,
+  "observations": 120,
+  "people": 2,
+  "probabilityComparisons": 480,
+  "modelFileSHA256": "e25b45a7265017efeef88c716222467ece9b67a599adba9e0e9a8bdf311643b6",
+  "parametersSHA256": "19b1438e0534ec62d34e2b0c361062ecf5b76577c30fe24e5a662aa5311665c5",
+  "observationsAreUntouchedTestData": true,
+  "clinicalAccuracyClaim": false
+}

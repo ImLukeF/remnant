@@ -1,32 +1,50 @@
-# Private relative-checkpoint GRU experiment
+# Completed private v11 independent test
 
-The frozen 135-person backbone selected epoch 4 using 24 separate inner people and
-improved all four admission metrics on the same 40 development validation people.
-It uses class power .9, supervised noise share .1 and paired consistency .25. The
-second declared recipe was not run after the first passed admission.
+The model was refitted on 199 usable people for four fixed epochs, then scored once
+on 30 untouched people: 169 verified source blocks, 17,754 usable epochs, 147.95 hours.
+All five exact-source training/preparation/extraction/evaluation jobs passed. The final
+evaluation source was d15545bdc01cb7c71396d3a1d1295a154fc030b4. Final evaluation completed
+17 November 2026 at 11:14:18 UTC. Every final point metric improved over the incumbent;
+this research result does not establish reliable phone sleep staging or wake timing.
 
-Clean macro F1 .31505 / balanced recall .44367 versus incumbent .27693 / .44187;
-added-noise F1 .20584 / balanced recall .37065 versus .07638 / .25805. Every stage
-was recognized, but noisy REM recall is only .035 and the clean balanced-recall gain
-is .18 percentage points. Repeated development validation is not independent proof.
+| Model | Quiet balanced recall | Quiet macro F1 | Added-noise balanced recall | Added-noise macro F1 |
+| --- | ---: | ---: | ---: | ---: |
+| Previous 72-person model | .42097 | .27429 | .25950 | .09118 |
+| Original full-night control, 83 usable people | .47888 | .32846 | .25566 | .06092 |
+| New 199-person causal GRU | .49089 | .34724 | .36910 | .30280 |
 
-The fixed four-epoch refit on all 199 usable people passed at source
-d15545bdc01cb7c71396d3a1d1295a154fc030b4 in job 5c1c9fc3493348b788e0d58c1ea86c2e.
-The untested refit has no held-out accuracy; final preparation is running. The exact original
-30 final-test people remain conditional on frozen refit completion and final_admission.
-The bounded final controller attaches the existing refit job; it never starts another
-training worker. final-pipeline-request.json pins every source and bounded command.
+All models used the same final intervals. The experiment changes architecture and training
+as well as people/nights, so the result does not isolate the effect of adding people.
+Paired participant-bootstrap 95% change intervals versus the incumbent: quiet balanced
+recall [-.00815, .14061], quiet F1 [.01494, .12415], added-noise balanced recall
+[.07982, .15047], added-noise F1 [.17873, .24224]. The quiet balanced-recall improvement
+is uncertain. Controlled added noise is synthetic, not a real-bedroom TV trial.
 
-Separate light-probability calibration used only the inner 24 people. Clean candidates
-contained 341 deep/REM epochs among 4,061 candidate pairs; noisy candidates contained
-120 among 1,225. Calibration does not establish useful stage-aware waking, cannot
-transfer unchecked to a different backbone and is not integrated or approved.
+The smart alarm remains unapproved. Deep recall is .174 quiet / .136 noisy. Among genuine
+deep/REM epochs, .4417 quiet / .6270 noisy were labelled light. These are classification
+errors, not measured alarm-firing rates. Only 16 of the 30 people contributed deep sleep;
+22 contributed REM. No actual phone overnight, battery, room or wake-comfort validation
+occurred. The previous model remains unchanged; no model-driven alarm was enabled.
 
-All raw audio, annotations and derived clinical observations stay outside Git. These
-private files contain parameters, protocols and aggregate evidence. Neither repository
-is public or MIT-released. No app, microphone, phone or alarm approval occurred.
+Selection fitted 135 people, chose epoch 4 on 24 separate inner people, then passed the
+unchanged paired admission on 40 reused development-validation people. Fixed class power
+.9, supervised noise share .1 and paired consistency .25 were refitted on all 199.
+All 230 observed/reserved people remain retired from future independent tests. Never
+retune against or rescore this final cohort. The previous inner calibration diagnostic
+was not integrated and cannot transfer unchecked to this refitted backbone.
 
-The native verifier compiled successfully. Importing the unscored refit was rejected
-by the existing nonempty held-out metadata guard. That guard and the model were not
-changed to force a pass. Native parity will use model.json with genuine final-test
-metadata after once-only evaluation. Private export-check observations remain outside Git.
+The inference digest remained frozen through final scoring:
+19b1438e0534ec62d34e2b0c361062ecf5b76577c30fe24e5a662aa5311665c5.
+Final model file SHA256:
+e25b45a7265017efeef88c716222467ece9b67a599adba9e0e9a8bdf311643b6.
+
+Native Swift verification matched 120 chronological observations from two final people,
+480 probability comparisons, maximum difference 4.44e-16. It imported the genuine final
+held-out metadata; the earlier unscored-refit rejection was preserved. This numerical
+proof is not clinical or hardware validation. No app or microphone was launched.
+
+Raw recordings, annotations, NPZ/epoch observations and export-check inputs remain outside
+Git. Local private observations and the disposable verifier were removed. The controller
+and workers exited; the empty raw-cache directory was removed. Useful private feature
+and public-source noise caches remain on the VPS. The completion check was disabled.
+Both repositories remain private, with no public/MIT release, PR, deployment or phone use.

@@ -1,25 +1,123 @@
 {
-  "status": "refitted_untouched_final_extracting",
+  "status": "independent_final_completed_research_improved",
   "actualRefitPeople": 199,
   "backboneSelectionFittingPeople": 135,
   "innerCheckpointPeople": 24,
   "validationPeople": 40,
   "frozenRefitEpochs": 4,
-  "finalTestPeopleReserved": 30,
+  "independentTestPeople": 30,
+  "independentTestUsableHours": 147.95,
+  "testEpochs": 17754,
+  "observedPeopleRetiredFromFutureTests": 230,
   "parametersSHA256": "19b1438e0534ec62d34e2b0c361062ecf5b76577c30fe24e5a662aa5311665c5",
-  "modelFileSHA256": "9dffd3c6a2e82dc9709cb5f5be3f36c9f2906e72b170b8470b9b703b9fc1f6f3",
-  "nativeUnscoredImportRejected": true,
-  "nativeFinalParityPending": true,
+  "modelFileSHA256": "e25b45a7265017efeef88c716222467ece9b67a599adba9e0e9a8bdf311643b6",
+  "allFourFinalPointMetricsImproved": true,
+  "quietBalancedRecallGainUncertain": true,
+  "finalResults": {
+    "expanded199": {
+      "clean": {
+        "balancedAccuracy": 0.4908945750151138,
+        "macroF1": 0.3472377842019014,
+        "lightPrecision": 0.8654347579639496,
+        "deepOrREMFalseLightRate": 0.4417092429168602
+      },
+      "noisy": {
+        "balancedAccuracy": 0.3690955477313426,
+        "macroF1": 0.30279626128113823,
+        "lightPrecision": 0.827988614800759,
+        "deepOrREMFalseLightRate": 0.6270320483046912
+      }
+    },
+    "fullNight83": {
+      "clean": {
+        "balancedAccuracy": 0.47887544200566107,
+        "macroF1": 0.3284645786669991,
+        "lightPrecision": 0.8604353393085787,
+        "deepOrREMFalseLightRate": 0.3938690199721319
+      },
+      "noisy": {
+        "balancedAccuracy": 0.2556582660141991,
+        "macroF1": 0.060915083291781684,
+        "lightPrecision": 0.7917414721723519,
+        "deepOrREMFalseLightRate": 0.08917789131444497
+      }
+    },
+    "incumbent72": {
+      "clean": {
+        "balancedAccuracy": 0.42096637689623084,
+        "macroF1": 0.27429292788526627,
+        "lightPrecision": 0.8420130594043638,
+        "deepOrREMFalseLightRate": 0.3720390153274501
+      },
+      "noisy": {
+        "balancedAccuracy": 0.25949848041811147,
+        "macroF1": 0.09117789062257496,
+        "lightPrecision": 0.8146114864864865,
+        "deepOrREMFalseLightRate": 0.16163492800743148
+      }
+    }
+  },
+  "pairedParticipantIntervals": {
+    "clean": {
+      "method": "Paired participant bootstrap, 1000 resamples, seed 7",
+      "validResamples": 1000,
+      "balancedAccuracyDifference95": [
+        -0.008149094972925888,
+        0.14060513411163136
+      ],
+      "macroF1Difference95": [
+        0.014937066757958061,
+        0.1241471609069187
+      ]
+    },
+    "noisy": {
+      "method": "Paired participant bootstrap, 1000 resamples, seed 7",
+      "validResamples": 1000,
+      "balancedAccuracyDifference95": [
+        0.07982090550842366,
+        0.1504659035787505
+      ],
+      "macroF1Difference95": [
+        0.1787251359459453,
+        0.24224302762999386
+      ]
+    }
+  },
+  "nativeFinalParityPassed": true,
+  "nativeMaximumProbabilityDifference": 4.440892098500626e-16,
   "approvedForAlarmTiming": false,
   "realPhoneOvernightValidated": false,
+  "completionScheduleDisabled": true,
+  "cleanup": {
+    "controllerTmuxExited": true,
+    "rawCacheRemainingFiles": 0,
+    "emptyRawCacheRemoved": true,
+    "localVerifierAndTemporaryObservationsRemoved": true
+  },
+  "verification": "All five exact-source jobs passed with clean source. Independent confusion-matrix metric recomputation, frozen inference digest, all participant exclusions and file hashes verified. Native numerical parity on 120 chronological observations from two final-test people.",
   "artifactHashes": {
+    "README.md": "16f35f73ff3ebcb8f4660ec489056f55adbc7b5c223058890b76b3f9b8afff7f",
     "calibration-receipt.json": "6d68d3f5d52715a03683875137b6f8faa1f01280ce443f5d851573b731537017",
+    "cleanup-receipt.json": "9e017f19b6574f3af96ae164bff5fe43e17662470c6b0082c29449a5b881f848",
+    "controller-final-state.json": "dfd86e36c0b2dbcdf2718ffd2e7516133e4e15ff5f9cd4443b6df0b268b0943a",
     "controller-proof-receipt.json": "8571371a2a2fe57de583a2c3912acd5ef76727eb26dc4fec962b0f5c23f0f053",
+    "evaluation.json": "921dbff1e825ef6c63bbd9e5f59acd04bf7c68cfea046ff48883cd8d6151e7ce",
+    "final-comparison.html": "9d2b42c8617a8fa22eee3583c79b8f887c807f39e47e1295829dddecc635bd5f",
+    "final-development-complete.json": "3e133e78515bdbe1717ea5d911aed41a5a34dae03cd3cc3c8eb17b70a15fc695",
+    "final-evaluation-receipt.json": "55fe3a923df3c165dd8dc738d49a656a1d64094350ed27717f3da8020e2d7d25",
+    "final-extraction-batch-0-receipt.json": "d6c96ba932e9e5da3cf50468a15e15ebe91a36269f2c29af010c2f1ea32c51ac",
+    "final-extraction-batch-1-receipt.json": "ab07b2322b6958596d3b58b4ef6382b2c37ba11ed3c165f60943a46441d26f3a",
+    "final-extraction-protocol.json": "dc83a5aa9b278a8db3e2c07ab6b2ad0c16e0dba6317372bbd6225b011abb1654",
     "final-pipeline-request.json": "d8d1d3dab1015ab65402ebd302e140bc22044fe77460279e60764a98f82f3525",
+    "final-preparation-receipt.json": "964fc228ab4aab8d71446f3f22335721cfa1b0f4dd188c7217ce2f4a7c443854",
+    "final-preparation-verification.json": "5d7ad42a9251482f78b9b2a537fe4c4b72f7ef214a2f5822459c98e9e4abd7e9",
     "full-night-original-84-report.json": "6fb1f3fa2af6085b557b64a7e5f1675d524522f9dfd31d075b0fa59b8060cac8",
     "full-night-original-84-weights.json": "37a13f5400d8b321e6477bf0073ec9ef20602d7536954d9db90acb6ef32036e1",
     "inner-reference.json": "2c514895ae7b3b6d5f2a0abce55dc6520f4e64fe5c42f34c494adc8b13a55e73",
+    "known-subjects-after-test.json": "27ce598547d13720dec65bfca000538b0949c23c4d7e75488f286e0edb55531c",
+    "model.json": "e25b45a7265017efeef88c716222467ece9b67a599adba9e0e9a8bdf311643b6",
     "native-build-receipt.json": "0cb89fdfdb047d0911ac8a040821dfdde91ff5c10761e2669c257c24e6f1f5e2",
+    "native-final-receipt.json": "fd3ad6bcb6bb0d1d4a57c2ba7f0fdf23024a45ab608a29dcf8cb0576b74a5eaf",
     "native-unscored-rejection.json": "9ec8a6c5a0f184825fe123f0f08a2335bdea75d54b3b390697d9cee298b3bf80",
     "progress.json": "12cba8d01e0a2c9aae2115e6a96ecf560d04a2e7652b0f1a3326928f7d43b2b5",
     "protocol.json": "b06c4c78f4031f58f2cc0e9c21ff814cf56134e6eeb8e2191cab8b481013b273",
@@ -32,10 +130,6 @@
     "selection.json": "210667f8acca0f367d98e7e2c0639c13d227a78a20fd214793cb1a34b497a9f6",
     "training-summary.json": "5d656556d657d929e7e02ee57ea33f6352713f96589012e8bcdeee995fc70eae",
     "verified-selection.json": "6f063c31216049d837a9a674fe1d372c899edc91cd8b53ce76c7a9d97988aa9f",
-    "wake-calibration-review.json": "ac9772f0e96b99c559f35e8dd2da9a7ccfed96aec651d4621dfba36a87e37ddc",
-    "final-preparation-receipt.json": "964fc228ab4aab8d71446f3f22335721cfa1b0f4dd188c7217ce2f4a7c443854",
-    "final-preparation-verification.json": "5d7ad42a9251482f78b9b2a537fe4c4b72f7ef214a2f5822459c98e9e4abd7e9"
-  },
-  "verification": "Exact-source receipts; model and inference-parameter digests; 199-person fixed-epoch fit counts; original paired admission verified. Final evaluation not yet complete.",
-  "observedPeopleRetiredFromFutureTests": 230
+    "wake-calibration-review.json": "ac9772f0e96b99c559f35e8dd2da9a7ccfed96aec651d4621dfba36a87e37ddc"
+  }
 }

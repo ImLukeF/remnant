@@ -147,6 +147,9 @@ Use the pinned CPU-only `Training/requirements-sequence-linux.txt` environment f
 `Training/evaluate_sequence.py` or `Training/evaluate_acoustic.py` scores the frozen model once.
 The acoustic evaluator compares the previous summary model on the same recording intervals.
 No fitting or model-driven alarm approval occurs in the final-evaluation tools.
+Compile `Training/verify_native.swift` with the core Swift sources to compare a final `model.json`
+with its private `export-check.json`. It checks chronological per-person inference within 2e-10
+and emits a compact receipt without starting an app or audio session.
 
 Check live epoch end timestamps against callback receipt times. Offline accuracy does not establish
 live latency or accuracy. TV-noise testing, held-out phone/room evaluation and prospective overnight

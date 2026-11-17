@@ -83,6 +83,16 @@ def boosted(train, validation, history, depth, balance, primary="balancedAccurac
                         verbose_eval=False, **stopping)
     if fixed_rounds is None:
         booster = booster[:booster.best_iteration + 1]
+    model = export_booster(booster)
+    # Independent portable inference must match the training library before selection.
+    expected = booster.predict(check)
+    difference = float(max(abs(a - b) for row, values in zip(validation, expected) for a, b in zip(predict(model, row["modelFeatures"]), values)))
+    if difference > 2e-6:
+        raise ValueError(f"Tree export differs from XGBoost: {difference}")
+    return model, {"rounds": booster.num_boosted_rounds(), "nativeExportMaximumDifference": difference}
+
+
+def export_booster(booster):
     obj = json.loads(bytes(booster.save_raw(raw_format="json")))
     learner = obj["learner"]
     if learner["gradient_booster"]["name"] != "gbtree" or learner["objective"]["name"] != "multi:softprob":
@@ -98,13 +108,7 @@ def boosted(train, validation, history, depth, balance, primary="balancedAccurac
         trees.append({"classIndex": class_index, "left": tree["left_children"], "right": tree["right_children"],
                       "features": [feature if left != -1 else -1 for feature, left in zip(tree["split_indices"], tree["left_children"])],
                       "values": tree["split_conditions"]})
-    model = {"modelKind": "trees", "biases": list(map(float, base)), "trees": trees}
-    # Independent portable inference must match the training library before selection.
-    expected = booster.predict(check)
-    difference = float(max(abs(a - b) for row, values in zip(validation, expected) for a, b in zip(predict(model, row["modelFeatures"]), values)))
-    if difference > 2e-6:
-        raise ValueError(f"Tree export differs from XGBoost: {difference}")
-    return model, {"rounds": booster.num_boosted_rounds(), "nativeExportMaximumDifference": difference}
+    return {"modelKind": "trees", "biases": list(map(float, base)), "trees": trees}
 
 
 def parameters_digest(model):

@@ -19,6 +19,43 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_distinct_recording_names_cannot_hide_a_repeated_clinical_participant(self):
+        from expanded_contracts import participant_identities
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for name,patient in (("001","same-patient"),("002","same-patient")):
+                (root/(name+"-night.rml")).write_text(f'<Root><Patient><PatientID>{patient}</PatientID><PatientDBID>{name}</PatientDBID></Patient></Root>')
+            with self.assertRaises(ValueError): participant_identities(root,{"001","002"})
+            (root/"002-night.rml").write_text('<Root><Patient><PatientID>different</PatientID><PatientDBID>002</PatientDBID></Patient></Root>')
+            self.assertEqual(set(participant_identities(root,{"001","002"})),{"001","002"})
+
+    def test_fresh_participants_require_gains_in_both_clean_and_noisy_validation(self):
+        import copy
+        from expanded_contracts import admitted
+        baseline={name:{"macroF1":0.3,"balancedAccuracy":0.4,"recallPerClass":[0.4]*4} for name in ("clean","noisy")}
+        improved={name:{"macroF1":0.35,"balancedAccuracy":0.45,"recallPerClass":[0.45]*4} for name in ("clean","noisy")}
+        self.assertTrue(admitted(improved,baseline))
+        for view,metric in (("noisy","balancedAccuracy"),("noisy","macroF1"),("clean","macroF1")):
+            regressed=copy.deepcopy(improved);regressed[view][metric]=0.2
+            self.assertFalse(admitted(regressed,baseline))
+        collapsed=copy.deepcopy(improved);collapsed["clean"]["recallPerClass"][3]=0
+        self.assertFalse(admitted(collapsed,baseline))
+        nonfinite=copy.deepcopy(improved);nonfinite["noisy"]["balancedAccuracy"]=float("inf")
+        self.assertFalse(admitted(nonfinite,baseline))
+
+    def test_expanded_tree_fitting_uses_training_people_and_not_the_export_probe(self):
+        import numpy as np
+        from array_trees import probabilities
+        from train_expanded import fit_arrays
+        labels=np.tile(np.repeat(np.arange(4,dtype=np.int8),20),8)
+        people=np.repeat(np.arange(8).astype(str),80)
+        inputs=np.column_stack((labels.astype(np.float32),np.repeat(np.arange(8),80)/100)).astype(np.float32)
+        a,report=fit_arrays(inputs,labels,people,inputs[:32],rounds=8)
+        b,_=fit_arrays(inputs,labels,people,inputs[:32]+1000,rounds=8)
+        self.assertEqual(a,b)
+        self.assertEqual(report["trainingPeople"],8)
+        self.assertGreater(float((probabilities(a,inputs).argmax(axis=1)==labels).mean()),0.75)
+
     def test_batched_tree_inference_matches_independent_scalar_float32_contract(self):
         import numpy as np
         from array_trees import probabilities

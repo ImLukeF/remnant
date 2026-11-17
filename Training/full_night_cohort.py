@@ -56,25 +56,38 @@ def prepare(args):
     labels=root/"labels"; labels.mkdir(exist_ok=True)
     people=select_subjects(retry(lambda: listing("APNEA_RML")),1000)
     known=json.loads(args.known_subjects.read_text())
-    roles,held_out=participant_roles([p[0] for p in people],known,args.development_people,args.validation_people,args.test_people)
+    selection_root=getattr(args,"frozen_selection",None)
+    if selection_root:
+        from expanded_contracts import final_admission
+        parent=json.loads(args.from_reservation.read_text())
+        selected_parameters=final_admission(selection_root,parent,known)
+        roles={p:"test" for p in parent["reservedTestSubjects"]};held_out=[];phase="final"
+    else:
+        roles,held_out=participant_roles([p[0] for p in people],known,args.development_people,args.validation_people,args.test_people)
+        selected_parameters=None;phase="development"
     reservation={"schemaVersion":1,"experiment":"expanded-full-nights-v8","repository":REPOSITORY,"revision":REVISION,
                  "roles":roles,"reservedTestSubjects":held_out,"previouslyObservedSubjects":sorted(known),
                  "knownRegistrySHA256":checksum(args.known_subjects),"selectionUsesLabels":False,
+                 "phase":phase,"fittingForbidden":phase=="final","selectedParametersSHA256":selected_parameters,
                  "sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     reservation_path=root/"participants.json"
     if reservation_path.exists():
         saved=json.loads(reservation_path.read_text())
         if any(saved[k]!=reservation[k] for k in ("revision","roles","reservedTestSubjects","knownRegistrySHA256")):
             raise ValueError("Resume only the identical participant reservation.")
+        if saved.get("phase","development")!=phase or saved.get("selectedParametersSHA256")!=selected_parameters:
+            raise ValueError("Frozen test selection or data phase changed.")
     else: atomic_json(reservation_path,reservation)
     # Conservative exclusion: every reserved development person is retired from future independent tests.
-    atomic_json(root/"observed-subjects.json",sorted(roles))
+    atomic_json(root/"observed-subjects.json",sorted(set(known)|set(roles)))
     plan_path=root/"development-plan.json"
     if plan_path.exists():
         saved=json.loads(plan_path.read_text())
         if (saved["roles"]!=roles or saved["revision"]!=REVISION or saved["extractorSHA256"]!=feature_fingerprint()
                 or saved["participantReservationSHA256"]!=checksum(reservation_path)):
             raise ValueError("Full-night source plan changed.")
+        if saved.get("phase","development")!=phase or saved.get("selectedParametersSHA256")!=selected_parameters:
+            raise ValueError("Frozen source-plan phase changed.")
         if sum(f["bytes"] for f in saved["files"])>args.max_download_gib*1024**3: raise ValueError("Source plan exceeds budget.")
         print(json.dumps({"event":"full_night_plan_reused","blocks":len(saved["files"])}),flush=True)
         return saved
@@ -124,6 +137,13 @@ def prepare(args):
             atomic_json(progress_path,checked)
             if len(checked)%50==0: print(json.dumps({"event":"full_night_headers","complete":len(checked),"total":len(flat)}),flush=True)
     files=[]; tails=[]; coverage={}; gaps=[]; unusable=[]
+    if phase=="final":
+        from expanded_contracts import participant_identities
+        current=participant_identities(labels,set(roles))
+        earlier=participant_identities(args.from_reservation.parent/"labels",set(known))
+        for key in ("PatientID","PatientDBID"):
+            if {v[key] for v in current.values()}&{v[key] for v in earlier.values()}:
+                raise ValueError("New recording names conceal a previously observed clinical participant.")
     for group in groups:
         staged=annotations(labels/(group[0]["recording"]+".rml"))
         records=[checked[item["path"]] for item in group]
@@ -147,6 +167,8 @@ def prepare(args):
             files.append(item)
         coverage[group[0]["subject"]]=counts
     saved={"schemaVersion":1,"repository":REPOSITORY,"revision":REVISION,"featureProfile":"spectral-v4",
+           "phase":phase,"fittingForbidden":phase=="final","selectedParametersSHA256":selected_parameters,
+           "previouslyObservedSubjects":sorted(known),"testSubjects":sorted(roles) if phase=="final" else [],
            "extractorSHA256":feature_fingerprint(),"roles":roles,"reservedTestSubjects":held_out,
            "participantReservationSHA256":checksum(reservation_path),"licenceEvidence":evidence,"files":files,
            "shortTailsExcluded":tails,"unusableSourceBlocks":unusable,"gaps":gaps,"annotatedStageCountsByPerson":coverage,
@@ -164,7 +186,9 @@ if __name__=="__main__":
     p.add_argument("--known-subjects",type=Path,required=True); p.add_argument("--output",type=Path,required=True)
     p.add_argument("--development-people",type=int,default=200); p.add_argument("--validation-people",type=int,default=40)
     p.add_argument("--test-people",type=int,default=30); p.add_argument("--max-download-gib",type=float,default=768)
+    p.add_argument("--frozen-selection",type=Path);p.add_argument("--from-reservation",type=Path)
     args=p.parse_args()
     if not 0<args.max_download_gib<=1024 or not 1<=args.test_people<=40 or args.development_people>240:
         p.error("Bound participant count and total source download size.")
+    if bool(args.frozen_selection)!=bool(args.from_reservation): p.error("Provide both the frozen model and its earlier reservation.")
     prepare(args)

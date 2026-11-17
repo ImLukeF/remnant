@@ -11,7 +11,7 @@ No account, API key, paid SDK or network service is required.
   interruption handling, and no automatic restart after capture is interrupted.
 - A portable linear classifier format, an independently implemented Python feature reference,
   labelled-data extraction and subject-separated baseline training/evaluation.
-- An import format for causal linear and numerical tree models. Each stream gets its own
+- An import format for causal linear, numerical tree, recurrent and acoustic convolution models. Each stream gets its own
   predictor, with bounded past-only context and resets after gaps or unusable audio.
 - Wake plans with precomputed safety attempts, a stop/finish distinction, and a conservative
   early-wake decision engine. Hosts remain responsible for scheduling real system alarms.
@@ -57,6 +57,17 @@ order using the predictor's mutating `predict` method. Call `reset()` at session
 The contextual format supports the current epoch alone or ten trailing epochs; it never reads future
 observations. Unusable epochs clear context and produce no stage probabilities. The importer rejects
 oversized payloads, unsupported schemas, non-finite parameters and invalid tree graphs.
+
+Schema 3 adds a bounded GRU over one, ten or twenty trailing observations. Schema 4 first encodes
+each completed 30-second epoch with temporal convolutions, then applies a bounded GRU to the epoch
+embeddings. It requires `acousticFrames: true` on `AudioFeatureExtractor` or `OvernightAudio`.
+Those optional observations contain 240 frames of 24 relative Mel bands and band power, rounded
+to four decimal places and stored as Float32. They preserve within-epoch timing without retaining
+waveforms. The current epoch is classified after it ends; neither model reads the next epoch.
+The recurrent equations follow the [PyTorch 2.10 GRU convention](https://docs.pytorch.org/docs/2.10/generated/torch.nn.GRU.html),
+and the convolutions follow its [cross-correlation convention](https://docs.pytorch.org/docs/2.10/generated/torch.nn.Conv1d.html).
+All native inference is independently implemented in Swift without a PyTorch runtime dependency.
+Parley uses the detailed frames live and saves the compact summary observations.
 
 On iOS, retain an OvernightAudio instance, explicitly call start, and consume its event stream.
 Add a microphone usage explanation and the audio background mode to the host app. Call stop
@@ -121,17 +132,34 @@ requires NumPy; extraction also requires pyedflib, and model selection requires 
 The optional refit contract skips when XGBoost is absent, keeping the original standard-library
 checks usable without installing the research environment.
 
+`Training/train_sequence.py` evaluates a bounded GRU over cached summaries using three fixed
+participant folds. `Training/run_acoustic_corpus.py` prepares a hash-verified private cache of
+time-resolved observations, checking the original summary observations before accepting each block.
+`Training/train_acoustic.py` fits its per-epoch encoder on training people, freezes it, and trains
+the sequence classifier on its embeddings. Normalization also uses training people only. The
+candidate must improve both paired development macro F1 and balanced accuracy before the new-test
+admission tool will reserve another cohort. Final fitting uses fixed median best epoch counts
+from development folds. The previous tests are retired as development data and remain in the
+global exclusion registry, including people outside a particular fitting corpus.
+
+Use the pinned CPU-only `Training/requirements-sequence-linux.txt` environment for neural research.
+`Training/prepare_sequence_test.py` enforces development admission and prepares a new cohort;
+`Training/evaluate_sequence.py` or `Training/evaluate_acoustic.py` scores the frozen model once.
+The acoustic evaluator compares the previous summary model on the same recording intervals.
+No fitting or model-driven alarm approval occurs in the final-evaluation tools.
+
 Check live epoch end timestamps against callback receipt times. Offline accuracy does not establish
 live latency or accuracy. TV-noise testing, held-out phone/room evaluation and prospective overnight
 trials remain necessary. Consumer Watch stages can be a comparison, not clinical ground truth.
 
 ## Focused checks
 
-    swift test --filter SleepWakeKitTests --jobs 2
-    cd Training && python3 -m unittest -v test_training
+    swift test --filter 'acousticModelMatchesIndependentEncoderAndRecurrentReference|acousticFramesMatchIndependentReferenceAcrossStreamingBuffers' --jobs 2
+    cd Training && python3 -m unittest -v test_sequence.SequenceContracts.test_final_registry_keeps_previously_tested_people_outside_this_fitting_corpus
 
-These checks prove feature math, buffer-boundary invariance, input validation, subject isolation and
-wake-policy contracts. Synthetic fixtures do not demonstrate sleep-stage accuracy. iOS microphone,
+These focused examples cover feature/inference math, buffer-boundary invariance and participant
+exclusions. The package also has independent model validation, context and wake-policy contracts.
+Synthetic fixtures do not demonstrate sleep-stage accuracy. iOS microphone,
 background operation, battery use and native alarm actions require real-device verification.
 
 ## Privacy and reuse

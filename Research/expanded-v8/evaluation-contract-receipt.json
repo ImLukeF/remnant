@@ -1,0 +1,37 @@
+{
+  "jobId": "0d271bd198194b99bfd4f89ba6557d1f",
+  "status": "passed",
+  "createdAt": "2026-11-17T03:36:31.714916+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "1aac2f42a6e8d5facb1ebdef19d337c97ab93d7e",
+    "lane": "codex-sleep-expanded-eval-contract-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T03:36:31.846158+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-eval-contract-v8",
+  "sourceSha": "1aac2f42a6e8d5facb1ebdef19d337c97ab93d7e",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T03:36:41.486402+00:00"
+}

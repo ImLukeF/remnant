@@ -1,0 +1,8 @@
+{
+  "developmentPlanSHA256": "22c481fe7f2cf4135425b06972873baa40d8bb4ac86eea1d7a0a5df2075c40fd",
+  "noiseManifestSHA256": "3669bb5394c54c8d93630db5b8f3ca71487cebe9a3063e08e4e66db5f88d9c66",
+  "extractorSHA256": "48239b36ff58c8604e42dfe58e51b81e7e048b4ee1b98021cbc7c11dfb235a23",
+  "featureProfile": "spectral-v4-clean-and-room-noise",
+  "noiseRolesFollowParticipantRoles": true,
+  "sourceSha": "6f8dd87f9fcb74170865e1cd3251aa360dfdc213"
+}

@@ -1,0 +1,38 @@
+{
+  "jobId": "a235103ef30440978fe4c2332d266249",
+  "status": "passed",
+  "createdAt": "2026-11-17T03:30:38.055945+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "0e93c3f4c685f2ba27b6bb9f34cab574ca777e31",
+    "lane": "codex-sleep-expanded-fit-contracts-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_expanded_tree_fitting_uses_training_people_and_not_the_export_probe",
+      "test_training.TrainingContracts.test_final_tree_refit_uses_the_frozen_round_count",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T03:30:38.267197+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-fit-contracts-v8",
+  "sourceSha": "0e93c3f4c685f2ba27b6bb9f34cab574ca777e31",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T03:30:57.980167+00:00"
+}

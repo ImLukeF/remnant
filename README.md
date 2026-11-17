@@ -6,7 +6,7 @@ No account, API key, paid SDK or network service is required.
 
 ## What works
 
-- Streaming mono PCM into bounded-memory 30-second observations. Waveforms are not stored.
+- Streaming mono PCM into bounded-memory 30-second observations. Waveforms are discarded unless the host explicitly opts into local recording.
 - An iOS microphone source with explicit permission/start, lock-screen background audio support,
   interruption handling, and no automatic restart after capture is interrupted.
 - A portable linear classifier format, an independently implemented Python feature reference,
@@ -67,13 +67,25 @@ waveforms. The current epoch is classified after it ends; neither model reads th
 The recurrent equations follow the [PyTorch 2.10 GRU convention](https://docs.pytorch.org/docs/2.10/generated/torch.nn.GRU.html),
 and the convolutions follow its [cross-correlation convention](https://docs.pytorch.org/docs/2.10/generated/torch.nn.Conv1d.html).
 All native inference is independently implemented in Swift without a PyTorch runtime dependency.
-Parley uses the detailed frames live and saves the compact summary observations.
+Parley's alpha saves detailed observations and model outputs for each night, separately from user feedback and optional Health references.
 
 On iOS, retain an OvernightAudio instance, explicitly call start, and consume its event stream.
-Add a microphone usage explanation and the audio background mode to the host app. Call stop
-when done. Use the canStart callback to check your app's other microphone owners after permission
+Add a microphone usage explanation and the audio background mode to the host app. Call `await finish()`
+when done to drain pending observations and close any recording before exporting. `stop()` first
+stops input synchronously for microphone handoff. Use the canStart callback to check your app's other microphone owners after permission
 has been granted. Calls, route changes and audio interruptions end capture; the host must show
 that interruption rather than silently assume uninterrupted sleep.
+
+`SleepNightStore` retains separate nights, atomic per-epoch observations, the exact model,
+markers, personal feedback and optional Health references with their original source. Its ZIP
+export streams files and requires a separate `includeAudio` choice. Interrupted manifests recover
+already-written observations; capture never restarts automatically. Night JSON declares its date
+encoding (`secondsSince2001-01-01T00:00:00Z`). Predictions and personal feedback are not clinical labels.
+
+For explicitly consented local audio, pass a private `audioURL` to `OvernightAudio.start`.
+The worker writes lossless mono 16-bit / 16-kHz CAF with bounded conversion buffers. At most
+twelve hours are written (about 1.4 GB uncompressed). Hosts must provide deletion, free-space
+checks and explicit export controls. Never start a microphone session or upload data automatically.
 
 WakeSession.stopped records a stopped attempt without removing backups. Its finish method returns IDs
 for the host to cancel. Persist intent and reconcile failed cancellations; calling a reducer
@@ -186,8 +198,8 @@ background operation, battery use and native alarm actions require real-device v
 
 ## Privacy and reuse
 
-The package performs no network requests and does not write recordings. The host chooses whether
-to retain derived observations and must provide deletion and explicit recording controls.
+The package performs no network requests. Recordings are disabled unless a host supplies an
+explicit local output URL. The host chooses retention and must provide deletion and recording controls.
 The core, Apple audio source and training tools were independently written; no proprietary SDK,
 research repository code or third-party model was copied. Contributions should include provenance
 and subject-separated results for any proposed model or dataset.

@@ -11,6 +11,15 @@ public struct SleepModel: Sendable {
     }
     fileprivate let backing: Backing
 
+    public var identifier: String {
+        switch backing {
+        case .legacy(let model): model.modelID
+        case .contextual(let model): model.modelID
+        case .recurrent(let model): model.modelID
+        case .acoustic(let model): model.modelID
+        }
+    }
+
     public init(data: Data) throws {
         guard data.count <= Self.maximumPayloadBytes else { throw ModelError.invalid }
         struct Header: Decodable { let schemaVersion: Int }

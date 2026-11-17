@@ -3,13 +3,14 @@ import AVFAudio
 import Foundation
 import SleepWakeKit
 
-/// Explicitly started audio observation. Stores features only; never writes recordings or uses the network.
+/// Explicitly started observation. Optional local recording is confined to the worker; no network access.
 @MainActor
 public final class OvernightAudio {
     public enum Event: Sendable {
         case epoch(AudioEpoch)
         case interrupted
         case stopped
+        case failed
     }
     public enum Failure: Error { case permissionDenied, invalidInput, alreadyRunning, microphoneInUse }
     private var engine: AVAudioEngine?
@@ -19,6 +20,10 @@ public final class OvernightAudio {
     private var starting = false
     private var generation = UUID()
     private var previousInput: AVAudioSessionPortDescription?
+    private var processor: Processor?
+    private var finishing: Task<Void, Never>?
+    public private(set) var inputSampleRate: Int?
+    public static let recordingSampleRate = 16_000
     private let spectral: Bool
     private let acousticFrames: Bool
 
@@ -27,12 +32,13 @@ public final class OvernightAudio {
         self.acousticFrames = acousticFrames
     }
 
-    public func start(canStart: () -> Bool = { true }) async throws -> AsyncStream<Event> {
+    public func start(audioURL: URL? = nil, canStart: () -> Bool = { true }) async throws -> AsyncStream<Event> {
         guard engine == nil, !starting else { throw Failure.alreadyRunning }
         starting = true
         let attempt = UUID()
         generation = attempt
         defer { starting = false }
+        if let finishing { await finishing.value; self.finishing = nil }
         guard await AVAudioApplication.requestRecordPermission() else { throw Failure.permissionDenied }
         try Task.checkCancellation()
         guard generation == attempt else { throw CancellationError() }
@@ -66,12 +72,21 @@ public final class OvernightAudio {
                 self.stop()
             }
         }
-        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, acousticFrames: acousticFrames, continuation: continuation) { [weak self] in
-            Task { @MainActor in
-                guard let self, self.generation == attempt else { return }
-                self.interrupt()
+        let processor: Processor
+        do {
+            processor = try Processor(sampleRate: Int(format.sampleRate), audioURL: audioURL, spectral: spectral, acousticFrames: acousticFrames, continuation: continuation) { [weak self] failed in
+                Task { @MainActor in
+                    guard let self, self.generation == attempt else { return }
+                    self.stop()
+                }
             }
+        } catch {
+            continuation.finish(); self.continuation = nil
+            try? session.setPreferredInput(previousInput)
+            try? session.setActive(false, options: .notifyOthersOnDeactivation)
+            throw error
         }
+        self.processor = processor
         input.installTap(onBus: 0, bufferSize: 4_096, format: format) { buffer, time in
             processor.process(buffer, time: time)
         }
@@ -79,6 +94,7 @@ public final class OvernightAudio {
             try engine.start()
         } catch {
             input.removeTap(onBus: 0)
+            processor.finish(); self.processor = nil
             continuation.finish()
             self.continuation = nil
             try? session.setPreferredInput(previousInput)
@@ -86,12 +102,20 @@ public final class OvernightAudio {
             throw error
         }
         self.engine = engine
+        inputSampleRate = Int(format.sampleRate)
+        let expectedRate = format.sampleRate
         observer = NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification, object: nil, queue: .main
         ) { [weak self] _ in Task { @MainActor in self?.interrupt() } }
         routeObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
-        ) { [weak self] _ in Task { @MainActor in self?.interrupt() } }
+        ) { [weak self] _ in Task { @MainActor in
+            let session = AVAudioSession.sharedInstance()
+            guard session.mode != .measurement || session.category != .playAndRecord
+                    || session.currentRoute.inputs.first?.portType != .builtInMic
+                    || session.sampleRate != expectedRate else { return }
+            self?.interrupt()
+        } }
         return stream
     }
 
@@ -101,12 +125,13 @@ public final class OvernightAudio {
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
         self.engine = nil
+        processor?.finish()
+        finishing = processor?.worker
+        processor = nil
         if let observer { NotificationCenter.default.removeObserver(observer) }
         if let routeObserver { NotificationCenter.default.removeObserver(routeObserver) }
         observer = nil
         routeObserver = nil
-        continuation?.yield(.stopped)
-        continuation?.finish()
         continuation = nil
         try? AVAudioSession.sharedInstance().setPreferredInput(previousInput)
         previousInput = nil
@@ -115,13 +140,20 @@ public final class OvernightAudio {
         }
     }
 
+    /// Stops new input immediately, then waits for queued PCM, file headers and final epochs to finish.
+    public func finish(deactivateSession: Bool = true) async {
+        stop(deactivateSession: deactivateSession)
+        await finishing?.value
+        finishing = nil
+    }
+
     private func interrupt() {
         continuation?.yield(.interrupted)
         stop(deactivateSession: false)
     }
 }
 
-/// Bound copied PCM and keep spectrum work off the audio callback. No waveform is written to disk.
+/// Bound copied PCM and keep file conversion/spectrum work off the audio callback.
 private final class Processor: Sendable {
     private struct Packet: Sendable {
         let samples: [Float]
@@ -129,40 +161,57 @@ private final class Processor: Sendable {
         let capturedAt: Date
     }
     private let input: AsyncStream<Packet>.Continuation
-    private let worker: Task<Void, Never>
+    let worker: Task<Void, Never>
     private let sampleRate: Int
 
-    init(sampleRate: Int, spectral: Bool, acousticFrames: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation,
-         interrupted: @escaping @Sendable () -> Void) throws {
+    init(sampleRate: Int, audioURL: URL?, spectral: Bool, acousticFrames: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation,
+         interrupted: @escaping @Sendable (Bool) -> Void) throws {
         self.sampleRate = sampleRate
         let (packets, input) = AsyncStream<Packet>.makeStream(bufferingPolicy: .bufferingNewest(16))
         self.input = input
+        let writer = try audioURL.map { try NightAudioWriter(url: $0, sampleRate: sampleRate) }
         self.worker = Task.detached(priority: .utility) {
+            func signal(_ failed: Bool) {
+                continuation.yield(failed ? .failed : .interrupted)
+                interrupted(failed)
+            }
+            defer {
+                do { try writer?.finish() } catch { signal(true) }
+                continuation.yield(.stopped)
+                continuation.finish()
+            }
             var extractor: AudioFeatureExtractor?
             var timeline = AudioFrameContinuity()
             for await packet in packets {
                 guard !Task.isCancelled else { break }
                 guard let time = packet.sampleTime, !packet.samples.isEmpty else {
-                    interrupted()
+                    signal(false)
                     return
                 }
                 if !timeline.accept(sampleTime: time, frameCount: packet.samples.count) {
-                    interrupted()
+                    signal(false)
                     return
                 }
                 if extractor == nil {
                     do { extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: packet.capturedAt, spectral: spectral, acousticFrames: acousticFrames) }
-                    catch { interrupted(); return }
+                    catch { signal(false); return }
                 }
+                do { try writer?.append(packet.samples) }
+                catch { signal(true); return }
                 for epoch in extractor?.append(packet.samples) ?? [] {
-                    if case .terminated = continuation.yield(.epoch(epoch)) { return }
+                    switch continuation.yield(.epoch(epoch)) {
+                    case .terminated: return
+                    case .dropped: signal(false); return
+                    case .enqueued: break
+                    @unknown default: signal(false); return
+                    }
                 }
             }
-            continuation.finish()
         }
     }
 
-    deinit { input.finish(); worker.cancel() }
+    deinit { input.finish() }
+    func finish() { input.finish() }
 
     func process(_ buffer: AVAudioPCMBuffer, time: AVAudioTime) {
         guard let channel = buffer.floatChannelData?[0], buffer.frameLength > 0, time.isSampleTimeValid,
@@ -171,7 +220,9 @@ private final class Processor: Sendable {
             return
         }
         let samples = Array(UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength)))
-        let capturedAt = Date.now.addingTimeInterval(-Double(buffer.frameLength) / buffer.format.sampleRate)
+        let capturedAt = time.isHostTimeValid
+            ? Date.now.addingTimeInterval(AVAudioTime.seconds(forHostTime: time.hostTime) - ProcessInfo.processInfo.systemUptime)
+            : Date.now.addingTimeInterval(-Double(buffer.frameLength) / buffer.format.sampleRate)
         input.yield(Packet(samples: samples, sampleTime: time.sampleTime, capturedAt: capturedAt))
     }
 }

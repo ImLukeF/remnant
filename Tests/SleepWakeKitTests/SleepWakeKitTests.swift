@@ -1,6 +1,96 @@
 import Foundation
 import Testing
 @testable import SleepWakeKit
+#if canImport(AVFAudio)
+import AVFAudio
+@testable import SleepWakeAudio
+#endif
+
+@Test func nightStorePreservesHistoryAndRecoversAnUnpublishedObservation() throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: "sleep-test-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = try SleepNightStore(directory: root)
+    let start = Date(timeIntervalSince1970: 1_000)
+    var night = SleepNight(started: start, modelID: "synthetic", recordsAudio: false, tvMinutes: 60)
+    try store.create(night)
+    func observation(_ start: Date) -> SleepNightObservation {
+        .init(epoch: .init(start: start, end: start.addingTimeInterval(30), features: Array(repeating: 0.1, count: 58), usable: true,
+                          acousticFrames: Array(repeating: 0.2, count: 6_000)), prediction: nil, battery: 0.8, duringExpectedTV: true)
+    }
+    try store.append(observation(start), to: &night)
+    #expect(throws: SleepNightStore.Failure.self) { try store.append(observation(start), to: &night) }
+    let orphan = observation(start.addingTimeInterval(30))
+    try JSONEncoder().encode(orphan).write(to: store.folder(night.id).appending(path: "observations/\(orphan.id.uuidString).json"), options: .atomic)
+    let recovered = try #require(try SleepNightStore(directory: root).nights(recoverInterrupted: true).first)
+    #expect(recovered.id == night.id && recovered.endReason == .appTerminated)
+    #expect(recovered.capturedSeconds == 60 && recovered.usableSeconds == 60)
+    #expect(recovered.ended == start.addingTimeInterval(60))
+    var reviewed = recovered; reviewed.feedback.sleepQuality = 4; reviewed.feedback.wakeDifficulty = 2
+    reviewed.feedback.notes = "TV on at bedtime"; try store.save(reviewed)
+    let second = SleepNight(started: start.addingTimeInterval(86_400), modelID: "synthetic", recordsAudio: false, tvMinutes: 0)
+    try store.create(second)
+    let history = try store.nights(recoverInterrupted: true)
+    #expect(history.count == 2 && history[0].id == second.id)
+    #expect(history[1].feedback == reviewed.feedback)
+    #expect(history[1].observations.map(\.id) == [night.observations[0].id, orphan.id])
+}
+
+#if os(macOS)
+@Test func nightArchiveInteroperatesWithUnzipAndRequiresSeparateAudioConsent() throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: "sleep-archive-test-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = try SleepNightStore(directory: root)
+    let start = Date(timeIntervalSince1970: 1_000)
+    var night = SleepNight(started: start, modelID: "synthetic", recordsAudio: true, tvMinutes: 0)
+    try store.create(night, modelAttribution: Data("Synthetic attribution".utf8))
+    let sound = Data((0..<1_048_731).map { UInt8($0 % 251) })
+    try sound.write(to: store.audioURL(night.id))
+    try store.append(.init(epoch: .init(start: start, end: start.addingTimeInterval(30), features: Array(repeating: 0.2, count: 58), usable: true), prediction: nil, battery: nil, duringExpectedTV: false), to: &night)
+    let excluded = root.appending(path: "observations-only.zip"), included = root.appending(path: "with-audio.zip")
+    #expect(throws: SleepNightStore.Failure.self) { try store.export(night, to: excluded, includeAudio: false) }
+    #expect(throws: SleepNightStore.Failure.self) { try store.delete(night) }
+    night.ended = start.addingTimeInterval(35); night.endReason = .finished; try store.save(night)
+    func unzip(_ arguments: [String]) throws -> Data {
+        let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip"); process.arguments = arguments
+        let output = Pipe(); process.standardOutput = output
+        try process.run(); let data = output.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
+        #expect(process.terminationStatus == 0)
+        return data
+    }
+    try store.export(night, to: excluded, includeAudio: false)
+    let names = String(decoding: try unzip(["-Z1", excluded.path]), as: UTF8.self)
+    #expect(!names.contains("audio.caf") && names.contains("night.json") && names.contains("model-attribution.txt"))
+    try store.export(night, to: included, includeAudio: true)
+    _ = try unzip(["-t", included.path])
+    #expect(try unzip(["-p", included.path, "audio.caf"]) == sound)
+    let before = try Data(contentsOf: included)
+    #expect(throws: (any Error).self) { try store.export(night, to: included, includeAudio: true) }
+    #expect(try Data(contentsOf: included) == before)
+    var changed = night; changed.feedback.notes = "New feedback"; try store.save(changed)
+    #expect(throws: SleepNightStore.Failure.self) { try store.export(night, to: root.appending(path: "stale.zip"), includeAudio: false) }
+}
+#endif
+
+#if canImport(AVFAudio)
+@Test func nightAudioWriterClosesAReadableLosslessResampledRecording() throws {
+    let url = FileManager.default.temporaryDirectory.appending(path: "sleep-audio-\(UUID()).caf")
+    defer { try? FileManager.default.removeItem(at: url) }
+    let writer = try NightAudioWriter(url: url, sampleRate: 48_000)
+    let samples = (0..<48_000).map { Float(0.25 * sin(2 * .pi * 250 * Double($0) / 48_000)) }
+    for offset in stride(from: 0, to: samples.count, by: 3_079) { try writer.append(Array(samples[offset..<min(samples.count, offset + 3_079)])) }
+    try writer.finish()
+    let file = try AVAudioFile(forReading: url)
+    #expect(file.fileFormat.sampleRate == 16_000 && file.fileFormat.channelCount == 1)
+    #expect(abs(file.length - 16_000) <= 64)
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)))
+    try file.read(into: buffer)
+    let channel = try #require(buffer.floatChannelData?[0])
+    let values = UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength))
+    let rms = sqrt(values.reduce(0.0) { $0 + Double($1 * $1) } / Double(values.count))
+    #expect(rms > 0.16 && rms < 0.19)
+    try writer.finish() // Closing twice cannot append another tail or corrupt the header.
+}
+#endif
 
 @Test func audioFrameContinuityRejectsDroppedBuffersAndOverflow() {
     var timeline = AudioFrameContinuity()

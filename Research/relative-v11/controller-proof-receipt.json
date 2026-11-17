@@ -1,0 +1,12 @@
+{
+  "sourceSha": "7205b2769e2e3cbe40f4d669b60f85d3a2f99cc5",
+  "tests": [
+    "test_final_controller_attaches_exact_existing_refit_without_duplicate_dispatch",
+    "test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint"
+  ],
+  "status": "passed",
+  "testsRun": 2,
+  "seconds": 0.049,
+  "environment": "local Python stdlib only",
+  "clinicalAccuracyClaim": false
+}

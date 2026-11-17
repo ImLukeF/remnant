@@ -1,0 +1,38 @@
+{
+  "jobId": "abaa9c0413154e82951889903cffbfa7",
+  "status": "passed",
+  "createdAt": "2026-11-17T10:10:37.418322+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "d15545bdc01cb7c71396d3a1d1295a154fc030b4",
+    "lane": "codex-sleep-calibration-review-v11",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "OPENBLAS_THREAD_TIMEOUT=1",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "Packages/SleepWakeKit/Training/calibrate_wake.py",
+      "--selection",
+      "/srv/ai-team/artifacts/sleep-wake-relative-v11",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v8"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T10:10:38.002218+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-calibration-review-v11",
+  "sourceSha": "d15545bdc01cb7c71396d3a1d1295a154fc030b4",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T10:11:10.635892+00:00"
+}

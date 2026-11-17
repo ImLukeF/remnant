@@ -1,0 +1,7 @@
+{
+  "status": "compiled_not_yet_compared",
+  "sourceCodeUnchangedFrom": "d15545bdc01cb7c71396d3a1d1295a154fc030b4",
+  "binarySHA256": "b5c12ed73929238195664dc73db11328a085e93c945df6036c529f5ca51cc316",
+  "compiler": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.2.0",
+  "appOrMicrophoneLaunched": false
+}

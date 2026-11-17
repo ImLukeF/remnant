@@ -1,0 +1,50 @@
+{
+  "calibrationPeople": 24,
+  "validationPeople": 40,
+  "results": {
+    "recipe-0": {
+      "parameters": {
+        "slope": 0.3583390594641067,
+        "intercept": 1.5944843318478232,
+        "people": 24,
+        "objective": 0.4857228658860772,
+        "rawObjective": 0.9013531417058014,
+        "innerLightPrior": 0.8052095183268848,
+        "personBalanced": true,
+        "usesValidationPeople": false
+      },
+      "validation": {
+        "clean": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 4061,
+          "peopleWithCandidates": 39,
+          "currentLightFraction": 0.892637281457769,
+          "bothEpochsLightFraction": 0.8800787983255356,
+          "currentDeepOrREMCount": 341,
+          "currentAwakeCount": 95,
+          "rawBrier": 0.32605800386301087,
+          "calibratedBrier": 0.1327181051560868,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        },
+        "noisy": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 1225,
+          "peopleWithCandidates": 37,
+          "currentLightFraction": 0.8702040816326531,
+          "bothEpochsLightFraction": 0.8481632653061224,
+          "currentDeepOrREMCount": 120,
+          "currentAwakeCount": 39,
+          "rawBrier": 0.4285476644784457,
+          "calibratedBrier": 0.14037720396021938,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        }
+      },
+      "backboneSHA256": "80841794744ed8f847f04f1810338e6c057cc138324b115903b6cb0f984cdbef"
+    }
+  },
+  "approvedForAlarmTiming": false,
+  "finalTestRead": false,
+  "limitation": "Reused development validation, all adjacent intervals; no independent final test, scheduled-window or phone validation. Parameters cannot transfer to a refitted backbone without new calibration."
+}

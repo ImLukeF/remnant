@@ -1,0 +1,10 @@
+{
+  "status": "unscored_refit_import_rejected",
+  "modelFileSHA256": "9dffd3c6a2e82dc9709cb5f5be3f36c9f2906e72b170b8470b9b703b9fc1f6f3",
+  "error": "SleepModel.ModelError.invalid",
+  "reason": "The existing native recurrent importer requires nonempty actual held-out evaluation metadata; untested refit has heldOutSubjects [].",
+  "nativeParityPendingFinalEvaluation": true,
+  "guardChanged": false,
+  "modelMetadataFabricated": false,
+  "appOrMicrophoneLaunched": false
+}

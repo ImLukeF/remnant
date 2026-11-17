@@ -1,0 +1,39 @@
+{
+  "jobId": "6682c5bb5cf842ea8951469730f3eb16",
+  "status": "passed",
+  "createdAt": "2026-11-17T08:25:13.307189+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+    "lane": "codex-sleep-v8-quality-amendment-proof",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_expanded_training_refits_all_200_people_without_reading_reserved_people",
+      "test_full_nights.FullNightContracts.test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions",
+      "test_full_nights.FullNightContracts.test_parallel_extraction_preserves_every_array_and_complete_checkpoint",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T08:25:13.821026+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-v8-quality-amendment-proof",
+  "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T08:26:07.903712+00:00"
+}

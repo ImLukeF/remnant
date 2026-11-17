@@ -1,0 +1,21 @@
+{
+  "policy": "wholly-silent-training-only-v1",
+  "beforeModelFitting": true,
+  "developmentPlanSHA256": "22c481fe7f2cf4135425b06972873baa40d8bb4ac86eea1d7a0a5df2075c40fd",
+  "featureChecksumsSHA256": "11c8fb832b60354bb92b40f5d0a24121188b6378d77eadee3c4e3cfe3c01a1f1",
+  "excludedSubjects": {
+    "00001402": {
+      "role": "train",
+      "reason": "Every scored interval contains silent microphone measurements.",
+      "scoredEpochs": 304,
+      "blocks": {
+        "APNEA_EDF/00001402-100507/00001402-100507[003].edf": "3d23686fc9e8f8c72e85c8e38225ee71a53ac997ba875d41f060bcad44ec96f7",
+        "APNEA_EDF/00001402-100507/00001402-100507[004].edf": "21a5dcd5649ad8d9e97abc92e5fb13a0617e8524d71c333a84c2d1a096644d8b",
+        "APNEA_EDF/00001402-100507/00001402-100507[005].edf": "bc493fe99172b2e8b02fb48e24a2560991bf107e334dad51599d68d41b6a4550"
+      }
+    }
+  },
+  "validationSubjectsUnchanged": true,
+  "reservedTestSubjectsUnchanged": true,
+  "observedParticipantsRemainExcludedFromFutureTests": true
+}

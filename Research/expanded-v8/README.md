@@ -45,3 +45,21 @@ wait setting. These synthetic proofs do not measure clinical sleep-stage accurac
 The previous controller/worker were verified stopped before reusing their output/lane. The
 cancelled serial job remains in history as cancelled. speed-upgrade.json records checkpoint
 preservation and the runtime transition; training-request.json pins the updated final extractor.
+
+## Pre-fitting silence-only amendment
+
+All 1,057 planned blocks were processed, producing 932.933 usable hours. The completion gate
+stopped because one training participant's 304 scored intervals were entirely silent. No model
+had been fitted and no fresh-test participant had been opened. The failed receipt is preserved.
+
+quality-amendment.json records an explicit pre-fitting exclusion tied to the unchanged source plan
+and every cached feature checksum. The audited policy accepts wholly silent training observations
+only; it cannot exclude validation/final participants, other quality failures or missing labels.
+The actual audit checked every cache hash. All 200 observed people remain excluded from future
+independent tests. No waveform processing, parameter choice or admission metric was changed.
+
+Actual fitting now uses 159 people with the same 40-person validation group, followed by a refit
+on 199 usable people. The original full-night control uses 83 usable people from its 84-person
+reservation. The same 30 fresh people remain conditional on validation admission. Reports name
+actual training counts. The synthetic recovery/evaluator/checkpoint proofs are retained alongside
+the actual quality-audit receipt; their synthetic accuracy is not a clinical result.

@@ -1,0 +1,2066 @@
+{
+  "people": {
+    "00001095": {
+      "role": "train",
+      "usableEpochs": 485,
+      "stageCounts": [
+        30,
+        375,
+        74,
+        6
+      ]
+    },
+    "00001436": {
+      "role": "train",
+      "usableEpochs": 625,
+      "stageCounts": [
+        63,
+        547,
+        15,
+        0
+      ]
+    },
+    "00001270": {
+      "role": "train",
+      "usableEpochs": 566,
+      "stageCounts": [
+        4,
+        562,
+        0,
+        0
+      ]
+    },
+    "00001628": {
+      "role": "train",
+      "usableEpochs": 823,
+      "stageCounts": [
+        43,
+        705,
+        51,
+        24
+      ]
+    },
+    "00001380": {
+      "role": "train",
+      "usableEpochs": 526,
+      "stageCounts": [
+        40,
+        356,
+        100,
+        30
+      ]
+    },
+    "00001071": {
+      "role": "train",
+      "usableEpochs": 498,
+      "stageCounts": [
+        19,
+        466,
+        0,
+        13
+      ]
+    },
+    "00001486": {
+      "role": "train",
+      "usableEpochs": 664,
+      "stageCounts": [
+        35,
+        460,
+        169,
+        0
+      ]
+    },
+    "00001057": {
+      "role": "train",
+      "usableEpochs": 426,
+      "stageCounts": [
+        67,
+        359,
+        0,
+        0
+      ]
+    },
+    "00001679": {
+      "role": "train",
+      "usableEpochs": 658,
+      "stageCounts": [
+        33,
+        562,
+        0,
+        63
+      ]
+    },
+    "00001576": {
+      "role": "train",
+      "usableEpochs": 463,
+      "stageCounts": [
+        24,
+        330,
+        109,
+        0
+      ]
+    },
+    "00001082": {
+      "role": "train",
+      "usableEpochs": 486,
+      "stageCounts": [
+        7,
+        461,
+        0,
+        18
+      ]
+    },
+    "00001438": {
+      "role": "train",
+      "usableEpochs": 705,
+      "stageCounts": [
+        76,
+        603,
+        0,
+        26
+      ]
+    },
+    "00001615": {
+      "role": "train",
+      "usableEpochs": 873,
+      "stageCounts": [
+        68,
+        654,
+        37,
+        114
+      ]
+    },
+    "00001611": {
+      "role": "train",
+      "usableEpochs": 837,
+      "stageCounts": [
+        82,
+        513,
+        155,
+        87
+      ]
+    },
+    "00001510": {
+      "role": "train",
+      "usableEpochs": 369,
+      "stageCounts": [
+        12,
+        314,
+        0,
+        43
+      ]
+    },
+    "00001424": {
+      "role": "train",
+      "usableEpochs": 557,
+      "stageCounts": [
+        46,
+        450,
+        61,
+        0
+      ]
+    },
+    "00001541": {
+      "role": "train",
+      "usableEpochs": 390,
+      "stageCounts": [
+        53,
+        316,
+        21,
+        0
+      ]
+    },
+    "00001118": {
+      "role": "train",
+      "usableEpochs": 451,
+      "stageCounts": [
+        33,
+        395,
+        0,
+        23
+      ]
+    },
+    "00001322": {
+      "role": "train",
+      "usableEpochs": 477,
+      "stageCounts": [
+        11,
+        417,
+        21,
+        28
+      ]
+    },
+    "00001371": {
+      "role": "train",
+      "usableEpochs": 589,
+      "stageCounts": [
+        41,
+        480,
+        0,
+        68
+      ]
+    },
+    "00001643": {
+      "role": "train",
+      "usableEpochs": 664,
+      "stageCounts": [
+        58,
+        606,
+        0,
+        0
+      ]
+    },
+    "00001239": {
+      "role": "train",
+      "usableEpochs": 479,
+      "stageCounts": [
+        30,
+        400,
+        0,
+        49
+      ]
+    },
+    "00001699": {
+      "role": "train",
+      "usableEpochs": 601,
+      "stageCounts": [
+        7,
+        503,
+        0,
+        91
+      ]
+    },
+    "00001137": {
+      "role": "train",
+      "usableEpochs": 490,
+      "stageCounts": [
+        25,
+        422,
+        0,
+        43
+      ]
+    },
+    "00001324": {
+      "role": "train",
+      "usableEpochs": 464,
+      "stageCounts": [
+        17,
+        435,
+        10,
+        2
+      ]
+    },
+    "00001135": {
+      "role": "train",
+      "usableEpochs": 321,
+      "stageCounts": [
+        43,
+        270,
+        0,
+        8
+      ]
+    },
+    "00001569": {
+      "role": "train",
+      "usableEpochs": 700,
+      "stageCounts": [
+        48,
+        632,
+        0,
+        20
+      ]
+    },
+    "00001155": {
+      "role": "train",
+      "usableEpochs": 446,
+      "stageCounts": [
+        0,
+        297,
+        149,
+        0
+      ]
+    },
+    "00001365": {
+      "role": "train",
+      "usableEpochs": 170,
+      "stageCounts": [
+        11,
+        150,
+        9,
+        0
+      ]
+    },
+    "00001408": {
+      "role": "train",
+      "usableEpochs": 437,
+      "stageCounts": [
+        7,
+        430,
+        0,
+        0
+      ]
+    },
+    "00001609": {
+      "role": "train",
+      "usableEpochs": 847,
+      "stageCounts": [
+        113,
+        590,
+        72,
+        72
+      ]
+    },
+    "00001037": {
+      "role": "train",
+      "usableEpochs": 395,
+      "stageCounts": [
+        24,
+        371,
+        0,
+        0
+      ]
+    },
+    "00001308": {
+      "role": "train",
+      "usableEpochs": 568,
+      "stageCounts": [
+        74,
+        480,
+        14,
+        0
+      ]
+    },
+    "00001474": {
+      "role": "train",
+      "usableEpochs": 640,
+      "stageCounts": [
+        129,
+        481,
+        30,
+        0
+      ]
+    },
+    "00001601": {
+      "role": "train",
+      "usableEpochs": 424,
+      "stageCounts": [
+        9,
+        372,
+        0,
+        43
+      ]
+    },
+    "00001498": {
+      "role": "train",
+      "usableEpochs": 680,
+      "stageCounts": [
+        0,
+        421,
+        259,
+        0
+      ]
+    },
+    "00001262": {
+      "role": "train",
+      "usableEpochs": 422,
+      "stageCounts": [
+        122,
+        300,
+        0,
+        0
+      ]
+    },
+    "00001274": {
+      "role": "train",
+      "usableEpochs": 593,
+      "stageCounts": [
+        89,
+        501,
+        3,
+        0
+      ]
+    },
+    "00001478": {
+      "role": "train",
+      "usableEpochs": 420,
+      "stageCounts": [
+        17,
+        377,
+        19,
+        7
+      ]
+    },
+    "00001419": {
+      "role": "train",
+      "usableEpochs": 630,
+      "stageCounts": [
+        74,
+        484,
+        40,
+        32
+      ]
+    },
+    "00001320": {
+      "role": "train",
+      "usableEpochs": 641,
+      "stageCounts": [
+        0,
+        390,
+        251,
+        0
+      ]
+    },
+    "00001329": {
+      "role": "train",
+      "usableEpochs": 532,
+      "stageCounts": [
+        25,
+        507,
+        0,
+        0
+      ]
+    },
+    "00001432": {
+      "role": "train",
+      "usableEpochs": 534,
+      "stageCounts": [
+        58,
+        426,
+        0,
+        50
+      ]
+    },
+    "00001658": {
+      "role": "train",
+      "usableEpochs": 731,
+      "stageCounts": [
+        34,
+        506,
+        135,
+        56
+      ]
+    },
+    "00001602": {
+      "role": "train",
+      "usableEpochs": 848,
+      "stageCounts": [
+        10,
+        672,
+        0,
+        166
+      ]
+    },
+    "00001059": {
+      "role": "train",
+      "usableEpochs": 452,
+      "stageCounts": [
+        58,
+        394,
+        0,
+        0
+      ]
+    },
+    "00001402": {
+      "role": "train",
+      "usableEpochs": 0,
+      "stageCounts": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "00001129": {
+      "role": "train",
+      "usableEpochs": 480,
+      "stageCounts": [
+        10,
+        439,
+        3,
+        28
+      ]
+    },
+    "00001045": {
+      "role": "train",
+      "usableEpochs": 527,
+      "stageCounts": [
+        114,
+        413,
+        0,
+        0
+      ]
+    },
+    "00001593": {
+      "role": "train",
+      "usableEpochs": 866,
+      "stageCounts": [
+        23,
+        649,
+        37,
+        157
+      ]
+    },
+    "00001285": {
+      "role": "train",
+      "usableEpochs": 501,
+      "stageCounts": [
+        25,
+        424,
+        39,
+        13
+      ]
+    },
+    "00001358": {
+      "role": "train",
+      "usableEpochs": 664,
+      "stageCounts": [
+        65,
+        550,
+        32,
+        17
+      ]
+    },
+    "00001172": {
+      "role": "train",
+      "usableEpochs": 618,
+      "stageCounts": [
+        70,
+        511,
+        0,
+        37
+      ]
+    },
+    "00001681": {
+      "role": "train",
+      "usableEpochs": 514,
+      "stageCounts": [
+        26,
+        351,
+        0,
+        137
+      ]
+    },
+    "00001621": {
+      "role": "train",
+      "usableEpochs": 818,
+      "stageCounts": [
+        33,
+        533,
+        30,
+        222
+      ]
+    },
+    "00001086": {
+      "role": "train",
+      "usableEpochs": 520,
+      "stageCounts": [
+        0,
+        359,
+        161,
+        0
+      ]
+    },
+    "00001597": {
+      "role": "train",
+      "usableEpochs": 790,
+      "stageCounts": [
+        57,
+        616,
+        4,
+        113
+      ]
+    },
+    "00001575": {
+      "role": "train",
+      "usableEpochs": 386,
+      "stageCounts": [
+        9,
+        263,
+        81,
+        33
+      ]
+    },
+    "00001369": {
+      "role": "train",
+      "usableEpochs": 698,
+      "stageCounts": [
+        45,
+        577,
+        76,
+        0
+      ]
+    },
+    "00001516": {
+      "role": "train",
+      "usableEpochs": 701,
+      "stageCounts": [
+        52,
+        613,
+        0,
+        36
+      ]
+    },
+    "00001206": {
+      "role": "train",
+      "usableEpochs": 586,
+      "stageCounts": [
+        61,
+        481,
+        34,
+        10
+      ]
+    },
+    "00001331": {
+      "role": "train",
+      "usableEpochs": 490,
+      "stageCounts": [
+        22,
+        358,
+        41,
+        69
+      ]
+    },
+    "00001342": {
+      "role": "train",
+      "usableEpochs": 489,
+      "stageCounts": [
+        59,
+        430,
+        0,
+        0
+      ]
+    },
+    "00001284": {
+      "role": "train",
+      "usableEpochs": 453,
+      "stageCounts": [
+        44,
+        390,
+        0,
+        19
+      ]
+    },
+    "00001104": {
+      "role": "train",
+      "usableEpochs": 484,
+      "stageCounts": [
+        121,
+        363,
+        0,
+        0
+      ]
+    },
+    "00001198": {
+      "role": "train",
+      "usableEpochs": 533,
+      "stageCounts": [
+        73,
+        460,
+        0,
+        0
+      ]
+    },
+    "00001549": {
+      "role": "train",
+      "usableEpochs": 360,
+      "stageCounts": [
+        17,
+        343,
+        0,
+        0
+      ]
+    },
+    "00001661": {
+      "role": "train",
+      "usableEpochs": 348,
+      "stageCounts": [
+        28,
+        320,
+        0,
+        0
+      ]
+    },
+    "00001041": {
+      "role": "train",
+      "usableEpochs": 500,
+      "stageCounts": [
+        98,
+        381,
+        0,
+        21
+      ]
+    },
+    "00001268": {
+      "role": "train",
+      "usableEpochs": 528,
+      "stageCounts": [
+        34,
+        450,
+        18,
+        26
+      ]
+    },
+    "00001250": {
+      "role": "train",
+      "usableEpochs": 705,
+      "stageCounts": [
+        70,
+        476,
+        118,
+        41
+      ]
+    },
+    "00001252": {
+      "role": "train",
+      "usableEpochs": 704,
+      "stageCounts": [
+        128,
+        576,
+        0,
+        0
+      ]
+    },
+    "00001614": {
+      "role": "train",
+      "usableEpochs": 875,
+      "stageCounts": [
+        18,
+        698,
+        22,
+        137
+      ]
+    },
+    "00001449": {
+      "role": "train",
+      "usableEpochs": 483,
+      "stageCounts": [
+        68,
+        350,
+        65,
+        0
+      ]
+    },
+    "00001120": {
+      "role": "train",
+      "usableEpochs": 565,
+      "stageCounts": [
+        97,
+        435,
+        0,
+        33
+      ]
+    },
+    "00001570": {
+      "role": "train",
+      "usableEpochs": 694,
+      "stageCounts": [
+        60,
+        577,
+        0,
+        57
+      ]
+    },
+    "00001361": {
+      "role": "train",
+      "usableEpochs": 590,
+      "stageCounts": [
+        30,
+        560,
+        0,
+        0
+      ]
+    },
+    "00001663": {
+      "role": "train",
+      "usableEpochs": 654,
+      "stageCounts": [
+        107,
+        514,
+        0,
+        33
+      ]
+    },
+    "00001171": {
+      "role": "train",
+      "usableEpochs": 419,
+      "stageCounts": [
+        15,
+        391,
+        0,
+        13
+      ]
+    },
+    "00001008": {
+      "role": "train",
+      "usableEpochs": 504,
+      "stageCounts": [
+        68,
+        399,
+        33,
+        4
+      ]
+    },
+    "00001442": {
+      "role": "train",
+      "usableEpochs": 525,
+      "stageCounts": [
+        26,
+        428,
+        53,
+        18
+      ]
+    },
+    "00001618": {
+      "role": "train",
+      "usableEpochs": 842,
+      "stageCounts": [
+        25,
+        516,
+        140,
+        161
+      ]
+    },
+    "00001386": {
+      "role": "train",
+      "usableEpochs": 585,
+      "stageCounts": [
+        74,
+        498,
+        13,
+        0
+      ]
+    },
+    "00001693": {
+      "role": "train",
+      "usableEpochs": 715,
+      "stageCounts": [
+        24,
+        631,
+        37,
+        23
+      ]
+    },
+    "00001533": {
+      "role": "train",
+      "usableEpochs": 705,
+      "stageCounts": [
+        29,
+        600,
+        40,
+        36
+      ]
+    },
+    "00001204": {
+      "role": "train",
+      "usableEpochs": 506,
+      "stageCounts": [
+        40,
+        466,
+        0,
+        0
+      ]
+    },
+    "00001215": {
+      "role": "train",
+      "usableEpochs": 502,
+      "stageCounts": [
+        20,
+        465,
+        0,
+        17
+      ]
+    },
+    "00001287": {
+      "role": "train",
+      "usableEpochs": 703,
+      "stageCounts": [
+        60,
+        543,
+        89,
+        11
+      ]
+    },
+    "00001122": {
+      "role": "train",
+      "usableEpochs": 432,
+      "stageCounts": [
+        20,
+        354,
+        0,
+        58
+      ]
+    },
+    "00001518": {
+      "role": "validation",
+      "usableEpochs": 649,
+      "stageCounts": [
+        26,
+        602,
+        0,
+        21
+      ]
+    },
+    "00000995": {
+      "role": "validation",
+      "usableEpochs": 596,
+      "stageCounts": [
+        24,
+        518,
+        22,
+        32
+      ]
+    },
+    "00001632": {
+      "role": "train",
+      "usableEpochs": 812,
+      "stageCounts": [
+        10,
+        645,
+        0,
+        157
+      ]
+    },
+    "00001411": {
+      "role": "train",
+      "usableEpochs": 700,
+      "stageCounts": [
+        46,
+        654,
+        0,
+        0
+      ]
+    },
+    "00001127": {
+      "role": "train",
+      "usableEpochs": 590,
+      "stageCounts": [
+        98,
+        437,
+        55,
+        0
+      ]
+    },
+    "00001558": {
+      "role": "train",
+      "usableEpochs": 330,
+      "stageCounts": [
+        71,
+        259,
+        0,
+        0
+      ]
+    },
+    "00001406": {
+      "role": "train",
+      "usableEpochs": 550,
+      "stageCounts": [
+        33,
+        508,
+        1,
+        8
+      ]
+    },
+    "00001521": {
+      "role": "validation",
+      "usableEpochs": 700,
+      "stageCounts": [
+        48,
+        652,
+        0,
+        0
+      ]
+    },
+    "00001667": {
+      "role": "train",
+      "usableEpochs": 466,
+      "stageCounts": [
+        35,
+        431,
+        0,
+        0
+      ]
+    },
+    "00001494": {
+      "role": "train",
+      "usableEpochs": 539,
+      "stageCounts": [
+        44,
+        495,
+        0,
+        0
+      ]
+    },
+    "00001434": {
+      "role": "validation",
+      "usableEpochs": 559,
+      "stageCounts": [
+        94,
+        442,
+        0,
+        23
+      ]
+    },
+    "00001010": {
+      "role": "validation",
+      "usableEpochs": 441,
+      "stageCounts": [
+        55,
+        370,
+        16,
+        0
+      ]
+    },
+    "00001638": {
+      "role": "validation",
+      "usableEpochs": 410,
+      "stageCounts": [
+        123,
+        287,
+        0,
+        0
+      ]
+    },
+    "00001318": {
+      "role": "train",
+      "usableEpochs": 626,
+      "stageCounts": [
+        224,
+        379,
+        0,
+        23
+      ]
+    },
+    "00001337": {
+      "role": "train",
+      "usableEpochs": 649,
+      "stageCounts": [
+        89,
+        559,
+        0,
+        1
+      ]
+    },
+    "00001382": {
+      "role": "validation",
+      "usableEpochs": 705,
+      "stageCounts": [
+        132,
+        474,
+        99,
+        0
+      ]
+    },
+    "00001200": {
+      "role": "validation",
+      "usableEpochs": 628,
+      "stageCounts": [
+        31,
+        516,
+        66,
+        15
+      ]
+    },
+    "00001191": {
+      "role": "train",
+      "usableEpochs": 397,
+      "stageCounts": [
+        46,
+        351,
+        0,
+        0
+      ]
+    },
+    "00001014": {
+      "role": "train",
+      "usableEpochs": 435,
+      "stageCounts": [
+        24,
+        388,
+        0,
+        23
+      ]
+    },
+    "00001689": {
+      "role": "train",
+      "usableEpochs": 688,
+      "stageCounts": [
+        38,
+        586,
+        26,
+        38
+      ]
+    },
+    "00001126": {
+      "role": "validation",
+      "usableEpochs": 516,
+      "stageCounts": [
+        65,
+        425,
+        0,
+        26
+      ]
+    },
+    "00001596": {
+      "role": "train",
+      "usableEpochs": 842,
+      "stageCounts": [
+        19,
+        683,
+        63,
+        77
+      ]
+    },
+    "00001398": {
+      "role": "train",
+      "usableEpochs": 644,
+      "stageCounts": [
+        37,
+        594,
+        0,
+        13
+      ]
+    },
+    "00001414": {
+      "role": "validation",
+      "usableEpochs": 464,
+      "stageCounts": [
+        62,
+        373,
+        0,
+        29
+      ]
+    },
+    "00001303": {
+      "role": "train",
+      "usableEpochs": 432,
+      "stageCounts": [
+        19,
+        399,
+        0,
+        14
+      ]
+    },
+    "00001145": {
+      "role": "train",
+      "usableEpochs": 493,
+      "stageCounts": [
+        35,
+        458,
+        0,
+        0
+      ]
+    },
+    "00001567": {
+      "role": "train",
+      "usableEpochs": 363,
+      "stageCounts": [
+        38,
+        286,
+        0,
+        39
+      ]
+    },
+    "00001335": {
+      "role": "train",
+      "usableEpochs": 704,
+      "stageCounts": [
+        192,
+        391,
+        109,
+        12
+      ]
+    },
+    "00001084": {
+      "role": "train",
+      "usableEpochs": 522,
+      "stageCounts": [
+        185,
+        276,
+        40,
+        21
+      ]
+    },
+    "00001143": {
+      "role": "train",
+      "usableEpochs": 552,
+      "stageCounts": [
+        2,
+        390,
+        160,
+        0
+      ]
+    },
+    "00001327": {
+      "role": "train",
+      "usableEpochs": 473,
+      "stageCounts": [
+        13,
+        460,
+        0,
+        0
+      ]
+    },
+    "00001022": {
+      "role": "train",
+      "usableEpochs": 561,
+      "stageCounts": [
+        27,
+        477,
+        32,
+        25
+      ]
+    },
+    "00001543": {
+      "role": "validation",
+      "usableEpochs": 697,
+      "stageCounts": [
+        47,
+        621,
+        0,
+        29
+      ]
+    },
+    "00001186": {
+      "role": "train",
+      "usableEpochs": 480,
+      "stageCounts": [
+        22,
+        447,
+        0,
+        11
+      ]
+    },
+    "00001254": {
+      "role": "train",
+      "usableEpochs": 565,
+      "stageCounts": [
+        68,
+        497,
+        0,
+        0
+      ]
+    },
+    "00001210": {
+      "role": "train",
+      "usableEpochs": 705,
+      "stageCounts": [
+        222,
+        447,
+        0,
+        36
+      ]
+    },
+    "00001463": {
+      "role": "train",
+      "usableEpochs": 450,
+      "stageCounts": [
+        49,
+        401,
+        0,
+        0
+      ]
+    },
+    "00001073": {
+      "role": "validation",
+      "usableEpochs": 485,
+      "stageCounts": [
+        5,
+        422,
+        2,
+        56
+      ]
+    },
+    "00001197": {
+      "role": "train",
+      "usableEpochs": 450,
+      "stageCounts": [
+        13,
+        434,
+        0,
+        3
+      ]
+    },
+    "00001376": {
+      "role": "train",
+      "usableEpochs": 492,
+      "stageCounts": [
+        0,
+        323,
+        169,
+        0
+      ]
+    },
+    "00001020": {
+      "role": "train",
+      "usableEpochs": 549,
+      "stageCounts": [
+        17,
+        491,
+        9,
+        32
+      ]
+    },
+    "00001219": {
+      "role": "validation",
+      "usableEpochs": 398,
+      "stageCounts": [
+        56,
+        241,
+        0,
+        101
+      ]
+    },
+    "00001288": {
+      "role": "validation",
+      "usableEpochs": 428,
+      "stageCounts": [
+        9,
+        351,
+        68,
+        0
+      ]
+    },
+    "00001241": {
+      "role": "validation",
+      "usableEpochs": 623,
+      "stageCounts": [
+        11,
+        551,
+        1,
+        60
+      ]
+    },
+    "00001018": {
+      "role": "train",
+      "usableEpochs": 508,
+      "stageCounts": [
+        81,
+        427,
+        0,
+        0
+      ]
+    },
+    "00001360": {
+      "role": "validation",
+      "usableEpochs": 517,
+      "stageCounts": [
+        9,
+        451,
+        0,
+        57
+      ]
+    },
+    "00001640": {
+      "role": "train",
+      "usableEpochs": 469,
+      "stageCounts": [
+        155,
+        314,
+        0,
+        0
+      ]
+    },
+    "00001629": {
+      "role": "train",
+      "usableEpochs": 893,
+      "stageCounts": [
+        37,
+        724,
+        71,
+        61
+      ]
+    },
+    "00001028": {
+      "role": "train",
+      "usableEpochs": 736,
+      "stageCounts": [
+        69,
+        608,
+        0,
+        59
+      ]
+    },
+    "00001290": {
+      "role": "validation",
+      "usableEpochs": 478,
+      "stageCounts": [
+        20,
+        449,
+        0,
+        9
+      ]
+    },
+    "00001384": {
+      "role": "train",
+      "usableEpochs": 476,
+      "stageCounts": [
+        49,
+        427,
+        0,
+        0
+      ]
+    },
+    "00001245": {
+      "role": "train",
+      "usableEpochs": 484,
+      "stageCounts": [
+        60,
+        424,
+        0,
+        0
+      ]
+    },
+    "00001687": {
+      "role": "validation",
+      "usableEpochs": 719,
+      "stageCounts": [
+        55,
+        562,
+        47,
+        55
+      ]
+    },
+    "00001545": {
+      "role": "validation",
+      "usableEpochs": 705,
+      "stageCounts": [
+        22,
+        648,
+        0,
+        35
+      ]
+    },
+    "00001339": {
+      "role": "validation",
+      "usableEpochs": 120,
+      "stageCounts": [
+        0,
+        80,
+        40,
+        0
+      ]
+    },
+    "00001577": {
+      "role": "validation",
+      "usableEpochs": 852,
+      "stageCounts": [
+        60,
+        631,
+        72,
+        89
+      ]
+    },
+    "00001444": {
+      "role": "validation",
+      "usableEpochs": 382,
+      "stageCounts": [
+        102,
+        280,
+        0,
+        0
+      ]
+    },
+    "00001256": {
+      "role": "train",
+      "usableEpochs": 489,
+      "stageCounts": [
+        22,
+        467,
+        0,
+        0
+      ]
+    },
+    "00001299": {
+      "role": "validation",
+      "usableEpochs": 505,
+      "stageCounts": [
+        67,
+        438,
+        0,
+        0
+      ]
+    },
+    "00001455": {
+      "role": "validation",
+      "usableEpochs": 453,
+      "stageCounts": [
+        10,
+        417,
+        0,
+        26
+      ]
+    },
+    "00001642": {
+      "role": "train",
+      "usableEpochs": 368,
+      "stageCounts": [
+        43,
+        325,
+        0,
+        0
+      ]
+    },
+    "00001649": {
+      "role": "train",
+      "usableEpochs": 693,
+      "stageCounts": [
+        15,
+        512,
+        48,
+        118
+      ]
+    },
+    "00001276": {
+      "role": "train",
+      "usableEpochs": 631,
+      "stageCounts": [
+        25,
+        606,
+        0,
+        0
+      ]
+    },
+    "00001089": {
+      "role": "validation",
+      "usableEpochs": 551,
+      "stageCounts": [
+        41,
+        473,
+        0,
+        37
+      ]
+    },
+    "00001024": {
+      "role": "train",
+      "usableEpochs": 541,
+      "stageCounts": [
+        9,
+        530,
+        0,
+        2
+      ]
+    },
+    "00001093": {
+      "role": "train",
+      "usableEpochs": 534,
+      "stageCounts": [
+        39,
+        495,
+        0,
+        0
+      ]
+    },
+    "00001447": {
+      "role": "train",
+      "usableEpochs": 550,
+      "stageCounts": [
+        76,
+        459,
+        0,
+        15
+      ]
+    },
+    "00001695": {
+      "role": "validation",
+      "usableEpochs": 660,
+      "stageCounts": [
+        50,
+        496,
+        84,
+        30
+      ]
+    },
+    "00001373": {
+      "role": "train",
+      "usableEpochs": 393,
+      "stageCounts": [
+        53,
+        340,
+        0,
+        0
+      ]
+    },
+    "00001631": {
+      "role": "train",
+      "usableEpochs": 808,
+      "stageCounts": [
+        91,
+        646,
+        0,
+        71
+      ]
+    },
+    "00001428": {
+      "role": "train",
+      "usableEpochs": 664,
+      "stageCounts": [
+        109,
+        505,
+        0,
+        50
+      ]
+    },
+    "00001599": {
+      "role": "train",
+      "usableEpochs": 528,
+      "stageCounts": [
+        35,
+        382,
+        99,
+        12
+      ]
+    },
+    "00001514": {
+      "role": "validation",
+      "usableEpochs": 705,
+      "stageCounts": [
+        26,
+        640,
+        0,
+        39
+      ]
+    },
+    "00001535": {
+      "role": "train",
+      "usableEpochs": 705,
+      "stageCounts": [
+        0,
+        365,
+        340,
+        0
+      ]
+    },
+    "00001392": {
+      "role": "train",
+      "usableEpochs": 689,
+      "stageCounts": [
+        30,
+        646,
+        0,
+        13
+      ]
+    },
+    "00001263": {
+      "role": "train",
+      "usableEpochs": 634,
+      "stageCounts": [
+        84,
+        550,
+        0,
+        0
+      ]
+    },
+    "00001412": {
+      "role": "train",
+      "usableEpochs": 482,
+      "stageCounts": [
+        28,
+        354,
+        100,
+        0
+      ]
+    },
+    "00001316": {
+      "role": "train",
+      "usableEpochs": 488,
+      "stageCounts": [
+        74,
+        399,
+        15,
+        0
+      ]
+    },
+    "00001305": {
+      "role": "validation",
+      "usableEpochs": 486,
+      "stageCounts": [
+        35,
+        437,
+        14,
+        0
+      ]
+    },
+    "00001043": {
+      "role": "train",
+      "usableEpochs": 509,
+      "stageCounts": [
+        54,
+        455,
+        0,
+        0
+      ]
+    },
+    "00001147": {
+      "role": "validation",
+      "usableEpochs": 721,
+      "stageCounts": [
+        127,
+        572,
+        0,
+        22
+      ]
+    },
+    "00001594": {
+      "role": "train",
+      "usableEpochs": 770,
+      "stageCounts": [
+        25,
+        572,
+        147,
+        26
+      ]
+    },
+    "00001616": {
+      "role": "validation",
+      "usableEpochs": 857,
+      "stageCounts": [
+        113,
+        734,
+        0,
+        10
+      ]
+    },
+    "00001226": {
+      "role": "validation",
+      "usableEpochs": 606,
+      "stageCounts": [
+        24,
+        548,
+        0,
+        34
+      ]
+    },
+    "00001512": {
+      "role": "train",
+      "usableEpochs": 553,
+      "stageCounts": [
+        22,
+        485,
+        0,
+        46
+      ]
+    },
+    "00001604": {
+      "role": "validation",
+      "usableEpochs": 868,
+      "stageCounts": [
+        75,
+        702,
+        0,
+        91
+      ]
+    },
+    "00001301": {
+      "role": "train",
+      "usableEpochs": 589,
+      "stageCounts": [
+        43,
+        541,
+        0,
+        5
+      ]
+    },
+    "00001176": {
+      "role": "validation",
+      "usableEpochs": 480,
+      "stageCounts": [
+        15,
+        457,
+        0,
+        8
+      ]
+    },
+    "00001232": {
+      "role": "validation",
+      "usableEpochs": 629,
+      "stageCounts": [
+        54,
+        545,
+        6,
+        24
+      ]
+    },
+    "00001677": {
+      "role": "train",
+      "usableEpochs": 352,
+      "stageCounts": [
+        41,
+        279,
+        11,
+        21
+      ]
+    },
+    "00001620": {
+      "role": "train",
+      "usableEpochs": 393,
+      "stageCounts": [
+        20,
+        250,
+        95,
+        28
+      ]
+    },
+    "00001116": {
+      "role": "validation",
+      "usableEpochs": 501,
+      "stageCounts": [
+        50,
+        451,
+        0,
+        0
+      ]
+    },
+    "00001161": {
+      "role": "train",
+      "usableEpochs": 579,
+      "stageCounts": [
+        45,
+        454,
+        80,
+        0
+      ]
+    },
+    "00001097": {
+      "role": "train",
+      "usableEpochs": 508,
+      "stageCounts": [
+        15,
+        466,
+        27,
+        0
+      ]
+    },
+    "00001673": {
+      "role": "train",
+      "usableEpochs": 588,
+      "stageCounts": [
+        23,
+        526,
+        0,
+        39
+      ]
+    },
+    "00001650": {
+      "role": "validation",
+      "usableEpochs": 403,
+      "stageCounts": [
+        27,
+        376,
+        0,
+        0
+      ]
+    },
+    "00001500": {
+      "role": "validation",
+      "usableEpochs": 705,
+      "stageCounts": [
+        28,
+        601,
+        76,
+        0
+      ]
+    },
+    "00001461": {
+      "role": "train",
+      "usableEpochs": 421,
+      "stageCounts": [
+        10,
+        409,
+        0,
+        2
+      ]
+    },
+    "00001390": {
+      "role": "train",
+      "usableEpochs": 492,
+      "stageCounts": [
+        22,
+        470,
+        0,
+        0
+      ]
+    },
+    "00001106": {
+      "role": "train",
+      "usableEpochs": 470,
+      "stageCounts": [
+        28,
+        442,
+        0,
+        0
+      ]
+    },
+    "00001453": {
+      "role": "train",
+      "usableEpochs": 306,
+      "stageCounts": [
+        14,
+        292,
+        0,
+        0
+      ]
+    },
+    "00001659": {
+      "role": "train",
+      "usableEpochs": 358,
+      "stageCounts": [
+        34,
+        324,
+        0,
+        0
+      ]
+    },
+    "00001139": {
+      "role": "train",
+      "usableEpochs": 519,
+      "stageCounts": [
+        21,
+        426,
+        0,
+        72
+      ]
+    },
+    "00001131": {
+      "role": "train",
+      "usableEpochs": 472,
+      "stageCounts": [
+        8,
+        422,
+        0,
+        42
+      ]
+    },
+    "00001249": {
+      "role": "validation",
+      "usableEpochs": 541,
+      "stageCounts": [
+        9,
+        469,
+        6,
+        57
+      ]
+    },
+    "00001669": {
+      "role": "train",
+      "usableEpochs": 563,
+      "stageCounts": [
+        12,
+        490,
+        0,
+        61
+      ]
+    },
+    "00001568": {
+      "role": "validation",
+      "usableEpochs": 705,
+      "stageCounts": [
+        164,
+        490,
+        0,
+        51
+      ]
+    },
+    "00001069": {
+      "role": "train",
+      "usableEpochs": 485,
+      "stageCounts": [
+        18,
+        433,
+        34,
+        0
+      ]
+    },
+    "00001440": {
+      "role": "train",
+      "usableEpochs": 624,
+      "stageCounts": [
+        6,
+        459,
+        159,
+        0
+      ]
+    },
+    "00001310": {
+      "role": "train",
+      "usableEpochs": 558,
+      "stageCounts": [
+        6,
+        552,
+        0,
+        0
+      ]
+    },
+    "00001480": {
+      "role": "validation",
+      "usableEpochs": 414,
+      "stageCounts": [
+        10,
+        355,
+        1,
+        48
+      ]
+    }
+  },
+  "blocks": 1057,
+  "usableEpochs": 111952,
+  "stageOrder": [
+    "awake",
+    "light",
+    "deep",
+    "rem"
+  ],
+  "sourceBlocksExcluded": [
+    {
+      "subject": "00001402",
+      "recording": "00001402-100507",
+      "rml": "APNEA_RML/00001402-100507.rml",
+      "rmlGitOID": "047fe86332b9070517974118c56852a2a2954d07",
+      "path": "APNEA_EDF/00001402-100507/00001402-100507[001].edf",
+      "bytes": 710738976,
+      "sha256": "7c93cf508300b57fcf43bac3b7aec21a7c4a7adfef5acc3afb0dfab438c9f1ad",
+      "offsetSeconds": 0.0,
+      "durationSeconds": 3600.0,
+      "unusableReason": "Ambiguous overlapping source timestamps."
+    },
+    {
+      "subject": "00001402",
+      "recording": "00001402-100507",
+      "rml": "APNEA_RML/00001402-100507.rml",
+      "rmlGitOID": "047fe86332b9070517974118c56852a2a2954d07",
+      "path": "APNEA_EDF/00001402-100507/00001402-100507[002].edf",
+      "bytes": 710738976,
+      "sha256": "91e54ebc5c14a0f48acbb9273bfe2e4a68801550a6c7d57b155d8afdcb845538",
+      "offsetSeconds": 0.0,
+      "durationSeconds": 3600.0,
+      "unusableReason": "Ambiguous overlapping source timestamps."
+    },
+    {
+      "subject": "00001339",
+      "recording": "00001339-100507",
+      "rml": "APNEA_RML/00001339-100507.rml",
+      "rmlGitOID": "032f289ea6a09a6a9f8ed9f260f4184acdb12c45",
+      "path": "APNEA_EDF/00001339-100507/00001339-100507[002].edf",
+      "bytes": 237576844,
+      "sha256": "255327cae995cdba9588d2b416b282491687670987efef6da7c4af8105ce254a",
+      "unusableReason": "The pinned source has an all-zero EDF header."
+    }
+  ],
+  "extractorSHA256": "48239b36ff58c8604e42dfe58e51b81e7e048b4ee1b98021cbc7c11dfb235a23",
+  "noiseManifestSHA256": "3669bb5394c54c8d93630db5b8f3ca71487cebe9a3063e08e4e66db5f88d9c66",
+  "featureChecksumsSHA256": "11c8fb832b60354bb92b40f5d0a24121188b6378d77eadee3c4e3cfe3c01a1f1",
+  "developmentPlanSHA256": "22c481fe7f2cf4135425b06972873baa40d8bb4ac86eea1d7a0a5df2075c40fd",
+  "qualityExcludedSubjects": {
+    "00001402": {
+      "role": "train",
+      "reason": "Every scored interval contains silent microphone measurements.",
+      "scoredEpochs": 304,
+      "blocks": {
+        "APNEA_EDF/00001402-100507/00001402-100507[003].edf": "3d23686fc9e8f8c72e85c8e38225ee71a53ac997ba875d41f060bcad44ec96f7",
+        "APNEA_EDF/00001402-100507/00001402-100507[004].edf": "21a5dcd5649ad8d9e97abc92e5fb13a0617e8524d71c333a84c2d1a096644d8b",
+        "APNEA_EDF/00001402-100507/00001402-100507[005].edf": "bc493fe99172b2e8b02fb48e24a2560991bf107e334dad51599d68d41b6a4550"
+      }
+    }
+  },
+  "usablePeople": 199,
+  "qualityAmendmentSHA256": "7783a81f8a03b5171ad1bae1fc8be78bf991a06052eb2631487dce45b09ee8ed"
+}

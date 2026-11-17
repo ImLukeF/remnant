@@ -1,0 +1,37 @@
+{
+  "jobId": "e05c47c6073b4f189c6e8efa10b6d339",
+  "status": "passed",
+  "createdAt": "2026-11-17T08:26:41.234899+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+    "lane": "codex-sleep-v8-silent-quality-audit",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "Packages/SleepWakeKit/Training/corpus_quality.py",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v8",
+      "--model-root",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-model-v8"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T08:26:41.628980+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-v8-silent-quality-audit",
+  "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T08:26:54.177319+00:00"
+}

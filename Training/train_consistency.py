@@ -15,11 +15,50 @@ from features import STAGES
 from improve_model import metrics,parameters_digest
 from run_dataset import checksum
 from train_correction import calibration_split,wake_errors
-from train_expanded import score_views,quality_key
+from train_expanded import score_views
 from train_sequence import make_network,export
 
 RECIPES=[{"history":10,"hidden":32,"consistency":0.25,"noiseShare":0.25,"classPower":1.0},
          {"history":10,"hidden":32,"consistency":0.0,"noiseShare":0.25,"classPower":1.0}]
+
+
+def frozen_refit(root,arrays,manifest,baseline_sha,seconds):
+    """Refit a previously admitted recipe; never tune on final people or replace a completed refit."""
+    import numpy as np
+    protocol=json.loads((root/"protocol.json").read_text());summary=json.loads((root/"training-summary.json").read_text())
+    chosen=summary.get("chosenRecipe")
+    if ((root/"selected-model.json").exists() or (root/"selection.json").exists()
+            or summary["status"]!="admitted_pending_refit" or protocol["development"]!=manifest
+            or protocol["baselineModelSHA256"]!=baseline_sha or not chosen
+            or not admitted(summary["validation"][chosen]["validation"],summary["baselineValidation"])):
+        raise ValueError("Refit only an admitted frozen checkpoint on the unchanged development corpus.")
+    report=json.loads((root/(chosen+"-report.json")).read_text())
+    if report!=summary["validation"][chosen] or checksum(root/(chosen+"-weights.json"))!=report["modelFileSHA256"]:
+        raise ValueError("The admitted checkpoint or its measured report changed.")
+    recipe=protocol["recipes"][int(chosen.rsplit("-",1)[1])]
+    if protocol["recipes"]!=RECIPES: raise ValueError("Refit cannot change the frozen recipes.")
+    people=protocol["refitSubjects"]
+    if (len(people)!=199 or set(people)&set(protocol["reservedTestSubjects"])
+            or set(people)|set(protocol["qualityExcludedSubjects"])!=set(protocol["previouslyObservedSubjects"])):
+        raise ValueError("Final refit must use exactly the 199 usable development people.")
+    model,network,data,fit_report=fit(arrays,people,[],recipe,seconds,fixed_epochs=report["fit"]["bestEpoch"])
+    path=root/"selected-model.json";atomic_json(path,model,compact=True)
+    if path.stat().st_size>508000: raise ValueError("The model exceeds the native import budget.")
+    digest=parameters_digest(model)
+    summary.update(status="admitted",finalRefitPeople=len(people),parametersSHA256=digest,
+        refit={"fit":fit_report,"modelFileSHA256":checksum(path)},
+        refitSourceSha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip())
+    atomic_json(root/"training-summary.json",summary)
+    atomic_json(root/"selection.json",{"id":chosen,"trainingSubjects":people,"validationSubjects":[],
+        "qualityExcludedSubjects":protocol["qualityExcludedSubjects"],"previouslyObservedSubjects":protocol["previouslyObservedSubjects"],
+        "parametersSHA256":digest,"finalTestRead":False,"controlledNoiseAdmissionPassed":True})
+    take=np.concatenate([np.flatnonzero(data["people"]==p)[:60] for p in sorted(people)[:2]])
+    values=predictions(network,data,take)["clean"]
+    samples=[{"subject":str(data["people"][index]),"startSeconds":float(data["starts"][index]),"usable":True,
+        "features":arrays["features"][data["indexes"][index]].tolist(),"expectedProbabilities":dict(zip(STAGES,value.tolist()))}
+        for index,value in zip(take,values)]
+    atomic_json(root/"export-check.json",samples,compact=True)
+    print(json.dumps({"event":"consistency_refit_complete","people":len(people),"epochs":fit_report["bestEpoch"],"finalTestRead":False}),flush=True)
 
 
 def consistency(clean,noisy):
@@ -130,10 +169,12 @@ def run(args):
     torch.set_num_threads(3);torch.set_num_interop_threads(1);torch.use_deterministic_algorithms(True)
     if torch.version.cuda is not None: raise ValueError("Use the pinned CPU-only PyTorch package.")
     began=time.monotonic();root=args.output.resolve();root.mkdir(parents=True,exist_ok=True)
-    if any(root.iterdir()): raise ValueError("Use a new output; never overwrite frozen results.")
     arrays,plan,manifest=load(args.development);previous=json.loads((args.previous/"protocol.json").read_text())
     if previous["development"]!=manifest or checksum(args.baseline)!=previous["baselineModelSHA256"]:
         raise ValueError("Reuse exactly the verified expanded cohort and incumbent.")
+    if args.refit:
+        return frozen_refit(root,arrays,manifest,checksum(args.baseline),args.max_seconds-(time.monotonic()-began)-15)
+    if any(root.iterdir()): raise ValueError("Use a new output; never overwrite frozen results.")
     training=previous["trainingSubjects"];validation=previous["validationSubjects"];refit=previous["refitSubjects"]
     inner,calibration=calibration_split(training)
     if (len(validation)!=40 or len(refit)!=199 or (set(inner)|set(calibration))&set(validation)
@@ -175,6 +216,7 @@ def run(args):
 if __name__=="__main__":
     p=argparse.ArgumentParser(description=__doc__)
     for name in ("development","previous","baseline","output"): p.add_argument("--"+name,type=Path,required=True)
+    p.add_argument("--refit",action="store_true",help="Refit only a frozen, admitted completed comparison; never run another selection.")
     p.add_argument("--max-seconds",type=int,default=1100);args=p.parse_args()
     if not 300<=args.max_seconds<=1200: p.error("Use a bounded 5-20 minute experiment.")
     run(args)

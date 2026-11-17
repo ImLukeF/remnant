@@ -87,6 +87,43 @@ class SequenceContracts(unittest.TestCase):
         self.assertLess(report["exportMaximumDifference"],2e-10)
         with self.assertRaises(ValueError): fit(arrays,["fit"],["fit"],recipe,60,maximum_epochs=1)
 
+    def test_consistency_refit_requires_frozen_admission_and_keeps_final_people_unopened(self):
+        import hashlib
+        import json
+        import tempfile
+        import numpy as np
+        from train_consistency import frozen_refit,RECIPES
+        from expanded_contracts import final_admission
+        from expand_cohort import atomic_json
+        from run_dataset import checksum
+        people=[f"synthetic-{n}" for n in range(199)];excluded={"synthetic-silent":{"reason":"synthetic wholly silent fixture"}}
+        final=[f"unopened-{n}" for n in range(30)]
+        features=np.arange(796*58,dtype=np.float64).reshape(796,58)/50000
+        arrays={"features":features,"augmentedFeatures":features+0.1,"subject":np.repeat(people,4),"stage":np.tile(np.arange(4),199),
+            "startSeconds":np.tile(np.arange(4)*30,199),"usable":np.ones(796,dtype=bool),"augmentedUsable":np.ones(796,dtype=bool)}
+        good={name:{"macroF1":0.5,"balancedAccuracy":0.5,"recallPerClass":[0.5]*4} for name in ("clean","noisy")}
+        baseline={name:{"macroF1":0.3,"balancedAccuracy":0.3,"recallPerClass":[0.3]*4} for name in ("clean","noisy")}
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);weights=root/"recipe-0-weights.json";atomic_json(weights,{"synthetic":"checkpoint checksum fixture"})
+            report={"validation":good,"modelFileSHA256":checksum(weights),"fit":{"bestEpoch":1}}
+            protocol={"development":{"synthetic":True},"baselineModelSHA256":"synthetic-baseline","recipes":RECIPES,
+                "refitSubjects":people,"reservedTestSubjects":final,"qualityExcludedSubjects":excluded,"previouslyObservedSubjects":people+list(excluded)}
+            summary={"status":"trained_not_improved","chosenRecipe":"recipe-0","validation":{"recipe-0":report},"baselineValidation":baseline,
+                "qualityExcludedSubjects":excluded,"finalTestRead":False}
+            atomic_json(root/"protocol.json",protocol);atomic_json(root/"training-summary.json",summary);atomic_json(root/"recipe-0-report.json",report)
+            with self.assertRaises(ValueError): frozen_refit(root,arrays,protocol["development"],"synthetic-baseline",60)
+            summary["status"]="admitted_pending_refit";atomic_json(root/"training-summary.json",summary)
+            atomic_json(weights,{"synthetic":"changed"})
+            with self.assertRaises(ValueError): frozen_refit(root,arrays,protocol["development"],"synthetic-baseline",60)
+            atomic_json(weights,{"synthetic":"checkpoint checksum fixture"})
+            frozen_refit(root,arrays,protocol["development"],"synthetic-baseline",60)
+            result=json.loads((root/"training-summary.json").read_text())
+            self.assertEqual(result["finalRefitPeople"],199);self.assertFalse(result["finalTestRead"])
+            reservation={"roles":{p:"train" for p in people+list(excluded)},"reservedTestSubjects":final}
+            self.assertEqual(final_admission(root,reservation,list(reservation["roles"])),result["parametersSHA256"])
+            self.assertEqual(len(json.loads((root/"export-check.json").read_text())),8)
+            with self.assertRaises(ValueError): frozen_refit(root,arrays,protocol["development"],"synthetic-baseline",60)
+
     def test_final_registry_keeps_previously_tested_people_outside_this_fitting_corpus(self):
         from evaluation_contracts import participant_registry
         selected={"trainingSubjects":["fit"],"validationSubjects":["validate"],"previouslyObservedSubjects":["fit","validate"]}

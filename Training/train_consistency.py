@@ -15,11 +15,13 @@ from features import STAGES
 from improve_model import metrics,parameters_digest
 from run_dataset import checksum
 from train_correction import calibration_split,wake_errors
-from train_expanded import score_views
+from train_expanded import score_views,quality_key
 from train_sequence import make_network,export
 
 RECIPES=[{"history":10,"hidden":32,"consistency":0.25,"noiseShare":0.25,"classPower":1.0},
          {"history":10,"hidden":32,"consistency":0.0,"noiseShare":0.25,"classPower":1.0}]
+RELATIVE_RECIPES=[{"history":10,"hidden":32,"consistency":0.25,"noiseShare":0.1,"classPower":0.9},
+                  {"history":10,"hidden":32,"consistency":0.25,"noiseShare":0.1,"classPower":1.0}]
 
 
 def frozen_refit(root,arrays,manifest,baseline_sha,seconds):
@@ -36,12 +38,13 @@ def frozen_refit(root,arrays,manifest,baseline_sha,seconds):
     if report!=summary["validation"][chosen] or checksum(root/(chosen+"-weights.json"))!=report["modelFileSHA256"]:
         raise ValueError("The admitted checkpoint or its measured report changed.")
     recipe=protocol["recipes"][int(chosen.rsplit("-",1)[1])]
-    if protocol["recipes"]!=RECIPES: raise ValueError("Refit cannot change the frozen recipes.")
+    if protocol["recipes"] not in (RECIPES,RELATIVE_RECIPES): raise ValueError("Refit cannot change the frozen recipes.")
     people=protocol["refitSubjects"]
     if (len(people)!=199 or set(people)&set(protocol["reservedTestSubjects"])
             or set(people)|set(protocol["qualityExcludedSubjects"])!=set(protocol["previouslyObservedSubjects"])):
         raise ValueError("Final refit must use exactly the 199 usable development people.")
     model,network,data,fit_report=fit(arrays,people,[],recipe,seconds,fixed_epochs=report["fit"]["bestEpoch"])
+    model["modelID"]=json.loads((root/(chosen+"-weights.json")).read_text())["modelID"]
     path=root/"selected-model.json";atomic_json(path,model,compact=True)
     if path.stat().st_size>508000: raise ValueError("The model exceeds the native import budget.")
     digest=parameters_digest(model)
@@ -102,7 +105,13 @@ def measured(data,indexes,values):
     return {name:metrics(rows,probabilities) for name,probabilities in values.items()}
 
 
-def fit(arrays,people,calibration,recipe,seconds,maximum_epochs=8,fixed_epochs=None):
+def checkpoint_key(score,reference=None):
+    complete=all(r>0 for name in score for r in score[name]["recallPerClass"])
+    if reference is not None: return complete,*quality_key(score,reference)
+    return complete,min(score[name]["macroF1"] for name in score),sum(score[name]["balancedAccuracy"] for name in score)
+
+
+def fit(arrays,people,calibration,recipe,seconds,maximum_epochs=8,fixed_epochs=None,reference_scores=None):
     import numpy as np
     import torch
     began=time.monotonic();torch.manual_seed(7);rng=np.random.default_rng(7)
@@ -136,8 +145,7 @@ def fit(arrays,people,calibration,recipe,seconds,maximum_epochs=8,fixed_epochs=N
             entry={"epoch":epoch,"seconds":time.monotonic()-started,"loss":total/len(indexes)}
             if calibration:
                 score=measured(data,check,predictions(network,data,check))
-                key=(all(r>0 for name in score for r in score[name]["recallPerClass"]),min(score[name]["macroF1"] for name in score),
-                     sum(score[name]["balancedAccuracy"] for name in score))
+                key=checkpoint_key(score,reference_scores)
                 entry["calibration"]=score
                 if best_key is None or key>best_key:
                     best_key=key;best=copy.deepcopy(network.state_dict());best_epoch=epoch;stale=0
@@ -180,11 +188,13 @@ def run(args):
     if (len(validation)!=40 or len(refit)!=199 or (set(inner)|set(calibration))&set(validation)
             or set(refit)!=set(training)|set(validation) or set(refit)&set(plan["reservedTestSubjects"])):
         raise ValueError("Fitting, checkpoint selection, validation and final people must remain separated.")
-    protocol={"experiment":"causal-paired-consistency-v10","development":manifest,"trainingSubjects":training,"innerFittingSubjects":inner,
-        "calibrationSubjects":calibration,"validationSubjects":validation,"refitSubjects":refit,"recipes":RECIPES,"maximumEpochs":8,
+    relative=args.relative_checkpoints;recipes=RELATIVE_RECIPES if relative else RECIPES
+    protocol={"experiment":"causal-paired-relative-v11" if relative else "causal-paired-consistency-v10","development":manifest,"trainingSubjects":training,"innerFittingSubjects":inner,
+        "calibrationSubjects":calibration,"validationSubjects":validation,"refitSubjects":refit,"recipes":recipes,"maximumEpochs":8,
         "previouslyObservedSubjects":previous["previouslyObservedSubjects"],"reservedTestSubjects":plan["reservedTestSubjects"],
         "qualityExcludedSubjects":previous["qualityExcludedSubjects"],"baselineModelSHA256":checksum(args.baseline),
         "selection":"Checkpoint on 24 inner people; unchanged paired four-metric/all-stage admission on 40 separate people; stop on first admitted fixed recipe.",
+        "checkpointMetric":"Minimum relative gain in all four paired metrics" if relative else "Minimum absolute clean/noisy macro F1",
         "usesFutureAudio":False,"finalTestRead":False,"maximumSeconds":args.max_seconds,
         "sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     atomic_json(root/"protocol.json",protocol)
@@ -193,12 +203,15 @@ def run(args):
     reference=json.loads((root/"full-night-original-84-report.json").read_text())
     if checksum(root/"full-night-original-84-weights.json")!=reference["modelFileSHA256"]: raise ValueError("The retained control changed.")
     views={"clean":context(arrays),"noisy":context(arrays,noisy=True)}
-    baseline=score_views(json.loads(args.baseline.read_text()),views,validation);reports={};chosen=None
-    for number,recipe in enumerate(RECIPES):
+    baseline_model=json.loads(args.baseline.read_text());baseline=score_views(baseline_model,views,validation);reports={};chosen=None
+    inner_baseline=score_views(baseline_model,views,calibration) if relative else None
+    if inner_baseline is not None: atomic_json(root/"inner-reference.json",inner_baseline)
+    for number,recipe in enumerate(recipes):
         budget=min(475,args.max_seconds-(time.monotonic()-began)-30)
         if budget<90: break
         print(json.dumps({"event":"consistency_fit","id":number,"people":len(inner),"budgetSeconds":budget,"recipe":recipe}),flush=True)
-        model,network,data,fit_report=fit(arrays,inner,calibration,recipe,budget)
+        model,network,data,fit_report=fit(arrays,inner,calibration,recipe,budget,reference_scores=inner_baseline)
+        if relative: model["modelID"]="psg-audio-causal-relative-v11"
         take=np.flatnonzero(np.isin(data["people"],validation));score=measured(data,take,predictions(network,data,take))
         name=f"recipe-{number}";path=root/(name+"-weights.json");atomic_json(path,model,compact=True)
         report={"fit":fit_report,"validation":score,"wakeErrors":wake_errors(score),"admitted":admitted(score,baseline),"modelFileSHA256":checksum(path)}
@@ -217,6 +230,7 @@ if __name__=="__main__":
     p=argparse.ArgumentParser(description=__doc__)
     for name in ("development","previous","baseline","output"): p.add_argument("--"+name,type=Path,required=True)
     p.add_argument("--refit",action="store_true",help="Refit only a frozen, admitted completed comparison; never run another selection.")
+    p.add_argument("--relative-checkpoints",action="store_true",help="Fixed v11 recipes; inner checkpoint selection uses all four relative metrics.")
     p.add_argument("--max-seconds",type=int,default=1100);args=p.parse_args()
     if not 300<=args.max_seconds<=1200: p.error("Use a bounded 5-20 minute experiment.")
     run(args)

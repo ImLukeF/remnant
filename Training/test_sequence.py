@@ -66,7 +66,15 @@ class SequenceContracts(unittest.TestCase):
         import numpy as np
         import torch
         from train_consistency import consistency,fit
+        from train_consistency import checkpoint_key
         torch.set_num_threads(2)
+        reference={"clean":{"macroF1":0.3,"balancedAccuracy":0.45},"noisy":{"macroF1":0.08,"balancedAccuracy":0.25}}
+        a_score={"clean":{"macroF1":0.35,"balancedAccuracy":0.5,"recallPerClass":[0.5]*4},
+                 "noisy":{"macroF1":0.22,"balancedAccuracy":0.4,"recallPerClass":[0.4]*4}}
+        b_score={"clean":{"macroF1":0.26,"balancedAccuracy":0.44,"recallPerClass":[0.44]*4},
+                 "noisy":{"macroF1":0.25,"balancedAccuracy":0.4,"recallPerClass":[0.4]*4}}
+        self.assertGreater(checkpoint_key(a_score,reference),checkpoint_key(b_score,reference))
+        self.assertLess(checkpoint_key(a_score),checkpoint_key(b_score))
         a=torch.tensor([[2.0,-1,0,1]],dtype=torch.float64,requires_grad=True)
         b=torch.tensor([[-1.0,2,1,0]],dtype=torch.float64,requires_grad=True)
         self.assertLess(abs(float(consistency(a,a).detach())),1e-12)

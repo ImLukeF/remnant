@@ -1,7 +1,8 @@
 # Expanded private full-night experiment
 
-This directory records the frozen inputs and execution requests for the active experiment.
-It does not contain completed training results yet. Both repositories remain private.
+This completed experiment fitted both fixed recipes on 159 people and refitted the chosen recipe
+on all 199 usable development people, using 932.933 usable hours. Neither recipe passed validation
+admission. The reserved 30-person final test remains unopened. Both repositories remain private.
 
 The development split contains 160 fitting people and 40 new validation people. All 84 people
 observed in previous experiments are in fitting. After selecting between fixed clean and
@@ -63,3 +64,30 @@ on 199 usable people. The original full-night control uses 83 usable people from
 reservation. The same 30 fresh people remain conditional on validation admission. Reports name
 actual training counts. The synthetic recovery/evaluator/checkpoint proofs are retained alongside
 the actual quality-audit receipt; their synthetic accuracy is not a clinical result.
+
+
+## Completed result
+
+Training job 6f1ef869a481408392006ae77b163b66 passed at exact source
+3d05739349d298c9a11fed00e7efe482c48260df, finishing at 08:35:30 UTC. All candidate, control and
+199-person refit weights, reports and the frozen protocol are in models/. The original-cohort
+control used 83 usable people. The 40-person validation checkpoints used 159 fitting people; their
+scores must not be attributed to the later 199-person refit.
+
+Clean validation (balanced recall / macro F1): incumbent .44187 / .27693, clean candidate .49156 /
+.27228, noise-trained candidate .47367 / .25775. Added-noise validation: incumbent .25805 / .07638,
+clean candidate .27380 / .08540, noise-trained candidate .41453 / .20757. Noise augmentation helped
+under synthetic interference, but both candidates lost clean macro F1. The clean candidate also
+failed to recognize REM under added noise. Neither met all frozen admission requirements.
+
+The completed 199-person clean refit remains experimental and unadmitted. It has no independent
+final-test score; its metadata balancedAccuracy=0 is an unmeasured placeholder. The 30 reserved
+people were never opened, no final model was imported or deployed, and stage-driven waking stays
+disabled. The incumbent is unchanged. The verified-result.json file records independent metric,
+parameter, file-hash and participant-split checks. observed-subjects.json retires all 200 observed
+people, including the silent exclusion, from future independent tests.
+
+The controller and workers exited, the empty raw-cache directory was removed, and the completion
+check was disabled. Useful verified clinical feature/annotation and public-noise caches remain
+private on the VPS, outside Git. No new native or phone validation was performed on this
+unadmitted refit. This experiment is complete; do not rerun selection against these results.

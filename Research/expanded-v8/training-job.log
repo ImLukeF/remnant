@@ -1,0 +1,8 @@
+{"event": "building_causal_views", "people": 200, "scoredEpochs": 114637}
+{"event": "expanded_fit", "name": "full-night-original-84", "people": 83, "rows": 47311}
+{"event": "expanded_fit", "name": "clean", "people": 159, "rows": 89090}
+{"event": "expanded_validation", "candidate": "clean", "admitted": false, "cleanBalancedAccuracy": 0.49156480916133966, "noisyBalancedAccuracy": 0.2738045707254192}
+{"event": "expanded_fit", "name": "clean-plus-room-noise", "people": 159, "rows": 178180}
+{"event": "expanded_validation", "candidate": "clean-plus-room-noise", "admitted": false, "cleanBalancedAccuracy": 0.47366839531221827, "noisyBalancedAccuracy": 0.41453143873763126}
+{"event": "expanded_fit", "name": "refit-199", "people": 199, "rows": 111952}
+{"event": "expanded_training_complete", "status": "trained_not_improved", "refitPeople": 199, "finalTestRead": false}

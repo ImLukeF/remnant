@@ -1,0 +1,63 @@
+{
+  "status": "completed_not_admitted",
+  "trainingSourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+  "finalRefitPeople": 199,
+  "fittingPeople": 159,
+  "validationPeople": 40,
+  "usableHours": 932.9333333333333,
+  "finalTestRead": false,
+  "reservedTestPeople": 30,
+  "observedPeopleRetiredFromFutureTests": 200,
+  "parametersSHA256": "0291a827d848013cb0a6f576eb3bdab3805b26a9619d0ea8a8b73bf52a7c19ca",
+  "modelFileSHA256": "900256f37b1fbdcfe2447ec30debf4e4dfe0efa5f0cf87777c3d7b2fe891f3e9",
+  "candidateValidation": {
+    "existing": {
+      "clean": {
+        "balancedAccuracy": 0.44186614346020964,
+        "macroF1": 0.27692973402003174
+      },
+      "noisy": {
+        "balancedAccuracy": 0.258053517802087,
+        "macroF1": 0.07637756660985429
+      }
+    },
+    "clean": {
+      "clean": {
+        "balancedAccuracy": 0.49156480916133966,
+        "macroF1": 0.27228034849304333
+      },
+      "noisy": {
+        "balancedAccuracy": 0.2738045707254192,
+        "macroF1": 0.0853979880955224
+      }
+    },
+    "clean-plus-room-noise": {
+      "clean": {
+        "balancedAccuracy": 0.47366839531221827,
+        "macroF1": 0.2577529292240102
+      },
+      "noisy": {
+        "balancedAccuracy": 0.41453143873763126,
+        "macroF1": 0.20757203745263558
+      }
+    }
+  },
+  "incumbentUnchanged": true,
+  "approvedForAlarmTiming": false,
+  "realPhoneOvernightValidated": false,
+  "artifactHashes": {
+    "models/clean-plus-room-noise-report.json": "f3edad132a0a7ddca7e5164adbf5d72de552b1a3391048a22f6a3611661f7b22",
+    "models/clean-plus-room-noise-weights.json": "de68ee6fd35bf3633413ee8e2b2859da2ae84ff24805762e768b28d90393cd1b",
+    "models/clean-report.json": "0716a67049c6681ff42377481a2d769e60f9ccd80e6b9ca8e7f61bf8900e9078",
+    "models/clean-weights.json": "9a3d7eafd69d87428d57d05e582a94d31a543fa44ea70ff218fb29084ed6d06b",
+    "models/development-review.json": "5a1d7a2a13d6344391e916745ca44004410b63fa1a748005ac7eb80c6f01d60d",
+    "models/experimental-model.json": "900256f37b1fbdcfe2447ec30debf4e4dfe0efa5f0cf87777c3d7b2fe891f3e9",
+    "models/full-night-original-84-report.json": "6fb1f3fa2af6085b557b64a7e5f1675d524522f9dfd31d075b0fa59b8060cac8",
+    "models/full-night-original-84-weights.json": "37a13f5400d8b321e6477bf0073ec9ef20602d7536954d9db90acb6ef32036e1",
+    "models/protocol.json": "3d9bdee26f0237b9176c877bd9625c3c77b5ec43a2a0a0ed8c24aaa111186567",
+    "models/refit-199-report.json": "1b504d76f3281e2db8c05ae05101e86cf575c14b1cb3fb0aab9b10b84dc921af",
+    "models/refit-199-weights.json": "c3e88e6e12cdeb9b1d8c8422174ce563240bc5fadb2889eea272040e83f65172",
+    "models/training-summary.json": "5a1d7a2a13d6344391e916745ca44004410b63fa1a748005ac7eb80c6f01d60d"
+  },
+  "verification": "Report metrics independently recomputed from confusion matrices; subject splits, file hashes, parameter digest and frozen source inputs verified."
+}

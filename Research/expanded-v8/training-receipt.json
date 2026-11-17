@@ -1,0 +1,41 @@
+{
+  "jobId": "6f1ef869a481408392006ae77b163b66",
+  "status": "passed",
+  "createdAt": "2026-11-17T08:27:55.224063+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+    "lane": "codex-sleep-expanded-train-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=3",
+      "OMP_NUM_THREADS=3",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "Packages/SleepWakeKit/Training/train_expanded.py",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v8",
+      "--output",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-model-v8",
+      "--baseline",
+      "/srv/ai-team/artifacts/sleep-wake-stage-complete-v4/model.json",
+      "--original-registry",
+      "/srv/ai-team/artifacts/sleep-wake-stage-complete-v4/known-subjects-after-test.json"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 3600
+  },
+  "startedAt": "2026-11-17T08:27:55.371714+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-train-v8",
+  "sourceSha": "3d05739349d298c9a11fed00e7efe482c48260df",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T08:35:30.889012+00:00"
+}

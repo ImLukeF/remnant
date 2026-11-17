@@ -1,0 +1,45 @@
+{
+  "verifiedAt": "2026-11-17T12:16:20.390926+00:00",
+  "parleySource": "a076d7e308b12b0626f67d68cf3d0496ee4b271a",
+  "standaloneSource": "f89a493cf5bc98b409a83151a5425dd8c055dfbb",
+  "packageSourcesTestsAndManifestIdentical": true,
+  "modelSHA256": "e25b45a7265017efeef88c716222467ece9b67a599adba9e0e9a8bdf311643b6",
+  "nativeFocusedChecks": [
+    {
+      "name": "night storage and unpublished observation recovery",
+      "result": "passed"
+    },
+    {
+      "name": "ZIP interoperability and separate audio-export consent",
+      "result": "passed"
+    },
+    {
+      "name": "readable lossless resampled audio file from synthetic PCM",
+      "result": "passed"
+    },
+    {
+      "name": "independent recurrent inference and bounded history",
+      "result": "passed",
+      "source": "630acb20cbc091b41467a9034c5b0e82d27c2c6c",
+      "unchangedFinalModel": true
+    }
+  ],
+  "simulatorBuild": "passed; no simulator app launched",
+  "release": {
+    "method": "canonical parley-phone-install.sh",
+    "bundleIdentifier": "app.heyparley",
+    "buildNumber": "29",
+    "localPayloadUUID": "D0C26F86-45C3-36E7-8214-3180B44406CB",
+    "localPayloadSignature": "codesign --verify --deep --strict passed",
+    "deviceInstall": "passed",
+    "deviceMetadata": "direct devicectl bundle/build/container matched the install receipt",
+    "launch": "denied because the phone was locked; user must open Parley",
+    "canonicalMacInstaller": "no-op; desktop source unchanged"
+  },
+  "hardwareNightCaptureTested": false,
+  "microphoneStartedByAgent": false,
+  "overnightOrBatteryAcceptanceTested": false,
+  "modelControlsAlarms": false,
+  "privateRepositories": true,
+  "clinicalOrUserRecordingsInArchive": false
+}

@@ -137,7 +137,7 @@ def checksum(path):
     return value.hexdigest()
 
 
-def download(item, target):
+def download(item, target, *, source_url=None):
     partial = target.with_suffix(".part")
     if target.exists() and target.stat().st_size == item["bytes"] and checksum(target) == item["sha256"]:
         return
@@ -157,7 +157,9 @@ def download(item, target):
             if offset:
                 headers["Range"] = f"bytes={offset}-"
             # Fresh redirect avoids stale cached CDN authorizations. The revision and content hash remain pinned.
-            url = resolve(item["path"]) + "?download=true&request=" + uuid.uuid4().hex
+            base_url = source_url if source_url is not None else resolve(item["path"])
+            separator = "&" if "?" in base_url else "?"
+            url = base_url + separator + "download=true&request=" + uuid.uuid4().hex
             with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=90) as response:
                 if offset and (response.status != 206 or not response.headers.get("Content-Range", "").startswith(f"bytes {offset}-")):
                     partial.unlink(missing_ok=True)

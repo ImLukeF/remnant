@@ -1,0 +1,26 @@
+{
+  "developmentPeople": 84,
+  "verifiedBlocks": 169,
+  "usableEpochs": 18858,
+  "usableHours": 157.15,
+  "stageOrder": [
+    "awake",
+    "light",
+    "deep",
+    "rem"
+  ],
+  "usableStageCounts": [
+    1126,
+    15345,
+    1176,
+    1211
+  ],
+  "downloadedSourceBytes": 114734831018,
+  "frameShape": [
+    240,
+    25
+  ],
+  "rawRecordingsRetained": false,
+  "freshParticipantsUsed": false,
+  "featureExtractorSHA256": "03eeba1fa52e5980f60795725da691aa59cfff813f1fc989328348dd6b65dedb"
+}

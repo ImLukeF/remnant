@@ -1,0 +1,21 @@
+Building for debugging...
+[Planning deferred tasks]
+[1 / 1]
+[5 / 17] SleepWakeKit
+[8 / 20] SleepWakeKit
+[15 / 27] SleepWakeAudio
+[19 / 30] SleepWakeKit
+[22 / 33] SleepWakeKit
+[29 / 40] SleepWakeKitTests-product
+[31 / 42] SleepWakeKitTests-product
+[35 / 41] SleepWakeKitTests-product
+[37 / 41] SleepWakeKitTests-product
+Build complete! (3.73 sec.)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test acousticFramesMatchIndependentReferenceAcrossStreamingBuffers() started.
+◇ Test spectralFeaturesMatchIndependentReferenceAcrossStreamingBuffers() started.
+✔ Test acousticFramesMatchIndependentReferenceAcrossStreamingBuffers() passed after 3.007 seconds.
+✔ Test spectralFeaturesMatchIndependentReferenceAcrossStreamingBuffers() passed after 3.008 seconds.
+✔ Test run with 2 tests in 0 suites passed after 3.008 seconds.

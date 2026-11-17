@@ -1,0 +1,25 @@
+Building for debugging...
+[Planning 28 / 183]
+[Planning deferred tasks]
+[1 / 1]
+[5 / 22] SleepWakeKit
+[7 / 24] SleepWakeKit
+[8 / 25] SleepWakeKit
+[11 / 23] SleepWakeKit
+[18 / 29] SleepWakeKitTests-product
+[20 / 31] SleepWakeKitTests-product
+[24 / 30] SleepWakeKitTests-product
+[26 / 30] SleepWakeKitTests-product
+Build complete! (3.52 sec.)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test acousticModelRejectsMalformedEncodersAndMissingFrames() started.
+◇ Test acousticModelMatchesIndependentEncoderAndRecurrentReference() started.
+◇ Test recurrentModelMatchesIndependentReferenceAndBoundsItsHistory() started.
+◇ Test recurrentModelRejectsMalformedParametersAndMissingSpectra() started.
+✔ Test acousticModelRejectsMalformedEncodersAndMissingFrames() passed after 0.008 seconds.
+✔ Test recurrentModelRejectsMalformedParametersAndMissingSpectra() passed after 0.008 seconds.
+✔ Test recurrentModelMatchesIndependentReferenceAndBoundsItsHistory() passed after 0.020 seconds.
+✔ Test acousticModelMatchesIndependentEncoderAndRecurrentReference() passed after 0.426 seconds.
+✔ Test run with 4 tests in 0 suites passed after 0.427 seconds.

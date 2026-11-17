@@ -1,0 +1,11 @@
+Building for debugging...
+[1 / 1]
+Build complete! (0.32 sec.)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test researchTreeImportValidatesGraphsAndUsesStrictFloat32Thresholds() started.
+◇ Test researchModelContextUsesOnlyThePastAndResetsOnGapsOrUnusableAudio() started.
+✔ Test researchModelContextUsesOnlyThePastAndResetsOnGapsOrUnusableAudio() passed after 0.001 seconds.
+✔ Test researchTreeImportValidatesGraphsAndUsesStrictFloat32Thresholds() passed after 0.001 seconds.
+✔ Test run with 2 tests in 0 suites passed after 0.002 seconds.

@@ -1,0 +1,25 @@
+{
+  "jobId": "5ad2da8a89774c02bb20a46e406a23cf",
+  "status": "passed",
+  "createdAt": "2026-11-17T01:01:02.864347+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "c0a131f5cfdbf819d7a6b9d63454d69346ede632",
+    "lane": "codex-sleep-conv-gru-v6",
+    "argv": [
+      "bash",
+      "-lc",
+      "while [ ! -f /srv/ai-team/artifacts/sleep-wake-acoustic-v6/complete.json ]; do sleep 20; done; exec env OPENBLAS_NUM_THREADS=3 OMP_NUM_THREADS=3 MKL_NUM_THREADS=3 uv run --python 3.12 --with-requirements Packages/SleepWakeKit/Training/requirements-sequence-linux.txt python Packages/SleepWakeKit/Training/train_acoustic.py --development /srv/ai-team/artifacts/sleep-wake-acoustic-v6 --baseline-cache /srv/ai-team/artifacts/sleep-wake-sequence-v5 --registry /srv/ai-team/artifacts/sleep-wake-stage-complete-v4/known-subjects-after-test.json --output /srv/ai-team/artifacts/sleep-wake-conv-gru-v6"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 3600
+  },
+  "startedAt": "2026-11-17T01:01:03.254486+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-conv-gru-v6",
+  "sourceSha": "c0a131f5cfdbf819d7a6b9d63454d69346ede632",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T01:32:46.766748+00:00"
+}

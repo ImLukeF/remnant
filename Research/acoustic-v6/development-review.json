@@ -1,0 +1,28 @@
+{
+  "status": "not_improved",
+  "freshTestUntouched": true,
+  "baselineMeanMacroF1": 0.306221955142306,
+  "baselineMeanBalancedAccuracy": 0.42639250286739533,
+  "candidates": [
+    {
+      "id": 0,
+      "meanMacroF1": 0.3060579136869702,
+      "meanBalancedAccuracy": 0.41734884553457857
+    },
+    {
+      "id": 1,
+      "meanMacroF1": 0.3119278145352999,
+      "meanBalancedAccuracy": 0.41788897274807796
+    },
+    {
+      "id": 2,
+      "meanMacroF1": 0.3014360373367083,
+      "meanBalancedAccuracy": 0.415273302397529
+    },
+    {
+      "id": 3,
+      "meanMacroF1": 0.3165759186208226,
+      "meanBalancedAccuracy": 0.40479317925716085
+    }
+  ]
+}

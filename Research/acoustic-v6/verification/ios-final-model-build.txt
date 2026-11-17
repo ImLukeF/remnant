@@ -1,0 +1,18 @@
+Building for debugging...
+[Planning deferred tasks]
+[10 / 26]
+[11 / 27] SleepWakeKit
+[14 / 33] SleepWakeKit
+[15 / 33] SleepWakeKit
+[16 / 33] SleepWakeKit
+[22 / 33] SleepWakeKit
+[23 / 33] SleepWakeAudio
+[24 / 34]
+[26 / 34] SleepWakeAudio
+[30 / 50]
+[34 / 50]
+[36 / 50]
+[39 / 50]
+[42 / 50] SleepWakeAudio
+[48 / 50] SleepWakeAudio
+Build complete! (3.30 sec.)

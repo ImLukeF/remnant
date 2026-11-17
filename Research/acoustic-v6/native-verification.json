@@ -1,0 +1,27 @@
+{
+  "approvedForAlarmTiming": false,
+  "maximumProbabilityDifference": 1.1102230246251565e-16,
+  "modelBytes": 10497,
+  "observations": 7,
+  "people": 1,
+  "probabilityComparisons": 24,
+  "sourceSha": "d1b49843c7af9ab24e926bd2300e5274284b6372",
+  "reference": "synthetic PyTorch CNN/GRU reference; not clinical accuracy",
+  "coreSHA256": {
+    "AcousticModel.swift": "f6d3726635e43eba539989bbe2eaa6b64de0f0704ebcae926bb78a475661ceb2",
+    "ResearchModel.swift": "55cedf8d0c45116fa77c6ac4e892a89031cafdacfed7bd0c400fd5f536691b2c",
+    "SpectralFeatures.swift": "8345114083c02a3482ba892e2715d2e1607e58cd4e76ce63be3d1811b75ba16c",
+    "AudioFeatures.swift": "63f9b955266df8ba59e98f2a9b5d84cb0a76189f741eaf4036acd5fd59e57517",
+    "SleepModel.swift": "4614d29507b8731d4152d6bda6cafaab8ce09c6ec90ca1ebeafe647c361e8540",
+    "WakePlan.swift": "2fee88d2de97d2c43b0c8d16d9f78ab869700b661a45a514f9866b97e74d13e5",
+    "RecurrentModel.swift": "386e96ec2fb91fd2b10c27a29201a7434aca9395aac0d77870a8f256bb715a9b"
+  },
+  "nativeChecks": [
+    "8/48 kHz detailed-frame parity",
+    "CNN/GRU probability parity and malformed models",
+    "legacy contextual/tree regressions",
+    "iOS Simulator SleepWakeAudio cross-compile"
+  ],
+  "realDeviceTested": false,
+  "usesMicrophone": false
+}

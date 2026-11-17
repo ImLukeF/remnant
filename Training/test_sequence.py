@@ -81,6 +81,13 @@ class SequenceContracts(unittest.TestCase):
         self.assertEqual(reviewed["candidatePairs"],3)
         self.assertAlmostEqual(reviewed["bothEpochsLightFraction"],1/3)
         self.assertEqual(reviewed["currentDeepOrREMCount"],1)
+        from calibrate_wake import fit as fit_calibration,apply as calibrated_probability
+        values=np.asarray([[0.3,0.3,0.2,0.2]]*20)
+        calibration=fit_calibration(np.asarray(["inner-a"]*10+["inner-b"]*10),np.asarray([1]*16+[0]*4),values)
+        self.assertEqual(calibration["people"],2)
+        self.assertLess(calibration["objective"],calibration["rawObjective"])
+        self.assertTrue(np.isfinite(calibrated_probability(calibration,values)).all())
+        self.assertGreater(float(calibrated_probability(calibration,values).mean()),0.7)
         a=torch.tensor([[2.0,-1,0,1]],dtype=torch.float64,requires_grad=True)
         b=torch.tensor([[-1.0,2,1,0]],dtype=torch.float64,requires_grad=True)
         self.assertLess(abs(float(consistency(a,a).detach())),1e-12)

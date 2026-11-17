@@ -1,0 +1,38 @@
+{
+  "jobId": "0b798c07b1c54897b867c549cfbbb8c2",
+  "status": "passed",
+  "createdAt": "2026-11-17T04:33:12.129009+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "9267653a4711ebfbb41edcd06bbcaa924acbbe31",
+    "lane": "codex-sleep-expanded-idle-verified-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_short_idle_wait_preserves_measurements_bit_for_bit",
+      "test_full_nights.FullNightContracts.test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T04:33:12.506598+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-idle-verified-v8",
+  "sourceSha": "9267653a4711ebfbb41edcd06bbcaa924acbbe31",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T04:33:33.631687+00:00"
+}

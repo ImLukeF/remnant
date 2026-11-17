@@ -1,0 +1,37 @@
+{
+  "jobId": "a745a2b261d2465d94587c34c5eca4c1",
+  "status": "passed",
+  "createdAt": "2026-11-17T04:29:04.516724+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "fa06fefbcabbc866d823f9466ce58e82123e5b2e",
+    "lane": "codex-sleep-expanded-parallel-proof-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_parallel_extraction_preserves_every_array_and_complete_checkpoint",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T04:29:04.827095+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-parallel-proof-v8",
+  "sourceSha": "fa06fefbcabbc866d823f9466ce58e82123e5b2e",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T04:29:31.557832+00:00"
+}

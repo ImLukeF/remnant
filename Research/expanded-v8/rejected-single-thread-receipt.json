@@ -1,0 +1,38 @@
+{
+  "jobId": "781a06fd14964589ab76b674fa574aef",
+  "status": "failed",
+  "createdAt": "2026-11-17T04:30:09.500251+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "2a1aeb13f38fe90b7f6d07e39b249fcf041cd489",
+    "lane": "codex-sleep-expanded-thread-proof-v8",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_worker_blas_threads_preserve_measurements_bit_for_bit",
+      "test_full_nights.FullNightContracts.test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T04:30:10.349323+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-thread-proof-v8",
+  "sourceSha": "2a1aeb13f38fe90b7f6d07e39b249fcf041cd489",
+  "exitCode": 1,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T04:30:37.779633+00:00"
+}

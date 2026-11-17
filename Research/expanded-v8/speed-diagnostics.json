@@ -1,0 +1,42 @@
+{
+  "kind": "synthetic waveform CPU profiles, not sleep accuracy",
+  "profiles": [
+    {
+      "name": "original-profile",
+      "jobId": "e0ece97b273d45a29c9c85e17b9eeab1",
+      "sourceSha": "a73cb2c0c6846d94da499d8972195b2a21c1248b",
+      "blasThreads": 2,
+      "idleWait": null,
+      "result": {
+        "epochs": 16,
+        "seconds": 5.453082264997647,
+        "sha": "6ba5ecb40f5c3c3b56df80d06b9374aba8504410853dcca08ab1bc57539c7305"
+      }
+    },
+    {
+      "name": "single-thread-diagnostic",
+      "jobId": "21c895c4c3d0467496deaf8d806416d8",
+      "sourceSha": "a73cb2c0c6846d94da499d8972195b2a21c1248b",
+      "blasThreads": 1,
+      "idleWait": null,
+      "result": {
+        "epochs": 16,
+        "seconds": 5.16255231499963,
+        "sha": "6ba5ecb40f5c3c3b56df80d06b9374aba8504410853dcca08ab1bc57539c7305"
+      }
+    },
+    {
+      "name": "short-idle-profile",
+      "jobId": "acc6957519a644859edb48cf64b3c9d6",
+      "sourceSha": "a73cb2c0c6846d94da499d8972195b2a21c1248b",
+      "blasThreads": 2,
+      "idleWait": 1,
+      "result": {
+        "epochs": 16,
+        "seconds": 4.377767693003989,
+        "sha": "6ba5ecb40f5c3c3b56df80d06b9374aba8504410853dcca08ab1bc57539c7305"
+      }
+    }
+  ],
+  "oneThreadNotDeployed": "Broader strict numerical proof failed; retain the existing two numerical BLAS threads."
+}

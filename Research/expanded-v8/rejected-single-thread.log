@@ -1,0 +1,24 @@
+test_worker_blas_threads_preserve_measurements_bit_for_bit (test_full_nights.FullNightContracts.test_worker_blas_threads_preserve_measurements_bit_for_bit) ... FAIL
+test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint (test_full_nights.FullNightContracts.test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint) ... /usr/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpeyg2onv8/controller.lock' mode='a' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-thread-proof-v8/Packages/SleepWakeKit/Training/test_full_nights.py:41: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpeyg2onv8/controller.lock' mode='a' encoding='UTF-8'>
+  run(args);state=json.loads(state_path.read_text())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+======================================================================
+FAIL: test_worker_blas_threads_preserve_measurements_bit_for_bit (test_full_nights.FullNightContracts.test_worker_blas_threads_preserve_measurements_bit_for_bit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-expanded-thread-proof-v8/Packages/SleepWakeKit/Training/test_full_nights.py", line 71, in test_worker_blas_threads_preserve_measurements_bit_for_bit
+    self.assertEqual(results[0],results[1])
+AssertionError: 'd9247b5dbd422615e482f48176842eed328aef6778c5e9c503fd20ec1847db2a' != 'ff835a1b42036f4ec616db4ced37c07e66f112af50602da4fc29a943a36d4c35'
+- d9247b5dbd422615e482f48176842eed328aef6778c5e9c503fd20ec1847db2a
++ ff835a1b42036f4ec616db4ced37c07e66f112af50602da4fc29a943a36d4c35
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 14.510s
+
+FAILED (failures=1)

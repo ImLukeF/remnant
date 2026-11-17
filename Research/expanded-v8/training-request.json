@@ -54,12 +54,13 @@
     ]
   },
   "extractFinal": {
-    "sourceSha": "a73cb2c0c6846d94da499d8972195b2a21c1248b",
+    "sourceSha": "9267653a4711ebfbb41edcd06bbcaa924acbbe31",
     "lane": "codex-sleep-expanded-final-features-v8",
     "argv": [
       "env",
       "OPENBLAS_NUM_THREADS=2",
       "OMP_NUM_THREADS=2",
+      "OPENBLAS_THREAD_TIMEOUT=1",
       "uv",
       "run",
       "--python",
@@ -77,7 +78,9 @@
       "--batch-gib",
       "64",
       "--download-workers",
-      "4"
+      "4",
+      "--extract-workers",
+      "3"
     ]
   },
   "evaluate": {

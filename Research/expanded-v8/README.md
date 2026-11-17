@@ -25,3 +25,23 @@ refitted 200-person weights remain experimental and the reserved final cohort is
 
 The incumbent remains unchanged and model-driven waking stays disabled. Focused synthetic receipts
 verify fitting/export and final-evaluation safeguards; they make no clinical accuracy claim.
+
+## Verified processing upgrade
+
+Luke requested faster preparation on 17 November. The same experiment resumes from 211 verified
+blocks with three independent extraction processes; only the parent publishes atomic checkpoints.
+The existing per-job 3-core/8-GiB limit is retained. Two BLAS numerical threads remain fixed;
+OPENBLAS_THREAD_TIMEOUT=1 reduces idle CPU waiting. No signal code, participant split, fitting
+settings or admission rule changed. The extractor fingerprint remains
+48239b36ff58c8604e42dfe58e51b81e7e048b4ee1b98021cbc7c11dfb235a23.
+
+The parallel owner proof checks equality of every serial/parallel NPZ array, complete publication
+and checkpoint reuse using real synthetic 48-kHz EDFs. The idle-wait proof checks byte equality
+across varied 8/48-kHz synthetic measurements. A proposed change to one BLAS thread failed strict
+byte equality and was rejected before clinical use; its failed receipt/log are retained here.
+The replacement proof preserves the numerical thread count and checks only the selected idle
+wait setting. These synthetic proofs do not measure clinical sleep-stage accuracy.
+
+The previous controller/worker were verified stopped before reusing their output/lane. The
+cancelled serial job remains in history as cancelled. speed-upgrade.json records checkpoint
+preservation and the runtime transition; training-request.json pins the updated final extractor.

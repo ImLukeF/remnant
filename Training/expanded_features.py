@@ -1,6 +1,7 @@
 """Extract clean and waveform-augmented bedside measurements within the scored recording."""
 import bisect
 import hashlib
+import inspect
 import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -14,8 +15,8 @@ from spectral import extract_epoch
 
 def fingerprint():
     code=Path(__file__).parent
-    return hashlib.sha256(feature_fingerprint().encode()+b"".join((code/name).read_bytes() for name in
-                          ("expanded_features.py","room_noise.py"))).hexdigest()
+    return hashlib.sha256(feature_fingerprint().encode()+inspect.getsource(annotation_start).encode()
+                          +b"".join((code/name).read_bytes() for name in ("expanded_features.py","room_noise.py"))).hexdigest()
 
 
 def recording_duration(path):

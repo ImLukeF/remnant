@@ -1,0 +1,7 @@
+test_frozen_spectral_evaluation_compares_incumbent_once_and_keeps_all_exclusions (test_training.TrainingContracts.test_frozen_spectral_evaluation_compares_incumbent_once_and_keeps_all_exclusions) ... {"event": "evaluated", "people": 1, "balancedAccuracy": 0.25, "lightRecall": 0.0, "comparisonBalancedAccuracy": {"spectralV4": 0.25}}
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.034s
+
+OK

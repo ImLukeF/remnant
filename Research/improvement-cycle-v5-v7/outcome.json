@@ -1,0 +1,329 @@
+{
+  "developmentPeople": 84,
+  "newConfigurations": 24,
+  "pairedBaseline": {
+    "x": 42.63925028673953,
+    "y": 0.306221955142306
+  },
+  "candidates": [
+    {
+      "label": "GRU 1",
+      "group": "GRU",
+      "color": "--chart-1",
+      "x": 36.17329454012495,
+      "y": 0.32373264029409093,
+      "settings": {
+        "history": 1,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "GRU 2",
+      "group": "GRU",
+      "color": "--chart-1",
+      "x": 37.62932727615934,
+      "y": 0.3377242187246378,
+      "settings": {
+        "history": 10,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "GRU 3",
+      "group": "GRU",
+      "color": "--chart-1",
+      "x": 38.12149100423351,
+      "y": 0.34073448033437853,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "GRU 4",
+      "group": "GRU",
+      "color": "--chart-1",
+      "x": 37.92105886460848,
+      "y": 0.3340964577929279,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 12
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 1",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 38.6318855443512,
+      "y": 0.28322395737356115,
+      "settings": {
+        "history": 10,
+        "hidden": 16,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 2",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 39.166631833387115,
+      "y": 0.28808169244513215,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 3",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 37.7254854520861,
+      "y": 0.28270011198582873,
+      "settings": {
+        "history": 10,
+        "hidden": 32,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 4",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 39.531709956217,
+      "y": 0.3038971869367924,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 5",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 38.83961831396299,
+      "y": 0.2864894011110718,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "gainDB": 12,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Weighted GRU 6",
+      "group": "Weighted GRU",
+      "color": "--chart-2",
+      "x": 39.220804465021054,
+      "y": 0.3089796863386026,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 12,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Audio CNN + GRU 1",
+      "group": "Audio CNN + GRU",
+      "color": "--chart-3",
+      "x": 41.73488455345786,
+      "y": 0.3060579136869702,
+      "settings": {
+        "history": 10,
+        "hidden": 16,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Audio CNN + GRU 2",
+      "group": "Audio CNN + GRU",
+      "color": "--chart-3",
+      "x": 41.788897274807795,
+      "y": 0.3119278145352999,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Audio CNN + GRU 3",
+      "group": "Audio CNN + GRU",
+      "color": "--chart-3",
+      "x": 41.5273302397529,
+      "y": 0.3014360373367083,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "classPower": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Audio CNN + GRU 4",
+      "group": "Audio CNN + GRU",
+      "color": "--chart-3",
+      "x": 40.47931792571609,
+      "y": 0.3165759186208226,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "classPower": 0.75
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 1",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 41.18325421345422,
+      "y": 0.2572019939835887,
+      "settings": {
+        "depth": 1,
+        "rounds": 160,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 2",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 42.16138738565212,
+      "y": 0.27416744166646684,
+      "settings": {
+        "depth": 2,
+        "rounds": 80,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 3",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 42.00969227568563,
+      "y": 0.3193230904035176,
+      "settings": {
+        "depth": 2,
+        "rounds": 240,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 4",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 41.881328411766354,
+      "y": 0.32724403391441576,
+      "settings": {
+        "depth": 2,
+        "rounds": 320,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 5",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 40.10438401355298,
+      "y": 0.30001622197447525,
+      "settings": {
+        "depth": 3,
+        "rounds": 80,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 6",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 41.33437462321421,
+      "y": 0.33167264078022035,
+      "settings": {
+        "depth": 3,
+        "rounds": 160,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 7",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 40.55397319251385,
+      "y": 0.3380446427840587,
+      "settings": {
+        "depth": 3,
+        "rounds": 240,
+        "balance": 1.0
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 8",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 39.13302644399308,
+      "y": 0.3631278012224573,
+      "settings": {
+        "depth": 2,
+        "rounds": 160,
+        "balance": 0.75
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 9",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 37.536676522753496,
+      "y": 0.34786384469724574,
+      "settings": {
+        "depth": 3,
+        "rounds": 160,
+        "balance": 0.75
+      },
+      "everyStage": true
+    },
+    {
+      "label": "Tree variations 10",
+      "group": "Tree variations",
+      "color": "--chart-4",
+      "x": 39.29013775275132,
+      "y": 0.318088676994041,
+      "settings": {
+        "depth": 4,
+        "rounds": 80,
+        "balance": 1.0
+      },
+      "everyStage": true
+    }
+  ],
+  "twoMetricQualifiers": []
+}

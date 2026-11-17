@@ -84,7 +84,11 @@ class SequencePredictor:
             raise ValueError("Invalid observation time.")
         if self.last is not None and abs(start - self.last - 30) > 1:
             self.reset()
-        self.last = start
-        self.frames.append(normalize(self.model, row["features"]))
-        self.frames = self.frames[-self.model["contextEpochs"]:]
-        return probabilities(self.model, self.frames)
+        try:
+            self.last = start
+            self.frames.append(normalize(self.model, row["features"]))
+            self.frames = self.frames[-self.model["contextEpochs"]:]
+            return probabilities(self.model, self.frames)
+        except (ValueError, OverflowError):
+            self.reset()
+            raise

@@ -31,6 +31,14 @@ def reference():
 
 
 class SequenceContracts(unittest.TestCase):
+    def test_new_test_requires_both_development_metrics_and_all_stage_coverage(self):
+        from prepare_sequence_test import admit
+        good = {"meanMacroF1":0.4,"baselineMeanMacroF1":0.3,"meanBalancedAccuracy":0.5,
+                "baselineMeanBalancedAccuracy":0.45,"everyFoldRecognizesEveryStage":True}
+        admit(good)
+        for change in ({"meanMacroF1":0.3},{"meanBalancedAccuracy":0.4},{"everyFoldRecognizesEveryStage":False},{"meanMacroF1":float("nan")}):
+            with self.assertRaises(ValueError): admit(good|change)
+
     def test_windows_preserve_order_and_reset_at_gaps_and_participants(self):
         rows = [{"subject": p, "startSeconds": t} for p,t in (("a",0),("a",30),("a",60),("a",120),("b",150))]
         self.assertEqual(sequence_indexes(rows,10), [[0],[0,1],[0,1,2],[3],[4]])

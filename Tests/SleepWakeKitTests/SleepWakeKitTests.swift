@@ -198,6 +198,63 @@ import Testing
     }
 }
 
+@Test func recurrentModelMatchesIndependentReferenceAndBoundsItsHistory() throws {
+    struct Row: Decodable {
+        let startSeconds: Double
+        let features: [Double]
+        let usable: Bool
+        let expectedProbabilities: [String: Double]?
+    }
+    let url = try #require(Bundle.module.url(forResource: "gru-reference", withExtension: "json"))
+    let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let model = try SleepModel(data: JSONSerialization.data(withJSONObject: try #require(object["model"])))
+    let rows = try JSONDecoder().decode([Row].self, from: JSONSerialization.data(withJSONObject: try #require(object["rows"])))
+    var predictor = model.makePredictor()
+    for row in rows {
+        let start = Date(timeIntervalSince1970: row.startSeconds)
+        let actual = try predictor.predict(AudioEpoch(start: start, end: start.addingTimeInterval(30), features: row.features, usable: row.usable))
+        if let expected = row.expectedProbabilities {
+            for stage in SleepStage.allCases {
+                let actualValue = try #require(actual.probabilities[stage])
+                let expectedValue = try #require(expected[stage.rawValue])
+                #expect(abs(actualValue-expectedValue) < 2e-10)
+            }
+        } else { #expect(!actual.usable && actual.probabilities.isEmpty) }
+    }
+    let seed = try #require(rows.first)
+    var full = model.makePredictor(), bounded = model.makePredictor()
+    var lastFull: SleepPrediction?, lastBounded: SleepPrediction?
+    for index in 0..<30 {
+        let start = Date(timeIntervalSince1970: Double(index*30))
+        let epoch = AudioEpoch(start: start, end: start.addingTimeInterval(30),
+            features: seed.features.map { $0+Double(index)/100 }, usable: true)
+        lastFull = try full.predict(epoch)
+        if index >= 20 { lastBounded = try bounded.predict(epoch) }
+    }
+    #expect(lastFull == lastBounded)
+}
+
+@Test func recurrentModelRejectsMalformedParametersAndMissingSpectra() throws {
+    let url = try #require(Bundle.module.url(forResource: "gru-reference", withExtension: "json"))
+    let fixture = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let source = try #require(fixture["model"] as? [String: Any])
+    let malformed: [(String, Any)] = [("hiddenSize",0),("hiddenSize",65),("contextEpochs",11),
+        ("inputWeights",[[0.0]]),("recurrentWeights",[[0.0]]),("outputWeights",[[0.0]]),
+        ("scales",Array(repeating:0.0,count:58)),("featureProfile","unknown"),
+        ("heldOutSubjects",[String]()),("modelKind","bidirectional_gru")]
+    for (key,value) in malformed {
+        var object = source
+        object[key] = value
+        let data = try JSONSerialization.data(withJSONObject: object)
+        #expect(throws: SleepModel.ModelError.self) { try SleepModel(data: data) }
+    }
+    var predictor = try SleepModel(data: JSONSerialization.data(withJSONObject: source)).makePredictor()
+    let start = Date(timeIntervalSince1970: 0)
+    #expect(throws: SleepModel.ModelError.self) {
+        try predictor.predict(AudioEpoch(start: start, end: start.addingTimeInterval(30), features: Array(repeating:0.0,count:7), usable:true))
+    }
+}
+
 @Test func finishingTodayDoesNotSkipTomorrowsRepeatingAlarm() {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(secondsFromGMT: 0)!

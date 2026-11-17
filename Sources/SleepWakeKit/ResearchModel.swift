@@ -6,6 +6,7 @@ public struct SleepModel: Sendable {
     fileprivate enum Backing: Sendable {
         case legacy(LinearSleepModel)
         case contextual(ContextualModel)
+        case recurrent(RecurrentSleepModel)
     }
     fileprivate let backing: Backing
 
@@ -18,6 +19,10 @@ public struct SleepModel: Sendable {
             let model = try JSONDecoder().decode(ContextualModel.self, from: data)
             try model.validate()
             backing = .contextual(model)
+        case 3:
+            let model = try JSONDecoder().decode(RecurrentSleepModel.self, from: data)
+            try model.validate()
+            backing = .recurrent(model)
         default: throw ModelError.invalid
         }
     }
@@ -78,6 +83,18 @@ public struct SleepModelPredictor: Sendable {
                     values += means + deviations + (0..<dimensions).map { raw[$0] - frames[0][$0] }
                 }
                 let probabilities = try model.probabilities(values)
+                return SleepPrediction(start: epoch.start, end: epoch.end,
+                    probabilities: Dictionary(uniqueKeysWithValues: zip(model.classes, probabilities)), usable: true)
+            case .recurrent(let model):
+                guard epoch.features.count == model.rawFeatureNames.count else { throw SleepModel.ModelError.invalid }
+                var raw = epoch.features
+                for index in 7..<raw.count { raw[index] = (raw[index] * 1e6).rounded(.toNearestOrEven) / 1e6 }
+                guard raw.allSatisfy(\.isFinite) else { throw SleepModel.ModelError.invalid }
+                if let previousStart, abs(epoch.start.timeIntervalSince(previousStart) - 30) > 1 { reset() }
+                previousStart = epoch.start
+                frames.append(raw)
+                if frames.count > model.contextEpochs { frames.removeFirst(frames.count-model.contextEpochs) }
+                let probabilities = try model.probabilities(frames)
                 return SleepPrediction(start: epoch.start, end: epoch.end,
                     probabilities: Dictionary(uniqueKeysWithValues: zip(model.classes, probabilities)), usable: true)
             }

@@ -69,12 +69,12 @@ def fold_for(subject):
     return int.from_bytes(hashlib.sha256(subject.encode()).digest()[:4], "big") % 3
 
 
-def make_network(hidden):
+def make_network(hidden, input_size=len(SPECTRAL_NAMES)):
     import torch
     class Network(torch.nn.Module):
         def __init__(self):
             super().__init__()
-            self.gru = torch.nn.GRU(len(SPECTRAL_NAMES), hidden, batch_first=True)
+            self.gru = torch.nn.GRU(input_size, hidden, batch_first=True)
             self.dropout = torch.nn.Dropout(0.15)
             self.output = torch.nn.Linear(hidden, 4)
 

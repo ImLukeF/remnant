@@ -1,4 +1,4 @@
-"""Spend a new test cohort only after the recurrent candidate beats the paired development baseline."""
+"""Reserve a new test cohort only after a candidate beats the paired development baseline."""
 import argparse
 import json
 import math
@@ -13,7 +13,7 @@ def admit(selection):
             or selection["meanMacroF1"] <= selection["baselineMeanMacroF1"]
             or selection["meanBalancedAccuracy"] <= selection["baselineMeanBalancedAccuracy"]
             or not selection["everyFoldRecognizesEveryStage"]):
-        raise ValueError("The recurrent candidate has not improved both paired development metrics; keep the next final cohort untouched.")
+        raise ValueError("The candidate has not improved both paired development metrics; keep the next final cohort untouched.")
 
 
 if __name__ == "__main__":

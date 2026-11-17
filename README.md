@@ -142,6 +142,11 @@ admission tool will reserve another cohort. Final fitting uses fixed median best
 from development folds. The previous tests are retired as development data and remain in the
 global exclusion registry, including people outside a particular fitting corpus.
 
+`Training/train_spectral_cv.py` also checks fixed tree depths, round counts and class weighting
+on the same verified participant folds. It reuses the paired baseline and applies the same
+two-metric admission rule. `Training/evaluate_final.py --baseline-spectral` compares a frozen
+spectral candidate with the incumbent on identical fresh test observations.
+
 Use the pinned CPU-only `Training/requirements-sequence-linux.txt` environment for neural research.
 `Training/prepare_sequence_test.py` enforces development admission and prepares a new cohort;
 `Training/evaluate_sequence.py` or `Training/evaluate_acoustic.py` scores the frozen model once.

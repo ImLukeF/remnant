@@ -19,6 +19,65 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_expanded_training_refits_all_200_people_without_reading_reserved_people(self):
+        import numpy as np
+        from argparse import Namespace
+        from causal_model import names
+        from expanded_features import fingerprint
+        from expanded_contracts import final_admission
+        from features import STAGES
+        from run_dataset import checksum
+        from spectral import SPECTRAL_NAMES
+        from train_expanded import run
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);data=root/"development";models=root/"models"
+            data.mkdir();(data/"features").mkdir();(data/"labels").mkdir()
+            save=lambda path,value:path.write_text(json.dumps(value))
+            people=[f"fitting{i:03d}" for i in range(200)]
+            known=people[:84];reserved=[f"untouched-{i:03d}" for i in range(30)]
+            roles={p:"train" if i<160 else "validation" for i,p in enumerate(people)}
+            save(root/"original-registry.json",known)
+            reservation={"roles":roles,"reservedTestSubjects":reserved,"knownRegistrySHA256":checksum(root/"original-registry.json")}
+            save(data/"participants.json",reservation)
+            files=[{"path":p+".edf","subject":p,"sha256":"a"*64} for p in people]
+            save(data/"development-plan.json",{"roles":roles,"reservedTestSubjects":reserved,"files":files})
+            inputs=np.zeros((4,58));inputs[:,0]=np.arange(4)
+            noisy=inputs.copy();noisy[:,1]=0.1
+            checks={}
+            for item in files:
+                person=item["subject"];path=data/"features"/(person+".npz")
+                (data/"labels"/(person+".rml")).write_text(
+                    f'<Root><Patient><PatientID>{person}</PatientID><PatientDBID>db-{person}</PatientDBID></Patient></Root>')
+                np.savez_compressed(path,features=inputs,augmentedFeatures=noisy,startSeconds=np.arange(4)*30.,
+                    stage=np.arange(4,dtype=np.int8),usable=np.ones(4,dtype=bool),augmentedUsable=np.ones(4,dtype=bool),
+                    subject=np.asarray(person),sourcePath=np.asarray(item["path"]),sourceSHA256=np.asarray(item["sha256"]),
+                    noiseRole=np.asarray(roles[person]),noiseManifestSHA256=np.asarray("synthetic-bank"),
+                    extractorSHA256=np.asarray(fingerprint()),recordingDuration=np.asarray(120.))
+                checks[item["path"]]=checksum(path)
+            save(data/"feature-checksums.json",checks)
+            protocol={"extractorSHA256":fingerprint(),"noiseManifestSHA256":"synthetic-bank",
+                      "developmentPlanSHA256":checksum(data/"development-plan.json")}
+            save(data/"extraction-protocol.json",protocol)
+            save(data/"development-complete.json",{**protocol,"featureChecksumsSHA256":checksum(data/"feature-checksums.json"),"usableEpochs":800})
+            baseline={"schemaVersion":2,"modelKind":"trees","modelID":"synthetic-only","dataSource":"synthetic only",
+                "featureProfile":"spectral-v4","rawFeatureNames":SPECTRAL_NAMES,"featureNames":names(10,SPECTRAL_NAMES),
+                "contextEpochs":10,"classes":STAGES,"heldOutSubjects":[],"balancedAccuracy":0,
+                "biases":[1,0,0,0],"trees":[{"classIndex":0,"left":[-1],"right":[-1],"features":[-1],"values":[0]}]}
+            save(root/"baseline.json",baseline)
+            run(Namespace(output=models,development=data,original_registry=root/"original-registry.json",baseline=root/"baseline.json"))
+            summary=json.loads((models/"training-summary.json").read_text())
+            frozen=json.loads((models/"protocol.json").read_text())
+            self.assertEqual(summary["status"],"admitted")
+            self.assertEqual(summary["refit"]["fit"]["trainingPeople"],200)
+            self.assertEqual(frozen["trainingSubjects"],people[:160])
+            self.assertEqual(frozen["validationSubjects"],people[160:])
+            self.assertEqual(frozen["reservedTestSubjects"],reserved)
+            self.assertFalse(summary["finalTestRead"])
+            self.assertFalse(summary["approvedForAlarmTiming"])
+            self.assertEqual(final_admission(models,reservation,people),summary["parametersSHA256"])
+            self.assertEqual(json.loads((models/"selected-model.json").read_text())["heldOutSubjects"],[])
+            self.assertEqual({p.stem for p in (data/"labels").glob("*.rml")},set(people))
+
     def test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions(self):
         import numpy as np
         from argparse import Namespace

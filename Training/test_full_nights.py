@@ -19,6 +19,25 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_batched_tree_inference_matches_independent_scalar_float32_contract(self):
+        import numpy as np
+        from array_trees import probabilities
+        from causal_model import predict
+        leaf=lambda stage,value:{"classIndex":stage,"left":[-1],"right":[-1],"features":[-1],"values":[value]}
+        model={"modelKind":"trees","biases":[0.2,-0.1,0,0.3],"trees":[
+            {"classIndex":0,"left":[1,-1,-1],"right":[2,-1,-1],"features":[0,-1,-1],"values":[0.5,-0.25,0.75]},
+            leaf(2,1e8),leaf(2,1),leaf(2,-1e8)]+[leaf(1,-0.1)]*50}
+        values=[[float(np.nextafter(np.float32(0.5),np.float32(0))),0],[0.5-1e-12,0],[0.5,0],[0.5+1e-6,0]]
+        np.testing.assert_allclose(probabilities(model,values),[predict(model,row) for row in values],rtol=0,atol=2e-15)
+        with self.assertRaises(ValueError): probabilities(model,[[float("inf"),0]])
+
+    def test_final_measurements_are_refused_before_opening_any_observations(self):
+        from expanded_data import load
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            (root/"development-plan.json").write_text(json.dumps({"phase":"final","fittingForbidden":True,"roles":{"reserved":"test"}}))
+            with self.assertRaises(ValueError): load(root)
+
     def test_waveform_augmentation_has_declared_snr_and_independent_noise_roles(self):
         import numpy as np
         from room_noise import NoiseBank

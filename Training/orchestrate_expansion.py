@@ -26,8 +26,15 @@ def run(args):
 
 def run_locked(args,root):
     path=root/"controller-state.json"
+    after_development=getattr(args,"after_development",False)
     settings={"extractWorkers":args.extract_workers,"blasThreads":2,"idleWait":args.idle_wait}
     state=json.loads(path.read_text()) if path.exists() else {"featureSource":args.feature_source,"jobs":[],"completedPhases":[],"workerSettings":settings}
+    if state.get("afterDevelopment",False)!=after_development and path.exists():
+        raise ValueError("An existing controller cannot change development/final ownership.")
+    state["afterDevelopment"]=after_development
+    if after_development and (state.get("status")=="stopped_on_job_failure"
+            or not (args.initial_job or state.get("activeJob") or "training" in state["completedPhases"])):
+        raise ValueError("Attach an existing refit; failed ownership requires explicit inspection, never automatic retraining.")
     previous_settings=state.get("workerSettings",{"extractWorkers":1,"blasThreads":2,"idleWait":None})
     if state["featureSource"]!=args.feature_source or previous_settings!=settings:
         # A scheduling-only upgrade preserves the frozen source plan and DSP fingerprint.
@@ -44,7 +51,7 @@ def run_locked(args,root):
     state["workerSettings"]=settings
     state.pop("error",None)
     if args.initial_job and not state.get("activeJob") and not state["jobs"]:
-        state.update(activeJob=args.initial_job,activePhase="development_batch_0")
+        state.update(activeJob=args.initial_job,activePhase="training" if after_development else "development_batch_0")
     save(path,state)
     def count(folder):
         file=folder/"feature-checksums.json"
@@ -74,7 +81,7 @@ def run_locked(args,root):
             if receipt.get("finishedAt") or receipt["status"] in {"passed","failed","cancelled","timed_out","timeout"}: break
             time.sleep(30)
         state["jobs"].append(receipt);state.pop("activeJob",None);state.pop("activePhase",None)
-        if receipt["status"]!="passed" or receipt.get("sourceDirtyAfter",False):
+        if receipt["status"]!="passed" or receipt.get("exitCode")!=0 or receipt.get("sourceDirtyAfter",False):
             state["status"]="stopped_on_job_failure";save(path,state)
             raise RuntimeError(f"Inspect {name} job {job}: {receipt['status']}; do not silently retry changed inputs.")
         state["completedPhases"].append(name);save(path,state)
@@ -96,8 +103,9 @@ def run_locked(args,root):
         "--output",str(root),"--noise-bank",str(args.noise_bank),"--max-download-gib","768","--batch-gib","64","--download-workers","4",
         "--extract-workers",str(args.extract_workers)]}
     try:
-        state["status"]="extracting_development";save(path,state)
-        extract_batches(root,feature_request,"development")
+        if not after_development:
+            state["status"]="extracting_development";save(path,state)
+            extract_batches(root,feature_request,"development")
         state["status"]="development_ready";save(path,state)
         config=root/"training-request.json"
         if not config.exists(): return
@@ -120,6 +128,7 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root",type=Path,required=True);parser.add_argument("--noise-bank",type=Path,required=True)
     parser.add_argument("--feature-source",required=True);parser.add_argument("--initial-job")
+    parser.add_argument("--after-development",action="store_true",help="Attach the declared existing refit job, then run only conditional final preparation/evaluation.")
     parser.add_argument("--previous-feature-source");parser.add_argument("--expected-extractor")
     parser.add_argument("--extract-workers",type=int,choices=(1,2,3),default=1)
     parser.add_argument("--idle-wait",type=int,choices=range(1,29))

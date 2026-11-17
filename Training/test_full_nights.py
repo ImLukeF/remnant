@@ -19,6 +19,31 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_final_controller_attaches_exact_existing_refit_without_duplicate_dispatch(self):
+        from argparse import Namespace
+        from unittest.mock import patch
+        from orchestrate_expansion import run
+        for changed_source in (False,True):
+            with tempfile.TemporaryDirectory() as directory:
+                root=Path(directory);model=root/"model";model.mkdir()
+                args=Namespace(root=root,noise_bank=root,feature_source="f"*40,previous_feature_source=None,
+                    expected_extractor=None,extract_workers=3,idle_wait=1,initial_job="existing-refit",max_batches=1,after_development=True)
+                steps={"modelRoot":str(model),"training":{"sourceSha":"a"*40,"lane":"never-dispatch","argv":[]}}
+                (root/"training-request.json").write_text(json.dumps(steps))
+                receipt={"jobId":"existing-refit","status":"passed","sourceSha":("b" if changed_source else "a")*40,
+                    "exitCode":0,"sourceDirtyAfter":False}
+                with patch("orchestrate_expansion.cli",return_value=receipt) as cli:
+                    if changed_source:
+                        with self.assertRaises(ValueError): run(args)
+                    else:
+                        run(args);state=json.loads((root/"controller-state.json").read_text())
+                        self.assertEqual(state["completedPhases"],["training"])
+                        self.assertEqual(state["status"],"trained_not_admitted")
+                    cli.assert_called_once_with("status","existing-refit")
+        with tempfile.TemporaryDirectory() as directory:
+            args.root=Path(directory);args.initial_job=None
+            with self.assertRaises(ValueError): run(args)
+
     def test_bias_calibration_learns_on_separate_people_and_preserves_the_original_trees(self):
         import copy
         import numpy as np

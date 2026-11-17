@@ -11,6 +11,7 @@ from expand_cohort import atomic_json
 from features import STAGES
 from improve_model import metrics, parameters_digest
 from sequence_model import SequencePredictor
+from evaluation_contracts import participant_registry
 
 
 def run(args):
@@ -25,8 +26,7 @@ def run(args):
             or plan["selectedParametersSHA256"] != selection["parametersSHA256"]
             or plan["extractorSHA256"] != protocol["developmentExtractorSHA256"]):
         raise ValueError("Frozen parameters and matching signal processing are required.")
-    if not plan["fittingForbidden"] or set(plan["testSubjects"]) & set(selection["previouslyObservedSubjects"]):
-        raise ValueError("Final participants overlap development or permit fitting.")
+    known_after_test=participant_registry(selection,plan)
     combined, hashes = hashlib.sha256(), {}
     for item in plan["files"]:
         data = (args.test/"features"/(Path(item["path"]).stem+".jsonl")).read_bytes()
@@ -69,7 +69,7 @@ def run(args):
         "trainingPeople":len(selection["trainingSubjects"]),"testPeople":len(plan["testSubjects"]),
         "stageParticipantCounts":{s:len({r["subject"] for r in rows if r["stage"]==s}) for s in STAGES},
         "sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()})
-    atomic_json(root/"known-subjects-after-test.json",sorted(set(selection["previouslyObservedSubjects"])|set(plan["testSubjects"])))
+    atomic_json(root/"known-subjects-after-test.json",known_after_test)
     print(json.dumps({"event":"evaluated","freshPeople":len(plan["testSubjects"]),"balancedAccuracy":score["balancedAccuracy"],
                       "macroF1":score["macroF1"],"baselineBalancedAccuracy":previous["balancedAccuracy"],"baselineMacroF1":previous["macroF1"]}),flush=True)
 

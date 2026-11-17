@@ -28,8 +28,13 @@ def prepare(args):
     if args.known_subjects:
         known.update(json.loads(args.known_subjects.read_text()))
     code = Path(__file__).parent
-    profile = "spectral" if selected.get("featureProfile") == "spectral-v4" else "basic"
-    if profile == "spectral":
+    declared=selected.get("featureProfile")
+    if declared not in (None,"spectral-v4","mel-sequence-v6"): raise ValueError("Unsupported source feature profile.")
+    profile = {"spectral-v4":"spectral","mel-sequence-v6":"acoustic"}.get(declared,"basic")
+    if profile == "acoustic":
+        from run_acoustic_corpus import fingerprint as acoustic_fingerprint
+        fingerprint=acoustic_fingerprint()
+    elif profile == "spectral":
         from run_spectral_corpus import feature_fingerprint
         fingerprint = feature_fingerprint()
     else:
@@ -122,9 +127,13 @@ def prepare(args):
     print(json.dumps({"event": "fresh_test_frozen", "people": len(saved["testSubjects"]), "blocks": len(saved["files"]),
                       "bytes": sum(item["bytes"] for item in saved["files"]), "coverageAdditions": saved["annotationCoverageAdditions"]}), flush=True)
     if not args.prepare_only:
-        run(argparse.Namespace(output=root, subjects=args.subjects, blocks=2, max_download_gib=args.max_download_gib,
-                               supplement=[], supplement_reason="", prepare_only=False, extract_only=True, steps=40,
-                               feature_profile=profile, model_id="extract-only", download_workers=args.download_workers))
+        if profile == "acoustic":
+            from run_acoustic_corpus import extract_files
+            extract_files(root,saved["files"],args.download_workers)
+        else:
+            run(argparse.Namespace(output=root, subjects=args.subjects, blocks=2, max_download_gib=args.max_download_gib,
+                                   supplement=[], supplement_reason="", prepare_only=False, extract_only=True, steps=40,
+                                   feature_profile=profile, model_id="extract-only", download_workers=args.download_workers))
 
 
 if __name__ == "__main__":

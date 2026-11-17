@@ -31,6 +31,14 @@ def reference():
 
 
 class SequenceContracts(unittest.TestCase):
+    def test_final_registry_keeps_previously_tested_people_outside_this_fitting_corpus(self):
+        from evaluation_contracts import participant_registry
+        selected={"trainingSubjects":["fit"],"validationSubjects":["validate"],"previouslyObservedSubjects":["fit","validate"]}
+        plan={"previouslyObservedSubjects":["fit","validate","earlier-test"],"testSubjects":["new"],"fittingForbidden":True}
+        self.assertEqual(participant_registry(selected,plan),["earlier-test","fit","new","validate"])
+        for change in ({"testSubjects":["earlier-test"]},{"previouslyObservedSubjects":["fit"]},{"fittingForbidden":False}):
+            with self.assertRaises(ValueError): participant_registry(selected,plan|change)
+
     def test_new_test_requires_both_development_metrics_and_all_stage_coverage(self):
         from prepare_sequence_test import admit
         good = {"meanMacroF1":0.4,"baselineMeanMacroF1":0.3,"meanBalancedAccuracy":0.5,

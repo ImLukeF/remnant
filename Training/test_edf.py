@@ -46,6 +46,24 @@ class EDFContracts(unittest.TestCase):
             with np.load(fresh.output,allow_pickle=False) as result:
                 np.testing.assert_array_equal(result["frames"],verified_frames)
                 self.assertEqual(result["stage"].tolist(),[1])
+            # Exercise the real independent-test extraction owner without making any network request.
+            import shutil,hashlib
+            from run_acoustic_corpus import extract_files
+            independent=root/"independent"; independent.mkdir()
+            cache=independent/"raw-cache"; cache.mkdir()
+            shutil.copyfile(source,cache/"source.edf")
+            with pyedflib.EdfReader(str(source)) as edf: start=edf.getStartdatetime().isoformat()
+            annotation=f'<Root><RecordingStart>{start}</RecordingStart><UserStaging><Stage Type="NonREM2" Start="0"/></UserStaging></Root>'.encode()
+            (cache/"synthetic.rml").write_bytes(annotation)
+            item={"path":"source.edf","recording":"synthetic","subject":"synthetic-only","rml":"unused",
+                  "rmlGitOID":hashlib.sha1(f"blob {len(annotation)}\0".encode()+annotation).hexdigest(),
+                  "bytes":source.stat().st_size,"sha256":hashlib.sha256(source.read_bytes()).hexdigest(),
+                  "offsetSeconds":0,"durationSeconds":30}
+            extract_files(independent,[item],1)
+            derived=independent/"features"/"source.npz"
+            with np.load(derived,allow_pickle=False) as result: np.testing.assert_array_equal(result["frames"],verified_frames)
+            self.assertFalse((cache/"source.edf").exists())
+            self.assertEqual(json.loads((independent/"feature-checksums.json").read_text())["source.edf"],hashlib.sha256(derived.read_bytes()).hexdigest())
             row["features"][0]+=10; previous.write_text(json.dumps(row)+"\n")
             args.output=root/"must-not-exist.npz"
             with self.assertRaises(ValueError): run(args)

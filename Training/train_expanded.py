@@ -21,14 +21,21 @@ PARAMETERS={"objective":"multi:softprob","num_class":4,"tree_method":"hist","max
             "seed":7,"nthread":3,"base_score":0}
 
 
-def fit_arrays(inputs,labels,people,probe,rounds=160):
+def fit_arrays(inputs,labels,people,probe,rounds=160,class_power=1.0,noise_flags=None,noise_share=0.5):
     import numpy as np
     import xgboost as xgb
     if not 1<=rounds<=320: raise ValueError("Bound the fixed tree fitting rounds.")
+    if not 0<=class_power<=1: raise ValueError("Use a bounded class-weight power.")
     counts=np.bincount(labels,minlength=4)
     if len(counts)!=4 or (counts==0).any(): raise ValueError("Every fitting group must include all four stages.")
     unique,inverse,person_counts=np.unique(people,return_inverse=True,return_counts=True)
-    weights=(len(labels)/(4*counts[labels]))*(len(labels)/(len(unique)*person_counts[inverse]))
+    weights=(len(labels)/(4*counts[labels]))**class_power*(len(labels)/(len(unique)*person_counts[inverse]))
+    if noise_flags is not None:
+        flags=np.asarray(noise_flags,dtype=bool)
+        if flags.shape!=labels.shape or not flags.any() or flags.all() or not 0<noise_share<1:
+            raise ValueError("Weighted noise training requires both conditions and a bounded mixture.")
+        weights[flags]*=noise_share/weights[flags].sum()
+        weights[~flags]*=(1-noise_share)/weights[~flags].sum()
     weights/=weights.mean()
     began=time.monotonic()
     source=xgb.DMatrix(inputs,label=labels,weight=weights,nthread=3)
@@ -38,7 +45,9 @@ def fit_arrays(inputs,labels,people,probe,rounds=160):
     difference=float(np.max(np.abs(probabilities(model,probe)-expected)))
     if difference>2e-6: raise ValueError("Native-compatible export differs from the training library.")
     return model,{"rounds":rounds,"trainingPeople":len(unique),"trainingEpochs":len(labels),"stageCounts":counts.tolist(),
-                  "subjectBalancedLoss":True,"classBalancedLoss":True,"exportMaximumDifference":difference,
+                  "subjectBalancedLoss":True,"classBalancedLoss":class_power==1,"classWeightPower":class_power,
+                  "noiseWeightShare":noise_share if noise_flags is not None else None,"exportMaximumDifference":difference,
+                  "actualNoiseWeightShare":float(weights[flags].sum()/weights.sum()) if noise_flags is not None else None,
                   "seconds":time.monotonic()-began}
 
 

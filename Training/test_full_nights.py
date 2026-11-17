@@ -19,6 +19,24 @@ def write_bank(root):
 
 
 class FullNightContracts(unittest.TestCase):
+    def test_bias_calibration_learns_on_separate_people_and_preserves_the_original_trees(self):
+        import copy
+        import numpy as np
+        from array_trees import probabilities
+        from train_correction import calibrate,adjusted
+        model={"modelKind":"trees","biases":[0,0,2,0],"trees":[{"classIndex":0,"left":[-1],"right":[-1],"features":[-1],"values":[0]}]}
+        original=copy.deepcopy(model);people=[f"synthetic-{i}" for i in range(8)]
+        labels=np.tile([0,1,1,1,1,1,1,1,2,3],8)
+        view={"inputs":np.zeros((80,1)),"labels":labels,"people":np.repeat(people,10)}
+        bias,report=calibrate(model,{"clean":view,"noisy":view},people)
+        corrected=adjusted(model,bias)
+        self.assertEqual(model,original)
+        self.assertEqual(corrected["trees"],original["trees"])
+        self.assertLess(report["objective"],report["beforeObjective"])
+        self.assertGreater(probabilities(corrected,[[0]])[0,1],probabilities(model,[[0]])[0,1])
+        self.assertFalse(report["usesValidationPeople"])
+        with self.assertRaises(ValueError): calibrate(model,{"clean":view,"noisy":view},people+["absent"])
+
     def test_controller_upgrades_only_a_stopped_worker_with_the_same_fingerprint(self):
         from argparse import Namespace
         from orchestrate_expansion import run
@@ -222,6 +240,25 @@ print(digest.hexdigest())'''
             self.assertIn(bad,selection["previouslyObservedSubjects"])
             self.assertEqual(final_admission(models2,reservation,people),report["parametersSHA256"])
             self.assertFalse(report["finalTestRead"])
+            from train_correction import run as correct
+            corrected=root/"correction"
+            correct(Namespace(output=corrected,development=amended,previous=models2,baseline=root/"baseline.json",max_seconds=1100))
+            corrected_summary=json.loads((corrected/"training-summary.json").read_text())
+            corrected_protocol=json.loads((corrected/"protocol.json").read_text())
+            self.assertEqual(corrected_summary["status"],"admitted")
+            self.assertEqual(corrected_summary["refit"]["fit"]["trainingPeople"],199)
+            self.assertEqual(len(corrected_summary["validation"]),6)
+            self.assertEqual(len(corrected_protocol["innerFittingSubjects"]),135)
+            self.assertEqual(len(corrected_protocol["calibrationSubjects"]),24)
+            self.assertFalse(set(corrected_protocol["calibrationSubjects"])&set(corrected_protocol["validationSubjects"]))
+            self.assertFalse(set(corrected_protocol["innerFittingSubjects"])&set(corrected_protocol["calibrationSubjects"]))
+            self.assertEqual(corrected_protocol["reservedTestSubjects"],reserved)
+            self.assertTrue(all(not x["calibration"]["usesValidationPeople"] for x in corrected_summary["validation"].values() if x["calibration"]))
+            for checkpoint in corrected_summary["validation"].values():
+                self.assertAlmostEqual(checkpoint["fit"]["noiseWeightShare"],checkpoint["fit"]["actualNoiseWeightShare"],places=12)
+            self.assertEqual(final_admission(corrected,reservation,people),corrected_summary["parametersSHA256"])
+            self.assertFalse(corrected_summary["finalTestRead"])
+            with self.assertRaises(ValueError): correct(Namespace(output=corrected,development=amended,previous=models2,baseline=root/"baseline.json",max_seconds=1100))
 
     def test_frozen_expanded_evaluation_keeps_controls_weights_and_participant_exclusions(self):
         import numpy as np

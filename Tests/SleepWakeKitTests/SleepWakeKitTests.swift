@@ -192,9 +192,38 @@ import Testing
         let result = try #require(epochs.first)
         #expect(epochs.count == 1 && result.usable)
         #expect(result.features.count == AudioFeatureExtractor.spectralFeatureNames.count)
+        #expect(result.acousticFrames == nil)
         for (actual, expected) in zip(result.features, expected) { #expect(abs(actual - expected) < 2e-6) }
         let dc = extractor.append(Array(repeating: 0.25, count: rate * 30))
         #expect(dc.count == 1 && !dc[0].usable)
+    }
+}
+
+@Test func acousticFramesMatchIndependentReferenceAcrossStreamingBuffers() throws {
+    struct Reference: Decodable { let indices: [Int]; let frames: [[Float]] }
+    let url = try #require(Bundle.module.url(forResource: "acoustic-reference", withExtension: "json"))
+    let references = try JSONDecoder().decode([String: Reference].self, from: Data(contentsOf: url))
+    for rate in [8000, 48000] {
+        let reference = try #require(references[String(rate)])
+        var extractor = try AudioFeatureExtractor(sampleRate: rate, start: Date(timeIntervalSince1970: 0), acousticFrames: true)
+        var state: UInt32 = 7
+        var chunk: [Float] = []
+        var epochs: [AudioEpoch] = []
+        for index in 0..<(rate*30) {
+            state = 1664525 &* state &+ 1013904223
+            let noise = Float(Int(state >> 16)-32768)/262144
+            chunk.append(noise+(index/(rate/2000)%2 == 0 ? 0.125 : -0.125))
+            if chunk.count == 3079 { epochs += extractor.append(chunk); chunk.removeAll(keepingCapacity: true) }
+        }
+        epochs += extractor.append(chunk)
+        let epoch = try #require(epochs.first)
+        let frames = try #require(epoch.acousticFrames)
+        #expect(epochs.count == 1 && epoch.usable && frames.count == 240*25)
+        for (position, expected) in zip(reference.indices, reference.frames) {
+            for channel in 0..<25 { #expect(abs(frames[position*25+channel]-expected[channel]) < 2e-6) }
+        }
+        let silent = extractor.append(Array(repeating: 0, count: rate*30))
+        #expect(silent.count == 1 && !silent[0].usable)
     }
 }
 

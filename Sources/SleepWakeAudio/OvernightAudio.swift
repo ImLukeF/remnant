@@ -20,8 +20,12 @@ public final class OvernightAudio {
     private var generation = UUID()
     private var previousInput: AVAudioSessionPortDescription?
     private let spectral: Bool
+    private let acousticFrames: Bool
 
-    public init(spectral: Bool = false) { self.spectral = spectral }
+    public init(spectral: Bool = false, acousticFrames: Bool = false) {
+        self.spectral = spectral
+        self.acousticFrames = acousticFrames
+    }
 
     public func start(canStart: () -> Bool = { true }) async throws -> AsyncStream<Event> {
         guard engine == nil, !starting else { throw Failure.alreadyRunning }
@@ -62,7 +66,7 @@ public final class OvernightAudio {
                 self.stop()
             }
         }
-        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, continuation: continuation) { [weak self] in
+        let processor = try Processor(sampleRate: Int(format.sampleRate), spectral: spectral, acousticFrames: acousticFrames, continuation: continuation) { [weak self] in
             Task { @MainActor in
                 guard let self, self.generation == attempt else { return }
                 self.interrupt()
@@ -128,7 +132,7 @@ private final class Processor: Sendable {
     private let worker: Task<Void, Never>
     private let sampleRate: Int
 
-    init(sampleRate: Int, spectral: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation,
+    init(sampleRate: Int, spectral: Bool, acousticFrames: Bool, continuation: AsyncStream<OvernightAudio.Event>.Continuation,
          interrupted: @escaping @Sendable () -> Void) throws {
         self.sampleRate = sampleRate
         let (packets, input) = AsyncStream<Packet>.makeStream(bufferingPolicy: .bufferingNewest(16))
@@ -147,7 +151,7 @@ private final class Processor: Sendable {
                     return
                 }
                 if extractor == nil {
-                    do { extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: packet.capturedAt, spectral: spectral) }
+                    do { extractor = try AudioFeatureExtractor(sampleRate: sampleRate, start: packet.capturedAt, spectral: spectral, acousticFrames: acousticFrames) }
                     catch { interrupted(); return }
                 }
                 for epoch in extractor?.append(packet.samples) ?? [] {

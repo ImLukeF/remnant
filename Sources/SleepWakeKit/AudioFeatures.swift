@@ -23,12 +23,14 @@ public struct AudioEpoch: Codable, Equatable, Sendable {
     public let end: Date
     public let features: [Double]
     public let usable: Bool
+    public let acousticFrames: [Float]?
 
-    public init(start: Date, end: Date, features: [Double], usable: Bool) {
+    public init(start: Date, end: Date, features: [Double], usable: Bool, acousticFrames: [Float]? = nil) {
         self.start = start
         self.end = end
         self.features = features
         self.usable = usable
+        self.acousticFrames = acousticFrames
     }
 }
 
@@ -43,6 +45,8 @@ public struct AudioFeatureExtractor: Sendable {
     public static let spectralFeatureNames = featureNames
         + ["mean", "std"].flatMap { kind in (0..<24).map { "mel_relative_\(kind)_" + ($0 < 10 ? "0" : "") + String($0) } }
         + ["spectral_entropy_mean", "spectral_flux_mean", "spectral_flux_std"]
+    public static let acousticFrameFeatureNames = (0..<24).map { "mel_relative_" + ($0 < 10 ? "0" : "") + String($0) } + ["band_power_dbfs"]
+    public static let acousticFramesPerEpoch = 240
     public let sampleRate: Int
     private var start: Date
     private var samples = 0
@@ -56,11 +60,11 @@ public struct AudioFeatureExtractor: Sendable {
     private var invalid = false
     private var spectrum: SpectralAccumulator?
 
-    public init(sampleRate: Int, start: Date, spectral: Bool = false) throws {
+    public init(sampleRate: Int, start: Date, spectral: Bool = false, acousticFrames: Bool = false) throws {
         guard (8_000...192_000).contains(sampleRate) else { throw FeatureError.invalidSampleRate }
         self.sampleRate = sampleRate
         self.start = start
-        self.spectrum = spectral ? SpectralAccumulator(sampleRate: sampleRate) : nil
+        self.spectrum = (spectral || acousticFrames) ? SpectralAccumulator(sampleRate: sampleRate, retainFrames: acousticFrames) : nil
     }
 
     public mutating func append(_ pcm: [Float]) -> [AudioEpoch] {
@@ -99,7 +103,8 @@ public struct AudioFeatureExtractor: Sendable {
                 if let spectral { values += spectral.features }
                 let end = start.addingTimeInterval(Double(Self.epochSeconds))
                 epochs.append(AudioEpoch(start: start, end: end, features: values,
-                                         usable: !invalid && mean > -119 && clip < 0.01 && (spectral?.usable ?? true)))
+                                         usable: !invalid && mean > -119 && clip < 0.01 && (spectral?.usable ?? true),
+                                         acousticFrames: spectral?.frames))
                 start = end
                 levels.removeAll(keepingCapacity: true)
                 crossingRates.removeAll(keepingCapacity: true)

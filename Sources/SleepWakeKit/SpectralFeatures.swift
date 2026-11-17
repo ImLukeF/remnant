@@ -20,9 +20,13 @@ struct SpectralAccumulator: Sendable {
     private var fluxCount = 0
     private var fluxMean = 0.0
     private var fluxMoment = 0.0
+    private let retainFrames: Bool
+    private var acousticFrames: [Float] = []
 
-    init(sampleRate: Int) {
+    init(sampleRate: Int, retainFrames: Bool = false) {
         self.sampleRate = sampleRate
+        self.retainFrames = retainFrames
+        if retainFrames { acousticFrames.reserveCapacity(240*25) }
         var size = 1
         while size * 2 <= sampleRate / 8 { size *= 2 }
         self.size = size
@@ -66,6 +70,11 @@ struct SpectralAccumulator: Sendable {
             let total = bands.reduce(0, +)
             let normalized = bands.map { $0 / max(total, 1e-300) }
             let relative = normalized.map { 10 * log10(max($0, 1e-12)) }
+            if retainFrames {
+                acousticFrames += relative.map { Float(($0*1e4).rounded(.toNearestOrEven)/1e4) }
+                let level = 10*log10(max(total/Double(size*size), 1e-12))
+                acousticFrames.append(Float((level*1e4).rounded(.toNearestOrEven)/1e4))
+            }
             count += 1
             for index in 0..<24 {
                 let delta = relative[index] - means[index]
@@ -87,10 +96,12 @@ struct SpectralAccumulator: Sendable {
         samples.removeAll(keepingCapacity: true)
     }
 
-    mutating func finishEpoch() -> (features: [Double], usable: Bool) {
+    mutating func finishEpoch() -> (features: [Double], usable: Bool, frames: [Float]?) {
         let std = moments.map { sqrt(max(0, $0 / Double(max(count, 1)))) }
         let values = means + std + [entropyMean, fluxMean, sqrt(max(0, fluxMoment / Double(max(fluxCount, 1))))]
         let usable = count == 240 && powerMean > 1e-12 && values.allSatisfy(\.isFinite)
+        let frames = retainFrames ? acousticFrames : nil
+        acousticFrames.removeAll(keepingCapacity: true)
         count = 0
         means = Array(repeating: 0, count: 24)
         moments = Array(repeating: 0, count: 24)
@@ -100,7 +111,7 @@ struct SpectralAccumulator: Sendable {
         fluxCount = 0
         fluxMean = 0
         fluxMoment = 0
-        return (values, usable)
+        return (values, usable, frames)
     }
 
     private mutating func fft() {

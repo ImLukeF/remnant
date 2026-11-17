@@ -1,0 +1,61 @@
+{
+  "status": "rejected_before_fresh_testing",
+  "developmentPeople": 84,
+  "pairedParticipantFolds": [
+    31,
+    25,
+    28
+  ],
+  "pairedBaselineMean": {
+    "macroF1": 0.306221955142306,
+    "balancedAccuracy": 0.42639250286739533
+  },
+  "freshTestUntouched": true,
+  "approvedForAlarmTiming": false,
+  "candidates": [
+    {
+      "id": 0,
+      "settings": {
+        "history": 1,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "meanMacroF1": 0.32373264029409093,
+      "meanBalancedAccuracy": 0.3617329454012495,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 1,
+      "settings": {
+        "history": 10,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "meanMacroF1": 0.3377242187246378,
+      "meanBalancedAccuracy": 0.37629327276159336,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 2,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 0
+      },
+      "meanMacroF1": 0.34073448033437853,
+      "meanBalancedAccuracy": 0.38121491004233515,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 3,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 12
+      },
+      "meanMacroF1": 0.3340964577929279,
+      "meanBalancedAccuracy": 0.3792105886460848,
+      "everyFoldRecognizesEveryStage": true
+    }
+  ]
+}

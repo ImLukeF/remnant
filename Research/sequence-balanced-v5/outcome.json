@@ -1,0 +1,89 @@
+{
+  "status": "rejected_before_fresh_testing",
+  "developmentPeople": 84,
+  "pairedParticipantFolds": [
+    31,
+    25,
+    28
+  ],
+  "pairedBaselineMean": {
+    "macroF1": 0.306221955142306,
+    "balancedAccuracy": 0.42639250286739533
+  },
+  "freshTestUntouched": true,
+  "approvedForAlarmTiming": false,
+  "candidates": [
+    {
+      "id": 0,
+      "settings": {
+        "history": 10,
+        "hidden": 16,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.28322395737356115,
+      "meanBalancedAccuracy": 0.386318855443512,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 1,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.28808169244513215,
+      "meanBalancedAccuracy": 0.39166631833387117,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 2,
+      "settings": {
+        "history": 10,
+        "hidden": 32,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.28270011198582873,
+      "meanBalancedAccuracy": 0.377254854520861,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 3,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 0,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.3038971869367924,
+      "meanBalancedAccuracy": 0.39531709956217,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 4,
+      "settings": {
+        "history": 20,
+        "hidden": 16,
+        "gainDB": 12,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.2864894011110718,
+      "meanBalancedAccuracy": 0.38839618313962987,
+      "everyFoldRecognizesEveryStage": true
+    },
+    {
+      "id": 5,
+      "settings": {
+        "history": 20,
+        "hidden": 32,
+        "gainDB": 12,
+        "classPower": 1.0
+      },
+      "meanMacroF1": 0.3089796863386026,
+      "meanBalancedAccuracy": 0.39220804465021053,
+      "everyFoldRecognizesEveryStage": true
+    }
+  ]
+}

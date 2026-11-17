@@ -24,3 +24,12 @@ These are class-weighted model outputs, without probability calibration. Consequ
 better aggregate stage scores would not produce useful early wake attempts with this rule.
 The threshold is not lowered or enabled. A separate diagnostic fits light-probability
 calibration only on the 24 inner people and measures it on the 40 validation people.
+
+Separate person-balanced monotonic light-probability calibration used only the 24 inner
+people. On the 40 reused validation people it produced 1,691/1,790 clean candidate pairs
+across 23/24 people, with 90.1%/90.7% current-epoch light labels. Added noise fell to
+83.9%/83.3%, compared with 83.75% light prevalence across available validation epochs.
+Noise Brier error was worse than an inner-prior constant predictor. Clean candidates still
+included 143 deep/REM epochs per model. This diagnostic does not demonstrate useful
+stage-aware waking and is not integrated or approved. Calibration cannot transfer to a
+newly refitted backbone without separate validation. All 30 final people remain untouched.

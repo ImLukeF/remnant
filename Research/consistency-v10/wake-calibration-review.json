@@ -1,0 +1,91 @@
+{
+  "calibrationPeople": 24,
+  "validationPeople": 40,
+  "results": {
+    "recipe-0": {
+      "parameters": {
+        "slope": 0.3806401504455521,
+        "intercept": 1.6959407840727894,
+        "people": 24,
+        "objective": 0.4910748963833541,
+        "rawObjective": 0.9999393429589675,
+        "innerLightPrior": 0.8052095183268848,
+        "personBalanced": true,
+        "usesValidationPeople": false
+      },
+      "validation": {
+        "clean": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 1691,
+          "peopleWithCandidates": 23,
+          "currentLightFraction": 0.9012418687167356,
+          "bothEpochsLightFraction": 0.8905972797161443,
+          "currentDeepOrREMCount": 143,
+          "currentAwakeCount": 24,
+          "rawBrier": 0.40783855797114127,
+          "calibratedBrier": 0.13559051453896148,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        },
+        "noisy": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 336,
+          "peopleWithCandidates": 21,
+          "currentLightFraction": 0.8392857142857143,
+          "bothEpochsLightFraction": 0.8273809523809523,
+          "currentDeepOrREMCount": 45,
+          "currentAwakeCount": 9,
+          "rawBrier": 0.4409043006206844,
+          "calibratedBrier": 0.13828254450013347,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        }
+      },
+      "backboneSHA256": "d9af9b8888c4b1bbc5fc775fc349cdd78f13c46b6c0aa801c43232930361327b"
+    },
+    "recipe-1": {
+      "parameters": {
+        "slope": 0.36911726171204856,
+        "intercept": 1.688283160266755,
+        "people": 24,
+        "objective": 0.4909881420747265,
+        "rawObjective": 1.0027029833899097,
+        "innerLightPrior": 0.8052095183268848,
+        "personBalanced": true,
+        "usesValidationPeople": false
+      },
+      "validation": {
+        "clean": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 1790,
+          "peopleWithCandidates": 24,
+          "currentLightFraction": 0.9067039106145252,
+          "bothEpochsLightFraction": 0.8960893854748604,
+          "currentDeepOrREMCount": 143,
+          "currentAwakeCount": 24,
+          "rawBrier": 0.40821981714736943,
+          "calibratedBrier": 0.13544861515404116,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        },
+        "noisy": {
+          "eligibleAdjacentPairs": 22822,
+          "candidatePairs": 323,
+          "peopleWithCandidates": 22,
+          "currentLightFraction": 0.8328173374613003,
+          "bothEpochsLightFraction": 0.8173374613003096,
+          "currentDeepOrREMCount": 46,
+          "currentAwakeCount": 8,
+          "rawBrier": 0.4470254680191406,
+          "calibratedBrier": 0.1383873613778009,
+          "observedLightPrior": 0.8375032805528825,
+          "constantInnerPriorBrier": 0.13713442269475157
+        }
+      },
+      "backboneSHA256": "6437be52074c9e64e9417aff34f5618d2c8f30b6f1fbfa4ad24db34541995273"
+    }
+  },
+  "approvedForAlarmTiming": false,
+  "finalTestRead": false,
+  "limitation": "Reused development validation, all adjacent intervals; no independent final test, scheduled-window or phone validation. Parameters cannot transfer to a refitted backbone without new calibration."
+}

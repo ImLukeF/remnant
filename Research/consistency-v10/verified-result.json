@@ -21,8 +21,12 @@
     "training-receipt.json": "0cd9db857f23b5c93676b7f2957c0a165c30693e4dddcd1f485071210e4ffd58",
     "training-summary.json": "bd908c1cd0a6dcad96019595fc07f3b77e5abfa1d786516c8d950919d89ca1b6",
     "wake-signal-review.json": "fd6949e6357c9ae19392ecc82d95888d963cd56caf3ef9f40f8fc4fb5224667f",
-    "wake-signal-receipt.json": "5d02e0cf6cd167955f32344e4f52238b82b79bd70052ba131c0bf137b1bb86bc"
+    "wake-signal-receipt.json": "5d02e0cf6cd167955f32344e4f52238b82b79bd70052ba131c0bf137b1bb86bc",
+    "wake-calibration-review.json": "23c613e5ffa8f9475f089b148af5126af0f22e18dfab036c6f7d68ccc94f28ad",
+    "calibration-proof-receipt.json": "98d315c574d5ebd24f3f0c9cfc4436d388a7451c8db8c988379703e813830284",
+    "calibration-review-receipt.json": "465343966213ddf542563ffcf7b9497ef4eff9c4d28cfdabf3391a5ddd25c3e5"
   },
   "verification": "Exact-source receipts, model checksums, independent PyTorch export and recomputed confusion-matrix metrics.",
-  "fixedWakeSignalCandidates": 0
+  "fixedWakeSignalCandidates": 0,
+  "calibrationPromoted": false
 }

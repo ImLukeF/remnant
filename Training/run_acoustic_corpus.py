@@ -7,7 +7,8 @@ import subprocess
 import sys
 
 from expand_cohort import atomic_json
-from run_dataset import checksum, download, prefetched_audio
+from run_dataset import checksum, prefetched_audio, REPOSITORY
+from acoustic_frames import FRAME_NAMES
 from train_sequence import load_corpus
 
 
@@ -31,7 +32,9 @@ def run(args):
     if sum(item["bytes"] for item in files)>args.max_download_gib*1024**3:
         raise ValueError("Development reprocessing exceeds its download bound.")
     metadata={"featureProfile":"mel-sequence-v6","extractorSHA256":fingerprint(),"previous":prior,
-              "files":files,"frameShape":[240,25],"sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
+              "files":files,"frameShape":[240,25],"frameNames":FRAME_NAMES,"framesPerSecond":8,"decimalPlaces":4,
+              "repository":REPOSITORY,"licenceEvidence":plans[0]["licenceEvidence"],
+              "sourceSha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     path=root/"cohort-plan.json"
     if path.exists():
         saved=json.loads(path.read_text())

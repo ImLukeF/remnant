@@ -11,6 +11,7 @@ from expand_cohort import atomic_json
 from features import STAGES
 from improve_model import metrics, parameters_digest
 from train import evaluate, load_rows
+from evaluation_contracts import participant_registry
 
 
 def compare_legacy(model, rows):
@@ -35,10 +36,7 @@ def run(args):
         raise ValueError("Training and final-test signal processing must match.")
     if parameters_digest(model) != selection["parametersSHA256"] or plan["selectedParametersSHA256"] != selection["parametersSHA256"]:
         raise ValueError("Final testing must use the parameters frozen before test preparation.")
-    known = set(selection["trainingSubjects"] + selection["validationSubjects"])
-    known.update(selection.get("previouslyObservedSubjects", []))
-    if known & set(plan["testSubjects"]) or not plan["fittingForbidden"]:
-        raise ValueError("Final test does not meet participant isolation requirements.")
+    registry = participant_registry({**selection, "previouslyObservedSubjects": selection.get("previouslyObservedSubjects", [])}, plan)
     combined = hashlib.sha256()
     feature_hashes = {}
     for item in plan["files"]:
@@ -57,6 +55,8 @@ def run(args):
     score = metrics(contextual, values)
     older = {}
     for name, path in (("original14", args.baseline14), ("expanded40", args.baseline40)):
+        if path is None:
+            continue
         old = json.loads(path.read_text())
         older[name] = {"modelSHA256": hashlib.sha256(path.read_bytes()).hexdigest(), **compare_legacy(old, rows)}
     if args.baseline_causal:
@@ -64,6 +64,13 @@ def run(args):
         past = transform(rows, old["contextEpochs"], old["rawFeatureNames"])
         older["causalV3"] = {"modelSHA256": hashlib.sha256(args.baseline_causal.read_bytes()).hexdigest(),
                              **metrics(past, [predict(old, row["modelFeatures"]) for row in past])}
+    if args.baseline_spectral:
+        old = json.loads(args.baseline_spectral.read_text())
+        if old["rawFeatureNames"] != model["rawFeatureNames"] or list(old["classes"]) != list(STAGES):
+            raise ValueError("Spectral comparison uses incompatible features or stage order.")
+        past = transform(rows, old["contextEpochs"], old["rawFeatureNames"])
+        older["spectralV4"] = {"modelSHA256": hashlib.sha256(args.baseline_spectral.read_bytes()).hexdigest(),
+                               **metrics(past, [predict(old, row["modelFeatures"]) for row in past])}
     exported = copy.deepcopy(model)
     exported.update(heldOutSubjects=plan["testSubjects"], balancedAccuracy=score["balancedAccuracy"])
     if parameters_digest(exported) != selection["parametersSHA256"]:
@@ -87,17 +94,21 @@ def run(args):
                 "testEpochsSHA256": combined.hexdigest(), "testFeatureSHA256": feature_hashes,
                 "sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
                 "testStageParticipantCounts": {stage: len({row["subject"] for row in rows if row["stage"] == stage}) for stage in STAGES}})
-    atomic_json(root / "known-subjects-after-test.json", sorted(set(plan["previouslyObservedSubjects"]) | set(plan["testSubjects"])))
+    atomic_json(root / "known-subjects-after-test.json", registry)
     print(json.dumps({"event": "evaluated", "people": len(plan["testSubjects"]), "balancedAccuracy": score["balancedAccuracy"],
-                      "lightRecall": score["recallPerClass"][1], "original14BalancedAccuracy": older["original14"]["balancedAccuracy"],
-                      "expanded40BalancedAccuracy": older["expanded40"]["balancedAccuracy"]}), flush=True)
+                      "lightRecall": score["recallPerClass"][1],
+                      "comparisonBalancedAccuracy": {name: value["balancedAccuracy"] for name, value in older.items()}}), flush=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--selection", type=Path, required=True)
     parser.add_argument("--test", type=Path, required=True)
-    parser.add_argument("--baseline14", type=Path, required=True)
-    parser.add_argument("--baseline40", type=Path, required=True)
+    parser.add_argument("--baseline14", type=Path)
+    parser.add_argument("--baseline40", type=Path)
     parser.add_argument("--baseline-causal", type=Path)
-    run(parser.parse_args())
+    parser.add_argument("--baseline-spectral", type=Path)
+    args = parser.parse_args()
+    if not args.baseline_spectral and not (args.baseline14 and args.baseline40):
+        parser.error("Provide the current spectral baseline or both legacy baselines for a paired comparison.")
+    run(args)

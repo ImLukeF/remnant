@@ -66,7 +66,8 @@ class FullNightContracts(unittest.TestCase):
                 writer.writeSamples([np.full(len(mic),16000,dtype=np.int32),mic],digital=True)
             labels.write_text(f'<Root><Session><RecordingStart>{start.isoformat()}</RecordingStart><Duration>60</Duration></Session>'
                               '<UserStaging><Stage Type="NonREM2" Start="0"/><Stage Type="REM" Start="30"/></UserStaging></Root>')
-            extract({"subject":"synthetic","offsetSeconds":0,"durationSeconds":90},source,labels,output,bank,"train")
+            source_hash=hashlib.sha256(source.read_bytes()).hexdigest()
+            extract({"subject":"synthetic","offsetSeconds":0,"durationSeconds":90,"path":"source.edf","sha256":source_hash},source,labels,output,bank,"train")
             with np.load(output,allow_pickle=False) as observations:
                 self.assertEqual(observations["startSeconds"].tolist(),[0,30])
                 self.assertEqual(observations["stage"].tolist(),[1,3])
@@ -74,6 +75,8 @@ class FullNightContracts(unittest.TestCase):
                 self.assertEqual(observations["augmentedUsable"].tolist(),[True,False])
                 self.assertAlmostEqual(float(observations["features"][0,0]),20*np.log10(4000/32768),places=9)
                 self.assertEqual(observations["features"].shape,(2,58))
+                self.assertEqual(observations["noiseRole"].item(),"train")
+                self.assertEqual(observations["sourceSHA256"].item(),source_hash)
 
 
 if __name__=="__main__": unittest.main()

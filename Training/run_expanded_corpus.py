@@ -56,6 +56,9 @@ def run(args):
         output=features/(Path(item["path"]).stem+".npz");temporary=output.with_suffix(".partial")
         detail=extract(item,source,labels,temporary,bank,plan["roles"][item["subject"]])
         with np.load(temporary,allow_pickle=False) as values:
+            if (values["sourceSHA256"].item()!=item["sha256"] or values["sourcePath"].item()!=item["path"]
+                    or values["noiseRole"].item()!=plan["roles"][item["subject"]]):
+                raise ValueError("Extracted source identity or noise role changed.")
             detail.update(subject=item["subject"],role=plan["roles"][item["subject"]],
                 cleanStageCounts=np.bincount(values["stage"][values["usable"]],minlength=4).tolist(),
                 noisyStageCounts=np.bincount(values["stage"][values["augmentedUsable"]],minlength=4).tolist())

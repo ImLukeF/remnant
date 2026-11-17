@@ -66,5 +66,6 @@ def extract(item,source,labels,output,bank,role):
             augmentedFeatures=np.asarray(noisy,dtype=np.float64).reshape((-1,58)),startSeconds=np.asarray(starts,dtype=np.float64),
             stage=np.asarray(classes,dtype=np.int8),usable=np.asarray(usable,dtype=bool),augmentedUsable=np.asarray(noisy_usable,dtype=bool),
             noiseSNR=np.asarray(snrs,dtype=np.float32),subject=np.asarray(item["subject"]),sampleRate=np.asarray(rate),
-            recordingDuration=np.asarray(duration),noiseManifestSHA256=np.asarray(bank.sha),extractorSHA256=np.asarray(fingerprint()))
+            recordingDuration=np.asarray(duration),noiseRole=np.asarray(role),sourcePath=np.asarray(item["path"]),
+            sourceSHA256=np.asarray(item["sha256"]),noiseManifestSHA256=np.asarray(bank.sha),extractorSHA256=np.asarray(fingerprint()))
     return {"scoredEpochs":len(starts),"usableEpochs":sum(usable),"augmentedUsableEpochs":sum(noisy_usable),"sampleRate":rate}

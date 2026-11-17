@@ -1,0 +1,18 @@
+{
+  "fit": {
+    "rounds": 160,
+    "trainingPeople": 199,
+    "trainingEpochs": 111952,
+    "stageCounts": [
+      9282,
+      92038,
+      5480,
+      5152
+    ],
+    "subjectBalancedLoss": true,
+    "classBalancedLoss": true,
+    "exportMaximumDifference": 4.100054717959267e-08,
+    "seconds": 65.33598530400195
+  },
+  "modelFileSHA256": "c3e88e6e12cdeb9b1d8c8422174ce563240bc5fadb2889eea272040e83f65172"
+}

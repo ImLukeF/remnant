@@ -31,6 +31,62 @@ def reference():
 
 
 class SequenceContracts(unittest.TestCase):
+    def test_batched_paired_gru_matches_torch_and_never_reads_future_or_other_people(self):
+        import numpy as np
+        from array_gru import layout,encode_matrix,normalized,batch,forward,predict
+        from train_sequence import make_network,export,torch_probabilities
+        import torch
+        torch.set_num_threads(2);torch.manual_seed(7)
+        network=make_network(2);network.eval()
+        raw=np.arange(9*58,dtype=np.float64).reshape(9,58)/600
+        data={"features":raw,"augmentedFeatures":raw+0.1,"usable":np.ones(9,dtype=bool),"augmentedUsable":np.ones(9,dtype=bool),
+              "subject":np.asarray(["a"]*7+["b"]*2),"startSeconds":np.asarray([0,30,60,90,120,180,210,240,270]),"stage":np.arange(9)%4}
+        data["usable"][3]=False;data["augmentedUsable"][3]=False
+        windows=layout(data,10)
+        self.assertEqual(windows["lengths"].tolist(),[1,2,3,1,1,2,1,2])
+        model=export(network,{"history":10,"hidden":2},np.zeros(58),np.ones(58),[])
+        x=batch(normalized(encode_matrix(raw[windows["indexes"]]),model["means"],model["scales"]),windows["windows"],windows["lengths"],np.arange(8))
+        expected=torch_probabilities(network,x,windows["lengths"])
+        actual,indexes=predict(model,data)
+        self.assertLess(float(np.abs(expected-actual).max()),2e-10)
+        self.assertLess(float(np.abs(forward(model,x,windows["lengths"])-expected).max()),2e-10)
+        changed={**data,"features":raw.copy()};changed["features"][5:]+=500
+        self.assertTrue(np.array_equal(predict(model,changed)[0][:4],actual[:4]))
+        changed={**data,"features":raw.copy()};changed["features"][:7]-=500
+        self.assertTrue(np.array_equal(predict(model,changed)[0][-2:],actual[-2:]))
+        from sequence_model import SequencePredictor
+        scalar=SequencePredictor(model);last=None
+        for position,original in enumerate(indexes):
+            person=data["subject"][original]
+            if person!=last: scalar=SequencePredictor(model)
+            result=scalar.append({"usable":True,"startSeconds":float(data["startSeconds"][original]),"features":raw[original].tolist()})
+            self.assertLess(max(abs(a-b) for a,b in zip(result,actual[position])),2e-10);last=person
+
+    def test_paired_consistency_is_symmetric_finite_and_excludes_checkpoint_people_from_fit(self):
+        import numpy as np
+        import torch
+        from train_consistency import consistency,fit
+        torch.set_num_threads(2)
+        a=torch.tensor([[2.0,-1,0,1]],dtype=torch.float64,requires_grad=True)
+        b=torch.tensor([[-1.0,2,1,0]],dtype=torch.float64,requires_grad=True)
+        self.assertLess(abs(float(consistency(a,a).detach())),1e-12)
+        self.assertTrue(torch.allclose(consistency(a,b),consistency(b,a)))
+        loss=consistency(a,b).sum();self.assertGreater(float(loss.detach()),0);loss.backward()
+        self.assertTrue(torch.isfinite(a.grad).all());self.assertTrue(torch.isfinite(b.grad).all())
+        raw=np.arange(32*58,dtype=np.float64).reshape(32,58)/2000
+        arrays={"features":raw,"augmentedFeatures":raw+np.sin(raw),"usable":np.ones(32,dtype=bool),"augmentedUsable":np.ones(32,dtype=bool),
+                "subject":np.asarray(["fit"]*16+["checkpoint"]*16),"startSeconds":np.tile(np.arange(16)*30,2),"stage":np.tile(np.arange(16)%4,2)}
+        recipe={"history":10,"hidden":2,"consistency":0.25,"noiseShare":0.25,"classPower":1.0}
+        first,_,_,report=fit(arrays,["fit"],["checkpoint"],recipe,60,maximum_epochs=1)
+        changed={**arrays,"features":raw.copy(),"augmentedFeatures":arrays["augmentedFeatures"].copy(),"stage":arrays["stage"].copy()}
+        changed["features"][16:]+=10000;changed["augmentedFeatures"][16:]-=10000;changed["stage"][16:]=(changed["stage"][16:]+1)%4
+        second,_,_,_=fit(changed,["fit"],["checkpoint"],recipe,60,maximum_epochs=1)
+        for field in ("means","scales","inputWeights","recurrentWeights","inputBiases","recurrentBiases","outputWeights","outputBiases"):
+            self.assertEqual(first[field],second[field])
+        self.assertEqual(report["trainingPeople"],1);self.assertEqual(report["calibrationPeople"],1)
+        self.assertLess(report["exportMaximumDifference"],2e-10)
+        with self.assertRaises(ValueError): fit(arrays,["fit"],["fit"],recipe,60,maximum_epochs=1)
+
     def test_final_registry_keeps_previously_tested_people_outside_this_fitting_corpus(self):
         from evaluation_contracts import participant_registry
         selected={"trainingSubjects":["fit"],"validationSubjects":["validate"],"previouslyObservedSubjects":["fit","validate"]}

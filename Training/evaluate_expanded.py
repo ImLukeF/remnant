@@ -68,7 +68,11 @@ def run(args):
     for name,parameters in models.items():
         results[name]={};predictions[name]={}
         for condition,view in views.items():
-            values=probabilities(parameters,view["inputs"])
+            if parameters["modelKind"]=="gru":
+                from array_gru import predict as recurrent_predictions
+                values,indexes=recurrent_predictions(parameters,arrays,noisy=condition=="noisy")
+                if not np.array_equal(indexes,view["indexes"]): raise ValueError("Recurrent and reference intervals differ.")
+            else: values=probabilities(parameters,view["inputs"])
             predictions[name][condition]=values;result=score(view,values)
             matrix=result["confusionMatrix"];nonlight=sum(matrix[k][j] for k in (2,3) for j in range(4))
             result["deepOrREMFalseLightRate"]=(matrix[2][1]+matrix[3][1])/nonlight if nonlight else None

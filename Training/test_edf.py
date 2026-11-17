@@ -37,6 +37,15 @@ class EDFContracts(unittest.TestCase):
                 self.assertEqual(result["startSeconds"].tolist(),[0])
                 self.assertEqual(result["usable"].tolist(),[True])
                 self.assertGreater(np.ptp(result["frames"][0,:,-1]),8)
+                verified_frames=result["frames"].copy()
+            labels=root/"labels.rml"
+            labels.write_text('<Root><UserStaging><Stage Type="NonREM2" Start="0"/></UserStaging></Root>')
+            fresh=Namespace(audio_edf=source,previous_features=None,stages_rml=labels,audio_offset_seconds=0,
+                            subject="synthetic-only",output=root/"from-independent-labels.npz")
+            run(fresh)
+            with np.load(fresh.output,allow_pickle=False) as result:
+                np.testing.assert_array_equal(result["frames"],verified_frames)
+                self.assertEqual(result["stage"].tolist(),[1])
             row["features"][0]+=10; previous.write_text(json.dumps(row)+"\n")
             args.output=root/"must-not-exist.npz"
             with self.assertRaises(ValueError): run(args)

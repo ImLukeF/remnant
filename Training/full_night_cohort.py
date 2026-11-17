@@ -37,6 +37,20 @@ def retry(operation):
             time.sleep(2**attempt)
 
 
+def separate_ambiguous_times(records):
+    """Quarantine every member of overlapping clock coverage, without guessing a corrected time."""
+    ordered=sorted(records,key=lambda f:(f["offsetSeconds"],f["path"]))
+    groups=[];current=[];end=0
+    for item in ordered:
+        if current and item["offsetSeconds"]>=end-0.01:
+            groups.append(current);current=[]
+        current.append(item);end=max(f["offsetSeconds"]+f["durationSeconds"] for f in current)
+    if current: groups.append(current)
+    valid=[g[0] for g in groups if len(g)==1]
+    invalid=[{**item,"unusableReason":"Ambiguous overlapping source timestamps."} for g in groups if len(g)>1 for item in g]
+    return valid,invalid
+
+
 def prepare(args):
     root=args.output.resolve(); root.mkdir(parents=True,exist_ok=True)
     labels=root/"labels"; labels.mkdir(exist_ok=True)
@@ -81,10 +95,23 @@ def prepare(args):
                           "path":item["path"],"bytes":item["size"],"sha256":item["lfs"]["oid"]})
         if not files: raise ValueError("A reserved development participant has no audio.")
         return files
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        groups=list(pool.map(inventory,selected))
-    flat=[item for group in groups for item in group]
-    atomic_json(root/"source-inventory.json",flat)
+    inventory_path=root/"source-inventory.json"
+    if inventory_path.exists():
+        flat=json.loads(inventory_path.read_text())
+        if {f["subject"] for f in flat}!=set(roles): raise ValueError("Cached source inventory changed participants.")
+        groups=[]
+        for subject,recording,rml in selected:
+            group=[f for f in flat if f["subject"]==subject]
+            if any(f["recording"]!=recording or f["rml"]!=rml["path"] or f["rmlGitOID"]!=rml["oid"] for f in group):
+                raise ValueError("Cached inventory disagrees with pinned participant annotations.")
+            data=(labels/(recording+".rml")).read_bytes()
+            if hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()!=rml["oid"]: raise ValueError("Cached annotations changed.")
+            groups.append(group)
+    else:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            groups=list(pool.map(inventory,selected))
+        flat=[item for group in groups for item in group]
+        atomic_json(inventory_path,flat)
     if sum(f["bytes"] for f in flat)>args.max_download_gib*1024**3:
         raise ValueError("Complete available development recordings exceed the download bound.")
     progress_path=root/"header-checks.json"
@@ -104,9 +131,10 @@ def prepare(args):
             original=next(old for old in group if old["path"]==item["path"])
             if any(original[k]!=item[k] for k in original): raise ValueError("Cached header source changed.")
         unusable.extend(item for item in records if "unusableReason" in item)
-        ordered=sorted((item for item in records if "unusableReason" not in item),key=lambda f:f["offsetSeconds"])
+        ordered,ambiguous=separate_ambiguous_times([item for item in records if "unusableReason" not in item])
+        unusable.extend(ambiguous)
         if not ordered: raise ValueError("A reserved development participant has no valid source headers.")
-        end=None; counts={}
+        end=0.0; counts={}
         for item in ordered:
             original=next(old for old in group if old["path"]==item["path"])
             if any(original[k]!=item[k] for k in original): raise ValueError("Cached header source changed.")

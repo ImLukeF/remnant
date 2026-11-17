@@ -6,6 +6,16 @@ from train import fit, partition
 
 
 class TrainingContracts(unittest.TestCase):
+    def test_overlapping_source_clocks_are_quarantined_without_retiming_either_recording(self):
+        from full_night_cohort import separate_ambiguous_times
+        items=[{"path":"first.edf","offsetSeconds":0,"durationSeconds":3600},
+               {"path":"wrong-clock.edf","offsetSeconds":0,"durationSeconds":3600},
+               {"path":"next.edf","offsetSeconds":7200,"durationSeconds":3600}]
+        valid,quarantined=separate_ambiguous_times(items)
+        self.assertEqual(valid,[items[2]])
+        self.assertEqual({f["path"] for f in quarantined},{"first.edf","wrong-clock.edf"})
+        self.assertTrue(all(f["offsetSeconds"]==0 for f in quarantined))
+
     def test_zero_edf_header_is_explicitly_quarantined_without_guessing_timing(self):
         from io import BytesIO
         from unittest.mock import patch

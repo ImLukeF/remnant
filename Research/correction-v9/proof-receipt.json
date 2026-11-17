@@ -1,0 +1,39 @@
+{
+  "jobId": "5d06e7e9c03947e7b54bd0b5766f2ed2",
+  "status": "passed",
+  "createdAt": "2026-11-17T09:34:45.343790+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "c169b1bd7f6e739159149e82482008209fda7748",
+    "lane": "codex-sleep-correction-proof-v9",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=2",
+      "OMP_NUM_THREADS=2",
+      "PYTHONPATH=Packages/SleepWakeKit/Training",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "-m",
+      "unittest",
+      "test_full_nights.FullNightContracts.test_bias_calibration_learns_on_separate_people_and_preserves_the_original_trees",
+      "test_full_nights.FullNightContracts.test_expanded_training_refits_all_200_people_without_reading_reserved_people",
+      "test_full_nights.FullNightContracts.test_expanded_tree_fitting_uses_training_people_and_not_the_export_probe",
+      "-v"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 300
+  },
+  "startedAt": "2026-11-17T09:34:45.446219+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-correction-proof-v9",
+  "sourceSha": "c169b1bd7f6e739159149e82482008209fda7748",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T09:35:13.715432+00:00"
+}

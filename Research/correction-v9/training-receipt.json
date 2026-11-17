@@ -1,0 +1,43 @@
+{
+  "jobId": "c169586cf6f94b6797381cc15149e00d",
+  "status": "passed",
+  "createdAt": "2026-11-17T09:36:10.870304+00:00",
+  "request": {
+    "action": "run",
+    "repository": "ImLukeF/parley",
+    "sourceSha": "c169b1bd7f6e739159149e82482008209fda7748",
+    "lane": "codex-sleep-correction-v9",
+    "argv": [
+      "env",
+      "OPENBLAS_NUM_THREADS=3",
+      "OMP_NUM_THREADS=3",
+      "uv",
+      "run",
+      "--python",
+      "3.12",
+      "--with-requirements",
+      "Packages/SleepWakeKit/Training/requirements-research-linux.txt",
+      "python",
+      "Packages/SleepWakeKit/Training/train_correction.py",
+      "--development",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-v8",
+      "--previous",
+      "/srv/ai-team/artifacts/sleep-wake-expanded-model-v8",
+      "--baseline",
+      "/srv/ai-team/artifacts/sleep-wake-stage-complete-v4/model.json",
+      "--output",
+      "/srv/ai-team/artifacts/sleep-wake-correction-v9",
+      "--max-seconds",
+      "1100"
+    ],
+    "prepare": "none",
+    "timeoutSeconds": 1200
+  },
+  "startedAt": "2026-11-17T09:36:11.348964+00:00",
+  "workspace": "/srv/ai-team/worktrees/ImLukeF--parley--codex-sleep-correction-v9",
+  "sourceSha": "c169b1bd7f6e739159149e82482008209fda7748",
+  "exitCode": 0,
+  "logTruncated": false,
+  "sourceDirtyAfter": false,
+  "finishedAt": "2026-11-17T09:41:27.058001+00:00"
+}

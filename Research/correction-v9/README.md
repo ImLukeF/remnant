@@ -18,5 +18,5 @@ confusion-matrix metric recomputation and model-file checksum verification.
 
 JSON model parameters, reports and the frozen protocol are private research artifacts.
 Raw audio, clinical annotations and derived clinical feature arrays remain outside Git.
-Both repositories remain private; the incumbent model remains unchanged. The next bounded
+The incumbent model remains unchanged. The next bounded
 experiment tests past-only paired-noise consistency training rather than changing these results.

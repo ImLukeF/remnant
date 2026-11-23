@@ -2,7 +2,7 @@
 
 This completed experiment fitted both fixed recipes on 159 people and refitted the chosen recipe
 on all 199 usable development people, using 932.933 usable hours. Neither recipe passed validation
-admission. The reserved 30-person final test remains unopened. Both repositories remain private.
+admission. The reserved 30-person final test remains unopened.
 
 The development split contains 160 fitting people and 40 new validation people. All 84 people
 observed in previous experiments are in fitting. After selecting between fixed clean and

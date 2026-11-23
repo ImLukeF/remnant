@@ -6,6 +6,6 @@ The paired development benchmark is macro F1 0.3062 and balanced accuracy 42.64%
 
 This work added a verified 240x25 time-resolved acoustic representation, a 157.15-hour reusable clinical cache, causal GRU/CNN native inference, independent training/export math checks and stricter test-participant provenance. The data cache stays private on the VPS; raw recordings were deleted. No live phone audio was collected.
 
-Focused Python/Swift contracts and the iOS audio-library cross-compile pass. No real-phone overnight, TV-noise, battery or native-alarm hardware acceptance was performed. Model-derived light-sleep waking remains disabled. Both repositories remain private; no MIT/public release has occurred.
+Focused Python/Swift contracts and the iOS audio-library cross-compile pass. No real-phone overnight, TV-noise, battery or native-alarm hardware acceptance was performed. Model-derived light-sleep waking remains disabled.
 
 Per-experiment reports and exact-source receipts are in ../sequence-v5, ../sequence-balanced-v5, ../acoustic-v6 and ../spectral-cv-v7. Existing model and independent-test evidence remain in ../spectral-v4.

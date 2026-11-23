@@ -5,7 +5,7 @@ turns it into 30-second measurements and plans wake alarms with backup attempts.
 It also holds the Python tools used to train and test sleep-stage models.
 Everything stays on the device: no account, API key, paid SDK or network service.
 
-Still in development. An MIT licence is planned once a working version is ready.
+Still in development. Licensed under [Apache 2.0](LICENSE).
 
 ## What works
 
@@ -99,7 +99,7 @@ replaces or postpones the safety sequence.
 
 Use independently scored bedroom audio, with permission and appropriate dataset rights.
 PSG-Audio is one research starting point: https://doi.org/10.1038/s41597-021-00977-w
-and https://doi.org/10.11922/sciencedb.00345. Dataset terms are separate from the planned code licence.
+and https://doi.org/10.11922/sciencedb.00345. Dataset terms are separate from the code licence.
 No dataset, recordings or external model weights are included or downloaded automatically.
 
 The explicit `Training/run_dataset.py` command verifies the original provider's CC BY 4.0
@@ -206,3 +206,7 @@ explicit local output URL. The host chooses retention and must provide deletion 
 The core, Apple audio source and training tools were independently written; no proprietary SDK,
 research repository code or third-party model was copied. Contributions should include provenance
 and subject-separated results for any proposed model or dataset.
+
+## Licence
+
+[Apache 2.0](LICENSE). Copyright 2026 Luke Fornieri.

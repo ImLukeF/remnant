@@ -47,4 +47,4 @@ Raw recordings, annotations, NPZ/epoch observations and export-check inputs rema
 Git. Local private observations and the disposable verifier were removed. The controller
 and workers exited; the empty raw-cache directory was removed. Useful private feature
 and public-source noise caches remain on the VPS. The completion check was disabled.
-Both repositories remain private, with no public/MIT release, PR, deployment or phone use.
+No PR, deployment or phone use was involved.

@@ -75,5 +75,5 @@ causal context and the larger final fitting cohort.
 
 No real-phone overnight, TV-noise, battery, latency, wearable-reference or alarm hardware trial has
 been performed. No microphone session was started. Parley requires explicit start, keeps observations
-on the phone, and does not let any imported model control alarm timing. Both code repositories remain
-private; MIT publication is deferred until a working version is established.
+on the phone, and does not let any imported model control alarm timing. MIT publication is deferred
+until a working version is established.

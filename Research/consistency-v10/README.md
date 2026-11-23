@@ -15,7 +15,7 @@ verified-result.json records independent confusion-matrix metric recomputation, 
 and exact-source receipt verification. The independent batched GRU matches PyTorch within
 2e-10; synthetic proofs are not clinical accuracy. Private JSON weights and aggregate reports
 are retained here. Raw audio, clinical labels and derived observations remain outside Git.
-The incumbent is unchanged. Both repositories stay private; no app, microphone or phone use.
+The incumbent is unchanged. No app, microphone or phone use.
 
 The separate fixed-wake-signal review found zero qualifying adjacent epoch pairs across all
 40 validation people for both new GRUs and the incumbent, under both clean and added noise.

@@ -1,8 +1,11 @@
 # SleepWakeKit
 
-Experimental, private-by-default sleep research and coordinated wake plans for Swift apps.
-Private development. An MIT release is planned once a working version is ready.
-No account, API key, paid SDK or network service is required.
+SleepWakeKit is an experimental Swift package that listens to bedroom sound on an iPhone,
+turns it into 30-second measurements and plans wake alarms with backup attempts.
+It also holds the Python tools used to train and test sleep-stage models.
+Everything stays on the device: no account, API key, paid SDK or network service.
+
+Still in development. An MIT licence is planned once a working version is ready.
 
 ## What works
 
@@ -30,7 +33,7 @@ approve imported models for alarm timing.
 
 ## Swift integration
 
-Add this directory as a Swift package, or use its standalone Git repository once published.
+Add this repository as a Swift package.
 The SleepWakeKit product contains the platform-independent engine.
 The SleepWakeAudio product adds the iOS microphone source.
 

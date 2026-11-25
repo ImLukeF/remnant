@@ -101,3 +101,24 @@ Share of each Watch stage that the phone model also called that stage:
 Takeaway: balanced accuracy on night 2 was 0.34, close to chance. The phone model never calls REM, and it called
 about 154 minutes deep when the Watch said 49, so the higher deep score is mostly over-calling again.
 Two nights now agree: the lab-trained model doesn't carry over to this bedroom.
+
+## 26 Nov: learning from the two home nights
+
+Lined the Watch's stages up with the audio half-minute by half-minute, pulled simple sound features
+(loudness, movement, breathing rhythm, tone), then trained on one night and tested on the other.
+Ran on a laptop, so no cost. Scripts: `home_night_features.py`, `home_night_train.py`.
+
+| Trained on → tested on | REM AUC | Balanced accuracy | REM found | Phone model's balanced accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Night 1 → night 2 | 0.70 | 0.41 | 2% | 0.34 |
+| Night 2 → night 1 | 0.76 | 0.51 | 46% | 0.36 |
+
+Takeaway: this is the first time anything has picked up REM in this bedroom. What gives it away is a long
+quiet, still stretch: fewer loud moments and steadier sound over about 20 minutes, the same on both nights.
+REM AUC is 0.5 for a guess, and time of night alone scored below 0.5, so it isn't just the clock.
+Sliding the Watch's stages out of line beat the real score 7% of the time one way and never the other.
+
+Cautions: two nights from one person, so this is a lead, not a result. Trained on night 1, it ranks REM well
+but rarely commits to calling it, so the cut-off doesn't carry over yet. Night 1 was saved at 16-bit;
+re-saving night 2 at 16-bit gave almost the same scores, so these coarse features don't depend on the fix.
+The Watch also leans on stillness, so part of this is matching how the Watch decides.

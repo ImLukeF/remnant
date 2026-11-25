@@ -122,3 +122,21 @@ Cautions: two nights from one person, so this is a lead, not a result. Trained o
 but rarely commits to calling it, so the cut-off doesn't carry over yet. Night 1 was saved at 16-bit;
 re-saving night 2 at 16-bit gave almost the same scores, so these coarse features don't depend on the fix.
 The Watch also leans on stillness, so part of this is matching how the Watch decides.
+
+## 26 Nov: does a close microphone hear more than the phone?
+
+A wireless clip-on mic on the bedhead recorded the same night as the phone (5 hours overlap, 604 half-minutes).
+The two were lined up by matching sounds: the same offset fit every hour to within 0.1 s.
+
+| | Phone | Bedhead mic |
+| --- | ---: | ---: |
+| Typical level | -75.8 dBFS | -80.6 dBFS |
+| Quiet floor to loud moments | 15.2 dB | 13.0 dB |
+| Half-minutes with a clear breathing rhythm | 34% | 33% |
+| REM AUC, model trained on phone night 1 | 0.75 | 0.60 |
+
+Takeaway: the close mic heard no more than the phone. Its loudness followed the phone's almost exactly
+(0.89 match per second), breathing rhythm showed up just as often, and sounds stood out from the background
+slightly less. The lower REM score on the mic is at least partly because the model was trained on phone audio.
+So the phone's microphone and placement aren't what's holding this back. Couldn't confirm whether the mic's
+noise cancelling was off; nothing in the audio suggests it was on.

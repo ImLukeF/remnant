@@ -3,7 +3,9 @@
 SleepWakeKit is an experimental Swift package that listens to bedroom sound on an iPhone,
 turns it into 30-second measurements and plans wake alarms with backup attempts.
 It also holds the Python tools used to train and test sleep-stage models.
-Everything stays on the device: no account, API key, paid SDK or network service.
+The Swift package stays on the device: no account, API key, paid SDK or network service. The optional Python research
+tools can download explicitly named public datasets or use configured remote research services; they never run as part
+of the package.
 
 Still in development. Licensed under [Apache 2.0](LICENSE).
 
@@ -21,9 +23,10 @@ Still in development. Licensed under [Apache 2.0](LICENSE).
 
 ## What is experimental
 
-**No trained or validated sleep-stage model is bundled.** Sound level is not a sleep stage.
-The observations are signal measurements. The trainable baseline is a research starting point;
-its simple features may be insufficient to separate light, deep and REM sleep reliably.
+**Research models are included for reproducibility, but none is clinically validated or approved for alarm timing.**
+Sound level is not a sleep stage. The observations are signal measurements. Files under `Research/` are experiment
+artifacts, including rejected candidates and their limitations, not product endorsements. The trainable baseline is a
+research starting point; its simple features may be insufficient to separate light, deep and REM sleep reliably.
 Quiet rooms, TV sound, other sleepers, microphone placement and device processing all need evaluation.
 
 An imported model does not become trusted by declaring itself accurate. The wake decision engine's
@@ -176,6 +179,18 @@ incumbent on the same 30 new people, reporting paired participant uncertainty wi
 `Training/orchestrate_expansion.py` runs these phases as bounded exact-source VPS jobs, retains
 verified checkpoints and stops on failures. This research route never enables model-driven alarms.
 
+### Weekly home fine-tuning
+
+`Training/train_home.py` starts from the current spectral-v4 GRU and uses explicitly consented home nights. A fixed
+quarter of nights is held back. A candidate is kept only if it catches at least as many marked awake moments without
+calling substantially more of the likely-asleep window awake, and the clean/noisy lab check does not regress beyond
+its fixed tolerance. Reserved final-test people are never read, and `approvedForAlarmTiming` remains false.
+
+`Training/home_week.py` and the units in `Training/vps/` automate the weekly run. `Training/extract_teacher.py`,
+`Training/own_night_teacher.py`, `Training/colab_teacher.py`, `Training/colab_ears.py` and the `Training/modal_*.py`
+scripts provide optional teacher/student and pretrained-audio experiments. They require explicit private inputs and
+credentials and may use Colab, Modal or a VPS; they are separate from the on-device package.
+
 Use the pinned CPU-only `Training/requirements-sequence-linux.txt` environment for neural research.
 `Training/prepare_sequence_test.py` enforces development admission and prepares a new cohort;
 `Training/evaluate_sequence.py` or `Training/evaluate_acoustic.py` scores the frozen model once.
@@ -202,7 +217,9 @@ background operation, battery use and native alarm actions require real-device v
 ## Privacy and reuse
 
 The package performs no network requests. Recordings are disabled unless a host supplies an
-explicit local output URL. The host chooses retention and must provide deletion and recording controls.
+explicit local output URL. The host chooses retention and must provide deletion and recording controls. Optional
+`Training/` scripts are separate from package runtime code; review each command before giving it network access or
+private research data.
 The core, Apple audio source and training tools were independently written; no proprietary SDK,
 research repository code or third-party model was copied. Contributions should include provenance
 and subject-separated results for any proposed model or dataset.

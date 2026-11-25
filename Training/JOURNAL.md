@@ -78,3 +78,26 @@ awake, the same failure as Dasheng 1.2B.
 Takeaway: the student kept the snoring skill of all four ears (0.906, better than Dasheng 1.2B alone) at about
 a fourteenth of the size, and survives 8-bit. It lost some staging (0.49 against 0.546), mostly deep sleep.
 It doesn't fix the bedroom problem; that still needs Watch-labelled home nights.
+
+## 25 Nov: saving the night's audio in more detail
+
+Home night 1 was saved at 16-bit. A quiet bedroom sat at about -75 dBFS, which is only about 6 steps of
+loudness out of 32,768, so most of the breathing detail was rounded away when the file was saved.
+The app now saves at 24-bit. This changes the saved recording we train on, not the stages shown on the phone.
+
+## 26 Nov: home night 2 against an Apple Watch
+
+The first night saved at 24-bit (about 5.9 hours, 704 half-minutes). Same quiet room (about -74 dBFS), but it now
+has about 1,580 steps of loudness to work with instead of 6. A close microphone on the bedhead recorded the
+same night for comparison; its battery ran out before morning.
+
+Share of each Watch stage that the phone model also called that stage:
+
+| Model | Awake | Light | Deep | REM |
+| --- | ---: | ---: | ---: | ---: |
+| Phone model (v11), night 1 | 45% | 65% | 35% | 0% |
+| Phone model (v11), night 2 | 19% | 44% | 71% | 0% |
+
+Takeaway: balanced accuracy on night 2 was 0.34, close to chance. The phone model never calls REM, and it called
+about 154 minutes deep when the Watch said 49, so the higher deep score is mostly over-calling again.
+Two nights now agree: the lab-trained model doesn't carry over to this bedroom.

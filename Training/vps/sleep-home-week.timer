@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly sleep model run, Sundays at 1 pm
+
+[Timer]
+OnCalendar=Sun *-*-* 13:00:00 Australia/Melbourne
+Persistent=true
+Unit=sleep-home-week.service
+
+[Install]
+WantedBy=timers.target

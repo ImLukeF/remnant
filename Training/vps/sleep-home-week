@@ -1,0 +1,17 @@
+#!/bin/sh
+# The weekly sleep-model run: today's main, trained on Luke's nights (Training/home_week.py in Remnant).
+# Installed at /usr/local/bin/sleep-home-week; sleep-home-week.timer runs it on Sundays.
+set -eu
+repo=/srv/ai-team/repos/ImLukeF--remnant.git
+tree=/srv/ai-team/worktrees/sleep-home-week
+git -C "$repo" fetch -q origin main
+git -C "$repo" worktree remove --force "$tree" 2>/dev/null || true
+git -C "$repo" worktree prune
+git -C "$repo" worktree add -q --detach "$tree" origin/main
+cd "$tree/Training"
+status=0
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 uv run -q --python 3.12 --with-requirements requirements-sequence-linux.txt \
+  python home_week.py || status=$?
+cd /
+git -C "$repo" worktree remove --force "$tree"
+exit $status

@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly sleep model run on Luke's own nights
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/remy-runner.env
+Environment=HOME=/root
+ExecStart=/usr/local/bin/sleep-home-week
+Nice=10
+TimeoutStartSec=3h

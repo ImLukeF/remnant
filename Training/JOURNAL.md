@@ -191,3 +191,13 @@ The live version gains little from the lab and is less steady.
 
 Cautions: two nights, one person. The home night counted for half the training weight; a fifth also beat the phone
 model (0.51 and 0.53). Deep sleep on night 1 stayed poor (14%). The live version here is an approximation.
+
+## 26 Nov: the morning model goes on the phone
+
+The combined model, retrained on all 230 lab people plus both home nights, now runs in the app. When a night
+with saved sound ends, the app reads the whole recording again and shows this second result under the live one.
+The app's maths was checked against the training maths: same stage totals on home night 2 (54.5 minutes awake,
+142 light, 58.5 deep, 97 REM), in about 7 seconds on a laptop.
+
+Caution: this shipped model has seen both home nights, so its scores on those two mean nothing.
+The first fair test is the next new night against the Watch.

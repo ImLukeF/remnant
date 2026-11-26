@@ -87,9 +87,7 @@ public final class OvernightAudio {
             throw error
         }
         self.processor = processor
-        input.installTap(onBus: 0, bufferSize: 4_096, format: format) { buffer, time in
-            processor.process(buffer, time: time)
-        }
+        input.installTap(onBus: 0, bufferSize: 4_096, format: format, block: Self.tap(processor))
         do {
             try engine.start()
         } catch {
@@ -145,6 +143,11 @@ public final class OvernightAudio {
         stop(deactivateSession: deactivateSession)
         await finishing?.value
         finishing = nil
+    }
+
+    /// Built outside the main actor: the audio thread calls it, and a main-actor closure traps there.
+    nonisolated private static func tap(_ processor: Processor) -> AVAudioNodeTapBlock {
+        { buffer, time in processor.process(buffer, time: time) }
     }
 
     private func interrupt() {

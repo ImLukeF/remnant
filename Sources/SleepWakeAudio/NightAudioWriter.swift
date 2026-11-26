@@ -3,6 +3,7 @@ import AVFAudio
 import Foundation
 
 /// Confined to the capture worker after construction. Lossless mono PCM, with a bounded resampling buffer.
+/// 24-bit: a quiet bedroom sits near -75 dBFS, where 16-bit keeps only a few steps of the breathing.
 final class NightAudioWriter: @unchecked Sendable {
     enum Failure: Error { case invalidFormat, conversion, tooLong }
     private let source: AVAudioFormat
@@ -14,9 +15,9 @@ final class NightAudioWriter: @unchecked Sendable {
     init(url: URL, sampleRate: Int) throws {
         guard let source = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: Double(sampleRate), channels: 1, interleaved: false) else { throw Failure.invalidFormat }
         let settings: [String: Any] = [AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: Double(Self.sampleRate),
-            AVNumberOfChannelsKey: 1, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: false,
+            AVNumberOfChannelsKey: 1, AVLinearPCMBitDepthKey: 24, AVLinearPCMIsFloatKey: false,
             AVLinearPCMIsBigEndianKey: false, AVLinearPCMIsNonInterleaved: false]
-        let file = try AVAudioFile(forWriting: url, settings: settings, commonFormat: .pcmFormatInt16, interleaved: true)
+        let file = try AVAudioFile(forWriting: url, settings: settings, commonFormat: .pcmFormatFloat32, interleaved: false)
         guard let converter = AVAudioConverter(from: source, to: file.processingFormat) else { throw Failure.invalidFormat }
         converter.primeMethod = .none
         self.source = source; self.converter = converter; self.file = file

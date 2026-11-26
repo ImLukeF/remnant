@@ -11,6 +11,6 @@ let package = Package(
     targets: [
         .target(name: "SleepWakeKit"),
         .target(name: "SleepWakeAudio", dependencies: ["SleepWakeKit"]),
-        .testTarget(name: "SleepWakeKitTests", dependencies: ["SleepWakeKit", "SleepWakeAudio"], resources: [.copy("spectral-reference.json"), .copy("gru-reference.json"), .copy("acoustic-reference.json"), .copy("acoustic-model-reference.json")]),
+        .testTarget(name: "SleepWakeKitTests", dependencies: ["SleepWakeKit", "SleepWakeAudio"], resources: [.copy("spectral-reference.json"), .copy("gru-reference.json"), .copy("acoustic-reference.json"), .copy("acoustic-model-reference.json"), .copy("morning-reference.json")]),
     ]
 )

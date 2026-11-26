@@ -454,3 +454,33 @@ import AVFAudio
     #expect(WakeCompletion.actions(for: members, now: now, calendar: calendar)
             == [.stop(ringing), .skipNext(later), .cancel(oneOff)])
 }
+
+@Test func morningModelMatchesItsTrainingMathsOnTheSameSound() throws {
+    struct Reference: Decodable { let rows: [[Double]]; let probabilities: [[Double]] }
+    let url = try #require(Bundle.module.url(forResource: "morning-reference", withExtension: "json"))
+    let reference = try JSONDecoder().decode(Reference.self, from: Data(contentsOf: url))
+    // Ten minutes of repeatable noise: loudness changes each half-minute, some pulse like breathing, some have a bump.
+    let epochs = reference.rows.count, count = epochs * 480_000 + 1_024
+    var sound = MorningSound(), state: UInt32 = 12_345, position = 0
+    while position < count {
+        let chunk = (position..<min(count, position + 64_000)).map { index -> Float in
+            state = state &* 1_664_525 &+ 1_013_904_223
+            let epoch = index / 480_000
+            let gain = 1 + epoch % 5 + (epoch % 3 == 0 ? 6 * ((index / 32_000) % 2) : 0) + (index % 1_440_000 < 8_000 ? 40 : 0)
+            return Float((Int((state >> 16) & 0xFFFF) - 32_768) * gain) / 8_388_608
+        }
+        chunk.withUnsafeBufferPointer { sound.append($0) }
+        position += chunk.count
+    }
+    let rows = sound.rows(starts: (0..<epochs).map { Double($0) * 30 } + [Double(epochs) * 30, -1])
+    #expect(rows.suffix(2).allSatisfy { $0 == nil })
+    let covered = rows.compactMap(\.self)
+    try #require(covered.count == epochs)
+    for (row, expected) in zip(covered, reference.rows) {
+        for (value, wanted) in zip(row, expected) { #expect(abs(value - wanted) <= 0.002 * max(1, abs(wanted))) }
+    }
+    let chances = MorningModel.shipped.probabilities(covered)
+    for (row, expected) in zip(chances, reference.probabilities) {
+        for (value, wanted) in zip(row, expected) { #expect(abs(value - wanted) <= 0.01) }
+    }
+}

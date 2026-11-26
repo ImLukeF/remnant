@@ -12,7 +12,8 @@ Times are Melbourne time. Costs are actual Modal charges from `modal billing rep
 | 24–25 Nov | `sleep-ears` | Four ears over every block, then the probe on each | 17.53 |
 | 25 Nov | `sleep-night` | Dasheng probe on home night 1 | 0.34 |
 | 25 Nov | `sleep-distill` | Distilling the four ears into one 85M model, incl. timing test | 11.47 |
-| | | **Total** | **31.96** |
+| 26 Nov | `sleep-home-check` | Home-night sound clues tested on every lab recording | 0.76 |
+| | | **Total** | **32.72** |
 
 Earlier work (the v11 phone model and the v12 Whisper teacher) ran on the VPS and Colab and wasn't costed here.
 
@@ -140,3 +141,30 @@ Takeaway: the close mic heard no more than the phone. Its loudness followed the 
 slightly less. The lower REM score on the mic is at least partly because the model was trained on phone audio.
 So the phone's microphone and placement aren't what's holding this back. Couldn't confirm whether the mic's
 noise cancelling was off; nothing in the audio suggests it was on.
+
+## 26 Nov: do the home-night clues hold in the sleep lab?
+
+The same simple sound features, pulled from all 230 lab people (129,706 half-minutes) and scored on the
+40 validation people. Script: `modal_home_check.py`, code at commit `1c87d97`. Cost $0.76.
+
+| Trained on → tested on | REM AUC | Deep AUC | Awake AUC | Balanced accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Lab → lab, simple model | 0.66 | 0.74 | 0.88 | 0.52 |
+| Lab → lab, trees | 0.72 | 0.71 | 0.90 | 0.46 |
+| Home nights → lab | 0.41 | 0.59 | 0.73 | 0.32 |
+| Lab → home night 1, simple | 0.43 | 0.71 | 0.78 | 0.41 |
+| Lab → home night 2, simple | 0.58 | 0.65 | 0.80 | 0.42 |
+
+Takeaway, in three parts:
+
+- The home REM clue only half holds. In the lab REM also has fewer loud moments over 20 minutes, but weakly
+  (single-clue AUC about 0.37 to 0.42 against 0.25 to 0.30 at home), and the "steadier sound" part doesn't show at all.
+- REM doesn't carry over either way. A model trained on the two home nights does worse than a guess on lab REM, and a
+  lab-trained one is at or near a guess on home REM. Most lab people have severe apnoea, which is worst in REM, so
+  their REM is noisy where a healthy sleeper's is quiet.
+- Awake and deep do carry over. Trained only on the lab, this simple model scores 0.41 and 0.42 on the home nights,
+  against 0.36 and 0.34 for the phone model. In the lab it reaches 0.52, close to the 1.2B model's 0.546 and above
+  the 85M student's 0.49. The likely reason is that every feature is measured against that night's own quiet level.
+
+Caution: these features look 20 minutes ahead and need the whole night to set the quiet level, so they suit a
+morning summary, not live tracking.

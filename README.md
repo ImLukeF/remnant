@@ -86,7 +86,7 @@ already-written observations; capture never restarts automatically. Night JSON d
 encoding (`secondsSince2001-01-01T00:00:00Z`). Predictions and personal feedback are not clinical labels.
 
 For explicitly consented local audio, pass a private `audioURL` to `OvernightAudio.start`.
-The worker writes lossless mono 16-bit / 16-kHz CAF with bounded conversion buffers. At most
+The worker writes lossless mono 24-bit / 16-kHz CAF with bounded conversion buffers. At most
 twelve hours are written (about 1.4 GB uncompressed). Hosts must provide deletion, free-space
 checks and explicit export controls. Never start a microphone session or upload data automatically.
 

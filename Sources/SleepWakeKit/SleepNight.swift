@@ -30,6 +30,12 @@ public struct SleepNight: Codable, Equatable, Identifiable, Sendable {
             self.sourceBundleID = sourceBundleID; self.device = device
         }
     }
+    /// The night read again after it ended, one stage per observation; nil where the saved sound doesn't cover it.
+    public struct Morning: Codable, Equatable, Sendable {
+        public var modelID: String
+        public var stages: [SleepStage?]
+        public init(modelID: String, stages: [SleepStage?]) { self.modelID = modelID; self.stages = stages }
+    }
     public struct Preview: Codable, Equatable, Identifiable, Sendable {
         public var id: UUID
         public var start: Date
@@ -62,6 +68,7 @@ public struct SleepNight: Codable, Equatable, Identifiable, Sendable {
     public var feedback = Feedback()
     public var healthReference: [HealthReference] = []
     public var healthReferenceReadAt: Date?
+    public var morning: Morning?
     public var capturedSeconds: Int { observations.count * AudioFeatureExtractor.epochSeconds }
     public var usableSeconds: Int { observations.filter(\.usable).count * AudioFeatureExtractor.epochSeconds }
 

@@ -73,22 +73,14 @@ def breathing(envelope):
     return float(ac[lag]), lag / rate
 
 
-def main(night, bits, requantise, out):
-    meta = json.load(open(f"{night}/night.json"))
-    audio, scale = read(f"{night}/night.caf", bits, requantise)
-    mels, centroid, flat = frames(audio, scale)
-    floor = np.median(mels, axis=0)
-    mels = mels - floor  # everything relative to this night's own quiet level
+def epoch_rows(mels, centroid, flat, starts):
+    """One row of features per half-minute. `mels` is already relative to the night's quiet level; `starts` are frame numbers."""
     loud = 10 * np.log10((10 ** (mels[:, 4:16] / 10)).mean(1))
-    rows, labels, times = [], [], []
     per = int(30 * FPS)
-    for o in meta["observations"]:
-        a = int((o["start"] - meta["started"]) * FPS)
-        if a < 0 or a + per > len(mels):
-            continue
+    rows = []
+    for a in starts:
         m, lv = mels[a : a + per], loud[a : a + per]
-        wide = loud[max(0, a - per) : a + 2 * per]
-        strength, period = breathing(wide)
+        strength, period = breathing(loud[max(0, a - per) : a + 2 * per])
         strength30, period30 = breathing(lv)
         rows.append(np.concatenate([
             m.mean(0), m.std(0),
@@ -97,15 +89,28 @@ def main(night, bits, requantise, out):
              centroid[a : a + per].mean(), centroid[a : a + per].std(),
              np.log(flat[a : a + per]).mean(), strength, period, strength30, period30],
         ]))
+    return np.array(rows, dtype=np.float32)
+
+
+def main(night, bits, requantise, out):
+    meta = json.load(open(f"{night}/night.json"))
+    audio, scale = read(f"{night}/night.caf", bits, requantise)
+    mels, centroid, flat = frames(audio, scale)
+    mels = mels - np.median(mels, axis=0)  # everything relative to this night's own quiet level
+    per = int(30 * FPS)
+    kept = [o for o in meta["observations"] if 0 <= int((o["start"] - meta["started"]) * FPS) <= len(mels) - per]
+    rows = epoch_rows(mels, centroid, flat, [int((o["start"] - meta["started"]) * FPS) for o in kept])
+    labels, times = [], []
+    for o in kept:
         mid = (o["start"] + o["end"]) / 2
         watch = [STAGES[h["category"]] for h in meta["healthReference"]
                  if h["start"] <= mid < h["end"] and h["category"] in STAGES]
         labels.append(watch[0] if watch else -1)
         times.append((o["start"] - meta["started"]) / 3600)
-    phone = [["awake", "light", "deep", "rem"].index(o["stage"]) if o["stage"] in ("awake", "light", "deep", "rem") else -1
-             for o in meta["observations"]][: len(rows)]
-    np.savez(out, x=np.array(rows, dtype=np.float32), y=np.array(labels), hours=np.array(times), phone=np.array(phone))
-    print(out, np.array(rows).shape, np.bincount(np.array(labels) + 1))
+    names = ["awake", "light", "deep", "rem"]
+    phone = [names.index(o["stage"]) if o["stage"] in names else -1 for o in kept]
+    np.savez(out, x=rows, y=np.array(labels), hours=np.array(times), phone=np.array(phone))
+    print(out, rows.shape, np.bincount(np.array(labels) + 1))
 
 
 if __name__ == "__main__":

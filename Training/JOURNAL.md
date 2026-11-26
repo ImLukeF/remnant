@@ -168,3 +168,26 @@ Takeaway, in three parts:
 
 Caution: these features look 20 minutes ahead and need the whole night to set the quiet level, so they suit a
 morning summary, not live tracking.
+
+## 26 Nov: lab and home nights in one model
+
+One small model trained on the lab people plus one home night, tested on the other home night.
+Two versions: a morning one that reads the whole night, and a live one that only uses what it has heard so far.
+Ran on a laptop, no cost. Script: `home_night_combined.py`.
+
+| Balanced accuracy | Night 1 | Night 2 |
+| --- | ---: | ---: |
+| Phone model today (v11) | 0.36 | 0.34 |
+| Morning, lab only | 0.41 | 0.42 |
+| Morning, other home night only | 0.51 | 0.41 |
+| Morning, lab + other home night | 0.55 | 0.57 |
+| Live, lab only | 0.38 | 0.36 |
+| Live, other home night only | 0.49 | 0.46 |
+| Live, lab + other home night | 0.37 | 0.45 |
+
+Takeaway: the morning model with both sources is the best result yet on home nights, and the first to find REM
+(82% on night 1, 27% on night 2) while still finding awake and deep. Lab and home each fix what the other lacks.
+The live version gains little from the lab and is less steady.
+
+Cautions: two nights, one person. The home night counted for half the training weight; a fifth also beat the phone
+model (0.51 and 0.53). Deep sleep on night 1 stayed poor (14%). The live version here is an approximation.

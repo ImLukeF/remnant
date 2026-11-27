@@ -13,7 +13,7 @@ from modal_ears import image, volume
 
 app = modal.App("sleep-home-check", image=image.add_local_python_source(
     "modal_ears", "modal_distill", "home_night_features", "home_night_train"))
-ROOT, RUN = "/vol/root", "/vol/root/runs/home-check-v1"
+ROOT, RUN = "/vol/root", "/vol/root/runs/home-check-v3"
 
 
 @app.function(volumes={"/vol": volume}, cpu=2, memory=8192, timeout=3600, max_containers=60)
@@ -27,7 +27,7 @@ def features(recording: str):
     if os.path.exists(out):
         return recording
     per = int(30 * hf.FPS)
-    mels, centroid, flat, stage, usable, starts = [], [], [], [], [], []
+    mels, centroid, flat, hi_band, stage, usable, starts = [], [], [], [], [], [], []
     for path in sorted(Path(f"{ROOT}/data/blocks").glob(f"{recording}[[]*.npz")):
         with np.load(path, allow_pickle=False) as b:
             rows, audio_file = len(b["stage"]), str(b["audioFile"])
@@ -36,13 +36,15 @@ def features(recording: str):
                               "-ac", "1", "-ar", "16000", "-"], check=True, capture_output=True).stdout
         audio = np.frombuffer(pcm, dtype=np.float32)
         audio = np.pad(audio, (0, max(0, rows * 480000 + hf.N - len(audio))))[: rows * 480000 + hf.N]
-        m, c, f = hf.frames(audio, 1.0)
+        m, c, f, h = hf.frames(audio, 1.0)
         base = sum(len(x) for x in mels)
-        mels.append(m[: rows * per]); centroid.append(c[: rows * per]); flat.append(f[: rows * per])
+        mels.append(m[: rows * per]); centroid.append(c[: rows * per]); flat.append(f[: rows * per]); hi_band.append(h[: rows * per])
         starts += [base + i * per for i in range(rows)]
     mels = np.concatenate(mels)
-    mels = mels - np.median(mels, axis=0)  # relative to this recording's own quiet level, as at home
-    x = hf.epoch_rows(mels, np.concatenate(centroid), np.concatenate(flat), starts)
+    mels = np.maximum(mels - np.percentile(mels, 10, axis=0), 0.0)
+    hi_rel = np.concatenate(hi_band)
+    hi_rel = hi_rel - np.median(hi_rel)
+    x = hf.epoch_rows(mels, np.concatenate(centroid), np.concatenate(flat), hi_rel, starts)
     y = np.concatenate(stage)
     y[~np.concatenate(usable)] = -1
     os.makedirs(os.path.dirname(out), exist_ok=True)
@@ -116,12 +118,12 @@ def report():
 @app.local_entrypoint()
 def main(stage: str = "all", limit: int = 0):
     import json
-    if stage == "all":
+    if stage in ("all", "features"):
         names = sorted({e.path.split("/")[-1].split("[")[0] for e in volume.listdir("root/data/blocks")})
         names = names[:limit] if limit else names
         for done, name in enumerate(features.map(names, order_outputs=False), 1):
             if done % 20 == 0 or done == len(names): print(f"{done}/{len(names)} recordings", flush=True)
-    if not limit:
+    if stage != "features" and not limit:
         result = report.remote()
         result.pop("singleFeatureRemAUC")
         print(json.dumps(result, indent=1))

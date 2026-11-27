@@ -70,7 +70,7 @@ def show(tag, m, x, y, smooth=1):
 
 def export_model(repo_root, model):
     payload = {
-        "identifier": "morning-v2",
+        "identifier": "morning-v3",
         "stages": ["awake", "light", "deep", "rem"],
         "smoothWidth": SMOOTH_WIDTH,
         "coefficients": [[round(float(v), 6) for v in row] for row in model.coef_],
@@ -87,16 +87,36 @@ def export_model(repo_root, model):
             '"""#\n'
             "}\n"
         )
-    # Update expected probabilities in morning-reference.json (rows stay identical since MorningSound is unchanged)
-    ref_path = os.path.join(repo_root, "Tests", "SleepWakeKitTests", "morning-reference.json")
-    ref = json.load(open(ref_path))
-    rows = np.array(ref["rows"], dtype=np.float64)
-    feats = context(rows, np.arange(len(rows)) / 120.0, False)
+    # Regenerate synthetic 10-minute test reference matching SleepWakeKitTests.swift exactly
+    epochs = 20
+    count = epochs * 480_000 + 1_024
+    s = 12_345
+    rng_vals = np.empty(count, dtype=np.int32)
+    for i in range(count):
+        s = (s * 1_664_525 + 1_013_904_223) & 0xFFFFFFFF
+        rng_vals[i] = ((s >> 16) & 0xFFFF) - 32_768
+    idx = np.arange(count, dtype=np.int64)
+    epoch = idx // 480_000
+    gain = 1 + (epoch % 5) + np.where((epoch % 3) == 0, 6 * ((idx // 32_000) % 2), 0) + np.where((idx % 1_440_000) < 8_000, 40, 0)
+    samples = (rng_vals * gain).astype(np.float32) / np.float32(8_388_608)
+    mels, centroid, flat, hi_band = hf.frames(samples, 1.0)
+    mels = np.maximum(mels - np.percentile(mels, 10, axis=0), 0.0)
+    hi_rel = hi_band - np.median(hi_band)
+    starts = [int(i * 30 * hf.FPS) for i in range(epochs)]
+    rows = hf.epoch_rows(mels, centroid, flat, hi_rel, starts)
+    feats = context(rows, np.arange(epochs) / 120.0, False)
     probs = smooth_probabilities(model.predict_proba(feats), SMOOTH_WIDTH)
-    ref["probabilities"] = [[round(float(v), 6) for v in p] for p in probs]
+    ref_path = os.path.join(repo_root, "Tests", "SleepWakeKitTests", "morning-reference.json")
     with open(ref_path, "w") as f:
-        json.dump(ref, f, separators=(",", ":"))
-    print(f"Exported morning-v2 ({model.coef_.shape[1]} features, smooth={SMOOTH_WIDTH}) to {swift_path} and {ref_path}")
+        json.dump(
+            {
+                "rows": [[round(float(v), 6) for v in r] for r in rows],
+                "probabilities": [[round(float(v), 6) for v in p] for p in probs],
+            },
+            f,
+            separators=(",", ":"),
+        )
+    print(f"Exported morning-v3 ({model.coef_.shape[1]} features, smooth={SMOOTH_WIDTH}) to {swift_path} and {ref_path}")
 
 
 def main():

@@ -98,12 +98,13 @@ public struct MorningSound: Sendable {
     private var levels: [Float] = []      // 24 band levels in dB for every frame
     private var centroids: [Double] = []
     private var flatness: [Double] = []
+    private var highBands: [Double] = []  // 2-7.5 kHz bedding/movement friction band in dB
 
     public init() {
         let size = Self.size
         window = (0..<size).map { 0.5 - 0.5 * cos(2 * Double.pi * Double($0) / Double(size - 1)) }
         let mel = { (hz: Double) in 2595 * log10(1 + hz / 700) }
-        let low = mel(60), high = mel(8_000)
+        let low = mel(100), high = mel(7_500)
         let edges = (0..<(Self.bands + 2)).map { 700 * (pow(10, (low + (high - low) * Double($0) / Double(Self.bands + 1)) / 2595) - 1) }
         filters = (0..<Self.bands).map { band in
             (0...(size / 2)).compactMap { index in
@@ -155,14 +156,22 @@ public struct MorningSound: Sendable {
         for filter in filters {
             levels.append(Float(10 * log10(filter.reduce(0) { $0 + real[$1.0] * $1.1 } + 1e-20)))
         }
-        var total = 0.0, weighted = 0.0, logs = 0.0
-        for index in 4...(size / 2) {
+        // 100..7500 Hz -> bins 7...480, 2000..7500 Hz -> bins 128...480
+        var total = 0.0, weighted = 0.0, logs = 0.0, highSum = 0.0
+        for index in 7...480 {
             total += real[index]; logs += log(real[index])
             weighted += real[index] * Double(index * Self.sampleRate) / Double(size)
+            if index >= 128 { highSum += real[index] }
         }
-        let count = Double(size / 2 - 3)
+        let count = Double(480 - 7 + 1)
         centroids.append(weighted / total)
         flatness.append(exp(logs / count) / (total / count))
+        highBands.append(10 * log10(highSum / Double(480 - 128 + 1) + 1e-20))
+    }
+
+    static func percentile(_ sorted: [Double], _ share: Double) -> Double {
+        let position = share * Double(sorted.count - 1), below = Int(position)
+        return sorted[below] + (sorted[min(below + 1, sorted.count - 1)] - sorted[below]) * (position - Double(below))
     }
 
     /// One row for each half-minute that starts `starts` seconds into the recording; nil where the sound doesn't cover it.
@@ -170,10 +179,12 @@ public struct MorningSound: Sendable {
         let bands = Self.bands, frames = centroids.count, per = Self.epochFrames
         guard frames >= per else { return starts.map { _ in nil } }
         let floors = (0..<bands).map { band in
-            MorningModel.median((0..<frames).map { Double(levels[$0 * bands + band]) })
+            Self.percentile((0..<frames).map { Double(levels[$0 * bands + band]) }.sorted(), 0.10)
         }
+        let highFloor = MorningModel.median(highBands)
+        let highRel = highBands.map { $0 - highFloor }
         let loud = (0..<frames).map { frame in
-            10 * log10((4..<16).reduce(0) { $0 + pow(10, (Double(levels[frame * bands + $1]) - floors[$1]) / 10) } / 12)
+            10 * log10(((2..<16).reduce(0.0) { $0 + pow(10, max(Double(levels[frame * bands + $1]) - floors[$1], 0.0) / 10) } / 14.0) + 1e-20)
         }
         return starts.map { seconds in
             let first = Int(seconds * Self.framesPerSecond)
@@ -181,41 +192,42 @@ public struct MorningSound: Sendable {
             let range = first..<(first + per)
             var means = [Double](repeating: 0, count: bands), spreads = [Double](repeating: 0, count: bands)
             for band in 0..<bands {
-                let values = range.map { Double(levels[$0 * bands + band]) - floors[band] }
+                let values = range.map { max(Double(levels[$0 * bands + band]) - floors[band], 0.0) }
                 means[band] = values.reduce(0, +) / Double(per)
                 spreads[band] = MorningModel.deviation(values[...])
             }
             let level = loud[range], sorted = level.sorted()
-            let percentile = { (share: Double) -> Double in
-                let position = share * Double(per - 1), below = Int(position)
-                return sorted[below] + (sorted[min(below + 1, per - 1)] - sorted[below]) * (position - Double(below))
-            }
             let jitter = zip(level.dropFirst(), level).reduce(0) { $0 + abs($1.0 - $1.1) } / Double(per - 1)
             let wide = Self.breathing(loud[max(0, first - per)..<min(frames, first + 2 * per)])
             let narrow = Self.breathing(level)
             let pitch = centroids[range]
+            let high = highRel[range]
             return means + spreads + [
-                level.reduce(0, +) / Double(per), MorningModel.deviation(level), percentile(0.95) - percentile(0.05),
+                level.reduce(0, +) / Double(per), MorningModel.deviation(level),
+                Self.percentile(sorted, 0.95) - Self.percentile(sorted, 0.05),
                 Double(level.count { $0 > 10 }) / Double(per), Double(level.count { $0 > 20 }) / Double(per), jitter,
                 pitch.reduce(0, +) / Double(per), MorningModel.deviation(pitch),
                 flatness[range].reduce(0) { $0 + log($1) } / Double(per),
-                wide.strength, wide.period, narrow.strength, narrow.period,
+                wide.strength, wide.period, wide.peakSD, wide.rrvDisp, wide.specEnt,
+                narrow.strength, narrow.period, narrow.peakSD, narrow.rrvDisp, narrow.specEnt,
+                high.reduce(0, +) / Double(per), MorningModel.deviation(high),
+                Double(high.count { $0 > 6 }) / Double(per), Double(high.count { $0 > 12 }) / Double(per),
             ]
         }
     }
 
-    /// How strongly, and how often, the loudness repeats every 2 to 8 seconds.
-    static func breathing(_ envelope: ArraySlice<Double>) -> (strength: Double, period: Double) {
+    /// Breathing periodicity, harmonic peak stability, and spectral RRV dispersion/entropy (0.12-0.50 Hz).
+    static func breathing(_ envelope: ArraySlice<Double>) -> (strength: Double, period: Double, peakSD: Double, rrvDisp: Double, specEnt: Double) {
         let step = 8, rate = framesPerSecond / Double(step)
         let values = Array(envelope)
         let coarse = (0..<(values.count / step)).map { block in values[(block * step)..<((block + 1) * step)].reduce(0, +) / Double(step) }
         let kernel = Int(rate * 10) | 1, half = kernel / 2
-        guard coarse.count > Int(8 * rate) else { return (0, 0) }
+        guard coarse.count > Int(8 * rate) else { return (0, 0, 0, 0, 0) }
         let steady = coarse.indices.map { index -> Double in
             let around = ((index - half)...(index + half)).reduce(0.0) { $0 + coarse[min(max($1, 0), coarse.count - 1)] } / Double(kernel)
             return min(6, max(-6, coarse[index] - around))
         }
-        guard MorningModel.deviation(steady[...]) >= 1e-6 else { return (0, 0) }
+        guard MorningModel.deviation(steady[...]) >= 1e-6 else { return (0, 0, 0, 0, 0) }
         let match = { (lag: Int) in (0..<(steady.count - lag)).reduce(0.0) { $0 + steady[$1] * steady[$1 + lag] } }
         let whole = match(0)
         var best = Int(2 * rate), strength = -Double.infinity
@@ -223,6 +235,37 @@ public struct MorningSound: Sendable {
             let value = match(lag) / whole
             if value > strength { strength = value; best = lag }
         }
-        return (strength, Double(best) / rate)
+        let peaks = [1, 2, 3].compactMap { multiple -> Double? in
+            let lag = multiple * best
+            return lag < steady.count ? match(lag) / whole : nil
+        }
+        let peakSD = peaks.count >= 2 ? MorningModel.deviation(peaks[...]) : 0.0
+        let count = steady.count
+        let windowed = steady.indices.map { index in
+            steady[index] * (0.5 - 0.5 * cos(2 * Double.pi * Double(index) / Double(count - 1)))
+        }
+        var resp: [Double] = []
+        for bin in 0...(count / 2) {
+            let hz = Double(bin) * rate / Double(count)
+            guard hz >= 0.12 && hz <= 0.50 else { continue }
+            var re = 0.0, im = 0.0
+            let stepAngle = 2 * Double.pi * Double(bin) / Double(count)
+            for index in 0..<count {
+                let angle = stepAngle * Double(index)
+                re += windowed[index] * cos(angle)
+                im -= windowed[index] * sin(angle)
+            }
+            resp.append(re * re + im * im + 1e-12)
+        }
+        guard !resp.isEmpty else { return (strength, Double(best) / rate, peakSD, 1.0, 1.0) }
+        let total = resp.reduce(0, +)
+        let peakIndex = resp.indices.max { resp[$0] < resp[$1] } ?? 0
+        let h1 = resp[max(0, peakIndex - 1)...min(resp.count - 1, peakIndex + 1)].reduce(0, +)
+        let rrvDisp = 1.0 - h1 / total
+        let entropy = -resp.reduce(0.0) { sum, power in
+            let p = power / total
+            return sum + p * log(p + 1e-12)
+        } / log(Double(resp.count) + 1e-12)
+        return (strength, Double(best) / rate, peakSD, rrvDisp, entropy)
     }
 }

@@ -13,7 +13,8 @@ Times are Melbourne time. Costs are actual Modal charges from `modal billing rep
 | 25 Nov | `sleep-night` | Dasheng probe on home night 1 | 0.34 |
 | 25 Nov | `sleep-distill` | Distilling the four ears into one 85M model, incl. timing test | 11.47 |
 | 26 Nov | `sleep-home-check` | Home-night sound clues tested on every lab recording | 0.76 |
-| | | **Total** | **32.72** |
+| 27 Nov | `sleep-home-check` (v3) | 100 Hz + noise-gated + spectral RRV + friction features on 230 lab recordings | 0.55 |
+| | | **Total** | **33.27** |
 
 Earlier work (the v11 phone model and the v12 Whisper teacher) ran on the VPS and Colab and wasn't costed here.
 
@@ -227,3 +228,32 @@ before confirming `morning-v2` holds up out-of-sample).
 
 Caution: still only two labelled home nights from one person; the first fair test of `morning-v2` will be
 the next unseen wearable-labelled night.
+
+## 27 Nov: morning-v3 — 100 Hz high-pass, adaptive spectral gating, spectral RRV and bedding friction
+
+Upgraded the raw 30-second audio extractor (`home_night_features.py` and `MorningSound` in Swift) from
+61 to 71 features (351 after ±2.5/10/25/50 min context):
+- Bandpass mel filterbank and spectral centroid/flatness to 100–7,500 Hz (stripping sub-100 Hz room hum).
+- Adaptive 10th-percentile spectral noise gating per mel band instead of simple median subtraction.
+- Spectral Respiratory Rate Variability (`rrv_disp`, `spec_ent`) and autocorrelation harmonic peak-amplitude SD
+  over 30 s and 90 s breathing windows.
+- 2–7.5 kHz high-band bedding/fabric-friction movement features.
+
+Re-extracted all 230 PSG-Audio lab recordings on Modal ($0.55) and home nights 1–3 locally.
+
+| Model | Lab val (40 people) bal / κ4 / REM AUC / F1 | Night 2 (24-bit, 50% wt) bal / κ4 / REM AUC / F1 | Night 1 (16-bit, 50% wt) bal / κ4 / REM AUC / F1 |
+| --- | ---: | ---: | ---: |
+| `morning-v1` (209 feat) | 0.524 / 0.123 / 0.659 / 0.154 | 0.569 / 0.329 / 0.755 / 0.332 | 0.545 / 0.277 / 0.773 / 0.487 |
+| `morning-v2` (261 feat, sm5) | 0.544 / 0.141 / 0.705 / 0.187 | 0.659* / 0.431* / 0.729* / 0.437* | 0.543* / 0.326* / 0.777* / 0.503* |
+| `morning-v3` (351 feat, sm5) | **0.552 / 0.162 / 0.719 / 0.196** | **0.647 / 0.412 / 0.773 / 0.478** | 0.518 / 0.323 / **0.779** / 0.488 |
+
+\*`morning-v2` per-night figures above are raw (pre-smoothing); smoothed `morning-v2` avg was bal 0.622 / κ4 0.406 / REM F1 0.491.
+On 24-bit night 2 at 20% home weight, `morning-v3` reached bal 0.626, κ4 0.366, REM AUC 0.751, REM F1 0.537 (52% recall, 55% precision).
+
+Sanity check on unseen night 3 (26–27 Nov, 8.6 h, 24-bit, no Watch labels):
+- `morning-v1`: Awake 85 min, Light 248 min, Deep 31.5 min, REM 150 min
+- `morning-v2`: Awake 112 min, Light 202.5 min, Deep 36.5 min, REM 163.5 min
+- `morning-v3`: Awake 75 min, Light 287 min, Deep 52.5 min, REM 100 min (19.4% REM, 10.2% Deep)
+
+Exported as `morning-v3` in `Sources/SleepWakeKit/MorningModelData.swift`, verified Swift matches Python
+(`swift test`, 19/19 passed), synced into Parley, and installed on Luke's iPhone ahead of tonight's Fitbit Air test.

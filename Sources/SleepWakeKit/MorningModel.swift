@@ -1,11 +1,12 @@
 import Foundation
 
 /// A second reading of a finished night. It hears the whole recording first, so every sound is measured against that
-/// night's own quiet level and each half-minute is read with the 20 minutes either side of it.
+/// night's own quiet level and each half-minute is read with up to 50 minutes either side of it.
 public struct MorningModel: Decodable, Sendable {
     public let identifier: String
     let coefficients: [[Double]]
     let intercepts: [Double]
+    let smoothWidth: Int?
 
     public static let shipped = try! JSONDecoder().decode(MorningModel.self, from: Data(MorningModelData.json.utf8))
     /// Shorter recordings have too little night to set a quiet level from.
@@ -13,7 +14,7 @@ public struct MorningModel: Decodable, Sendable {
 
     /// The chance of awake, light, deep and REM for each half-minute, from `MorningSound.rows`.
     public func probabilities(_ rows: [[Double]]) -> [[Double]] {
-        Self.context(rows).map { features in
+        let raw = Self.context(rows).map { features in
             let scores = zip(coefficients, intercepts).map { weights, intercept in
                 zip(weights, features).reduce(intercept) { $0 + $1.0 * $1.1 }
             }
@@ -22,13 +23,23 @@ public struct MorningModel: Decodable, Sendable {
             let total = raised.reduce(0, +)
             return raised.map { $0 / total }
         }
+        let width = smoothWidth ?? 1
+        guard width > 1, !raw.isEmpty else { return raw }
+        let half = width / 2
+        return raw.indices.map { index in
+            let window = raw[max(0, index - half)...min(raw.count - 1, index + half)]
+            let count = Double(window.count)
+            return (0..<raw[index].count).map { stage in
+                window.reduce(0.0) { $0 + $1[stage] } / count
+            }
+        }
     }
 
     public func stages(_ rows: [[Double]]) -> [SleepStage] {
         probabilities(rows).map { chances in SleepStage.allCases[chances.indices.max { chances[$0] < chances[$1] } ?? 1] }
     }
 
-    /// Each measurement scaled to the night, then its average and spread over 5 and 20 minutes either side.
+    /// Each measurement scaled to the night, then its average and spread over 2.5, 10, 25 and 50 minutes either side.
     static func context(_ rows: [[Double]]) -> [[Double]] {
         guard let width = rows.first?.count else { return [] }
         var scaled = rows
@@ -41,11 +52,17 @@ public struct MorningModel: Decodable, Sendable {
         return rows.indices.map { row in
             let near = scaled[max(0, row - 5)...min(rows.count - 1, row + 5)]
             let far = scaled[max(0, row - 20)...min(rows.count - 1, row + 20)]
+            let medium = scaled[max(0, row - 50)...min(rows.count - 1, row + 50)]
+            let cycle = scaled[max(0, row - 100)...min(rows.count - 1, row + 100)]
             var features = scaled[row]
             for window in [near, far] {
                 features += (0..<width).map { column in window.reduce(0) { $0 + $1[column] } / Double(window.count) }
             }
             for window in [near, far] {
+                features += core.map { column in deviation(window.map { $0[column] }[...]) }
+            }
+            for window in [medium, cycle] {
+                features += core.map { column in window.reduce(0) { $0 + $1[column] } / Double(window.count) }
                 features += core.map { column in deviation(window.map { $0[column] }[...]) }
             }
             return features

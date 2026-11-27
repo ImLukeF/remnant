@@ -201,3 +201,29 @@ The app's maths was checked against the training maths: same stage totals on hom
 
 Caution: this shipped model has seen both home nights, so its scores on those two mean nothing.
 The first fair test is the next new night against the Watch.
+
+## 27 Nov: morning-v2 — wider ultradian context and probability smoothing
+
+Added ±25-minute and ±50-minute rolling windows on the loudness, movement and breathing features
+(matching full 50–100 minute ultradian cycles, 261 features total) plus 5-epoch (2.5 min) probability
+smoothing, keeping the same 61 raw sound features and 50/50 lab + home weighting. Ran on a laptop, no cost.
+Scripts: `home_night_train.py`, `home_night_combined.py`.
+
+| Model | Lab val (40 people) bal / κ4 / REM AUC | Home avg (50% wt) bal / κ4 / REM F1 | Night 1 bal / κ4 / REM F1 | Night 2 bal / κ4 / REM F1 |
+| --- | ---: | ---: | ---: | ---: |
+| `morning-v1` (209 features) | 0.524 / 0.123 / 0.659 | 0.557 / 0.303 / 0.410 | 0.545 / 0.277 / 0.487 | 0.569 / 0.329 / 0.332 |
+| `morning-v2` raw (261 features) | 0.549 / 0.144 / 0.704 | 0.601 / 0.378 / 0.470 | 0.543 / 0.326 / 0.503 | 0.659 / 0.431 / 0.437 |
+| `morning-v2` + smooth(5) | 0.544 / 0.141 / 0.705 | 0.622 / 0.406 / 0.491 | – | – |
+
+Takeaway: the wider ultradian window alone pushes the tiny linear model past the 1.2B Dasheng teacher on
+the 40 unseen lab people (0.549 vs 0.546) and lifts home-night κ4 from 0.303 to 0.406 and REM F1 from
+0.410 to 0.491. Exported as `morning-v2` in `Sources/SleepWakeKit/MorningModelData.swift` and verified
+against Swift (`swift test`, 19/19 passed).
+
+Also tested 100 Hz high-pass + adaptive spectral gating + spectral RRV on home nights 1–2 alone
+(N2 → N1 balanced acc 0.511 → 0.557, REM AUC 0.762 → 0.837, REM F1 0.432 → 0.557). Held back from
+`morning-v2` until we score an unseen wearable-labelled night first (avoiding a Modal re-extraction pass
+before confirming `morning-v2` holds up out-of-sample).
+
+Caution: still only two labelled home nights from one person; the first fair test of `morning-v2` will be
+the next unseen wearable-labelled night.

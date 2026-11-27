@@ -14,10 +14,26 @@ def roll(x, half, fn):
 def context(x, hours, clock):
     x = (x - np.median(x, 0)) / (x.std(0) + 1e-6)          # each night scaled to itself
     core = x[:, 48:]                                        # loudness, movement and breathing
-    parts = [x, roll(x, 5, np.mean), roll(x, 20, np.mean), roll(core, 5, np.std), roll(core, 20, np.std)]
+    parts = [
+        x,
+        roll(x, 5, np.mean), roll(x, 20, np.mean),
+        roll(core, 5, np.std), roll(core, 20, np.std),
+        roll(core, 50, np.mean), roll(core, 50, np.std),
+        roll(core, 100, np.mean), roll(core, 100, np.std),
+    ]
     if clock:
         parts.append(hours[:, None])
     return np.hstack(parts)
+
+
+def smooth_probabilities(proba, width=5):
+    if width <= 1 or len(proba) == 0:
+        return proba
+    half = width // 2
+    out = np.empty_like(proba)
+    for i in range(len(proba)):
+        out[i] = proba[max(0, i - half) : min(len(proba), i + half + 1)].mean(axis=0)
+    return out
 
 def build(path, clock):
     d = np.load(path)

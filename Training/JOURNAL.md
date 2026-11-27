@@ -257,3 +257,40 @@ Sanity check on unseen night 3 (26–27 Nov, 8.6 h, 24-bit, no Watch labels):
 
 Exported as `morning-v3` in `Sources/SleepWakeKit/MorningModelData.swift`, verified Swift matches Python
 (`swift test`, 19/19 passed), synced into Parley, and installed on Luke's iPhone ahead of tonight's Fitbit Air test.
+
+## 28 Nov: Night 5 — first blind test of morning-v3 against a Fitbit Air
+
+First completely unseen wearable-labelled night (2:12 am – 9:30 am, 7.3 h, 24-bit, 852 labelled half-minutes)
+tested blind against a wrist wearable (Fitbit Air) the model had never seen. All three morning models below
+were trained only on the 230 lab people + the first two Apple Watch nights.
+
+| Model | Balanced acc | 4-class κ | 3-class κ (W/N/R) | REM AUC | REM F1 (R / P) | Deep recall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Live phone model (v11) | 0.386 | 0.046 | 0.027 | – | 0.026 (1% / 10%) | 11% |
+| `morning-v1` (209 feat) | 0.471 | 0.149 | 0.186 | 0.711 | 0.392 (54% / 31%) | 13% |
+| `morning-v2` (261 feat, sm5) | 0.437 | 0.136 | 0.168 | 0.737 | 0.365 (43% / 32%) | 17% |
+| **`morning-v3` (351 feat, sm5)** | 0.395 | **0.150** | **0.291** | **0.801** | **0.478 (55% / 42%)** | 12% |
+
+Python and iPhone Swift `morning-v3` agreed on 100.0% of all 852 half-minutes.
+
+REM cycles (Fitbit Air vs `morning-v3` pure bedside audio):
+- Cycle 1: 3:33–3:53 am (20 min) vs 3:35–3:53 am (16 min) — caught
+- Cycle 2: 5:10–5:24 am (10 min) vs 5:10–5:24 am (13.5 min) — exact minute start and end
+- Cycle 3: 6:28–6:45 am (17 min) vs 6:31–6:34 am (3.5 min) — caught start, dropped early
+- Cycle 4: 7:41–7:53 am (12 min) vs 7:22–7:50 am (+ 7:55–8:17 am) — caught, over-called around it
+- Cycle 5: 9:09–9:18 am (9 min) vs missed
+
+3-night leave-one-out check (lab + 2 home nights → unseen 3rd night, 50% home weight):
+- Adding this Fitbit night to training lifted held-out 24-bit Apple Watch night 2 from REM AUC `0.773 → 0.887`,
+  REM F1 `0.478 → 0.579` (52% recall, 65% precision), 4-class κ `0.412 → 0.462`, balanced acc `0.647 → 0.677`
+  (Deep recall 91%).
+- Average across all 3 held-out home nights: balanced acc 0.545, κ4 0.312, κ3 0.328, REM AUC 0.755, REM F1 0.468.
+
+Side experiment — 1 Hz live BLE heart rate logged alongside audio all night (26,046 samples, max gap 2.0 s,
+852/852 epochs covered): with zero training, raw 1 Hz HR single-feature AUC reached 0.918 for Awake
+(67.0 bpm), 0.800 for Deep (54.5 bpm, half the jitter of Light/REM), and 0.748 for REM (59.3 bpm) — directly
+covering pure audio's Deep and Awake blind spots.
+
+Takeaway: pure bedside audio (`morning-v3`) generalized blind to a new night and a different wearable on REM
+(0.801 AUC, 4/5 cycles), and Watch + Fitbit labels reinforce each other cleanly. Next step: collect 3–5 more
+Fitbit + BLE HR nights before the next retrain and sequence-model step.

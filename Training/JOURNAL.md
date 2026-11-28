@@ -292,5 +292,15 @@ Side experiment — 1 Hz live BLE heart rate logged alongside audio all night (2
 covering pure audio's Deep and Awake blind spots.
 
 Takeaway: pure bedside audio (`morning-v3`) generalized blind to a new night and a different wearable on REM
-(0.801 AUC, 4/5 cycles), and Watch + Fitbit labels reinforce each other cleanly. Next step: collect 3–5 more
-Fitbit + BLE HR nights before the next retrain and sequence-model step.
+(0.801 AUC, 4/5 cycles), and Watch + Fitbit labels reinforce each other cleanly.
+
+### Retrained as `morning-v3.1` (all 3 labelled home nights)
+
+Retrained the same 351-feature / 5-epoch-smoothed model on all 230 lab people + all 3 labelled home nights
+(25 Nov Watch, 26 Nov Watch, 28 Nov Fitbit Air; 50/50 weight, $0 laptop run) and exported as `morning-v3.1`
+in `Sources/SleepWakeKit/MorningModelData.swift`. Verified Swift matches Python (`swift test` passed).
+Sanity check on the unseen unlabeled 27 Nov night (8.6 h): Awake 80.5 min, Light 276.5 min, Deep 62.0 min
+(12%), REM 95.5 min (19%).
+
+Next step: freeze `morning-v3.1` for the next 3–5 Fitbit Air + BLE HR nights to get a clean multi-night
+blind benchmark before the next retrain and sequence-model step.

@@ -68,9 +68,9 @@ def show(tag, m, x, y, smooth=1):
     )
 
 
-def export_model(repo_root, model):
+def export_model(repo_root, model, identifier="morning-v3.1"):
     payload = {
-        "identifier": "morning-v3",
+        "identifier": identifier,
         "stages": ["awake", "light", "deep", "rem"],
         "smoothWidth": SMOOTH_WIDTH,
         "coefficients": [[round(float(v), 6) for v in row] for row in model.coef_],
@@ -116,12 +116,13 @@ def export_model(repo_root, model):
             f,
             separators=(",", ":"),
         )
-    print(f"Exported morning-v3 ({model.coef_.shape[1]} features, smooth={SMOOTH_WIDTH}) to {swift_path} and {ref_path}")
+    print(f"Exported {identifier} ({model.coef_.shape[1]} features, smooth={SMOOTH_WIDTH}) to {swift_path} and {ref_path}")
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--export", help="Repo root to write MorningModelData.swift and morning-reference.json")
+    ap.add_argument("--id", default="morning-v3.1", help="Model identifier when exporting")
     ap.add_argument("--features-dir", default="features", help="Folder of lab feature .npz files")
     ap.add_argument("nights", nargs="+", help="Home night .npz files")
     args = ap.parse_args()
@@ -138,7 +139,7 @@ def main():
         x_home = np.concatenate([x for x, _ in home_all])
         y_home = np.concatenate([y for _, y in home_all])
         model = fit([(x_lab, y_lab, 0.5), (x_home, y_home, 0.5)])
-        export_model(args.export, model)
+        export_model(args.export, model, identifier=args.id)
         return
 
     for mode in ("morning", "live"):
